@@ -1,0 +1,80 @@
+@use "../../styles/variable.scss" as *;
+
+.form-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 1rem;
+    width: 80%;
+    padding-bottom: 2rem;
+
+    .owner-wallet-address {
+        text-align: center;
+        @include flex-center;
+        flex-direction: column;
+        gap: .5rem;
+    }
+
+    .submit {
+        width: 100%;
+        display: flex;
+        align-items: s;
+        justify-content: space-between;
+
+        .cancel {
+            background-color: $interactive-component;
+            border: 1px solid $border-separator;
+        }
+
+        & > div {
+            cursor: pointer;
+            color: $primary-text-color;
+            @include flex-center;
+            width: 4.5rem;
+            height: 2rem;
+            background-color: $solid-background;
+            border-radius: 5px;
+        }
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        width: 100%;
+
+        .label {
+            font-size: 1.1rem;
+        }
+
+        .input {
+            width: 100%;
+
+            select {
+                font-size: 1.05rem;
+                outline: none;
+                height: 2.3rem;
+                border-radius: 5px;
+                border: 1px solid $border-separator;
+                width: 100%;
+                padding: 0 1rem;
+                background-color: white;
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+            }
+
+            input {
+                font-size: 1.05rem;
+                outline: none;
+                height: 2.3rem;
+                border-radius: 5px;
+                border: 1px solid $border-separator;
+                width: 100%;
+                padding: 0 1rem;
+            }
+        }
+    }
+}

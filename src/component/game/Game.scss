@@ -1,0 +1,491 @@
+@use "../../styles/variable.scss" as *;
+
+@keyframes animatedCoin {
+  0%   { transform: translate(-50%, -50%) translateY(0); }
+  50%  { transform: translate(-50%, -50%) translateY(-200%); }
+  100% { transform: translate(-50%, -50%) translateY(0); }
+}
+
+.game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 25rem;
+    height: 45rem;
+    zoom: 1;
+
+    .exit {
+        position: absolute;
+        top: 2%;
+        left: 0%;
+       // width: 4rem;
+      //  height: 2rem;
+        @include flex-center;
+        border-radius: 3px;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
+        color: $gold;
+        cursor: pointer;
+        z-index: 999;
+    }
+
+    .table {
+        position: absolute;
+        width: 21rem;
+        height: 36rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .table-surface {
+            z-index: 2;
+
+            img {
+                width: 30rem;
+                height: 46rem;
+                background: none;
+                object-fit: contain;
+                mix-blend-mode: normal;
+                background: transparent;
+                image-rendering: auto;
+                border: none;
+                box-shadow: none;
+            }
+
+        }
+    }
+
+    .player {
+        position: absolute;
+        width: 5rem;
+        padding-top: 2pt;
+        padding-bottom: 2pt;
+        background-color: #2d1c0c;
+     //   border: 1px solid $gold;
+        @include flex-center;
+        color: $background;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        // gap: .5rem;
+        font-size: 12px;
+        z-index: 10;
+
+        .amount {
+            color: $gold;
+            position: absolute;
+            top: -20px;
+            left: 101px;
+            width: fit-content;
+            height: fit-content;
+            font-size: .9rem;
+
+            .jeton img {
+                width: 2rem;
+                object-fit: contain;
+                background: none;
+                mix-blend-mode: normal;
+                background: transparent;
+                image-rendering: auto;
+                border: none;
+                box-shadow: none;
+            }
+
+            &.p_1{
+                top: .7rem;
+                left: 110px;
+            } 
+
+            &.p_2, &.p_0 {
+                top: 1.7rem;
+            }
+
+            &.p_3 {
+                left: 1.5rem;
+                top: 3.5rem;
+            }
+
+            &.p_5 {
+                top: .7rem;
+                left: -80px;
+            }
+
+            &.p_6, &.p_4 {
+                left: -70px;
+                top: 1.7rem;
+            }
+
+            &.p_7 {
+                left: -1.5rem;
+                top: -3rem;
+            }
+
+            &.p_8 {
+                left: 4.5rem;
+                top: -3rem;
+            }
+        }
+
+        .player-cards {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: -3.5rem;
+            z-index: -1;
+
+            .card-containers {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+
+        .action {
+            color: $gold
+        }
+
+        .btn-action {
+            @include flex-center;
+            position: absolute;
+            top: 3%;
+            left: -37%;
+            width: 2rem;
+            aspect-ratio: 1;
+            z-index: 3;
+            color: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid white;
+            font-weight: bold;
+            cursor: pointer;
+
+            &.right {
+                left: 95%;    
+            }
+
+            &.deal-btn {
+                background-color: #e63946;
+            }
+
+            &.sb-btn {
+                background: radial-gradient(ellipse at center, #1B3B6F 0%, #0F1E33 100%);    
+            }
+
+            &.bb-btn {
+                background: radial-gradient(ellipse at center, #a47148 0%, #4b2e1e 100%);
+            }
+
+        }
+
+        &.win {
+             background-color: #065a2e;  
+        }
+
+        .stacks {
+            font-weight: 900;
+        }
+
+        &.active {
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                background-color: #579;  
+             //   background: radial-gradient(circle,rgba(36, 145, 102, 1) 20%, rgba(15, 94, 57, 1) 88%);
+                z-index: -1;
+                animation: shrinkToLeft 12s linear forwards;
+            }
+            }
+            @keyframes shrinkToLeft {
+                0% {
+                    left: 0;
+                    width: 100%;
+                }
+                100% {
+                    left: 0;
+                    width: 0%;
+                }
+            }
+        
+        &.seat8 {
+            top: 94%;
+            left: 5%;
+        }
+
+        &.seat7 {
+            top: 94%;
+            left: 72%;
+        }
+
+        &.seat6 {
+            top: 70%;
+            left: 91%;
+        }
+
+        &.seat5 {
+            top: 33.5%;
+            left: 91%;
+        }
+
+        &.seat4 {
+            top: 9%;
+            left: 89%;
+        }
+
+        &.seat3 {
+            top: 0%;
+            left: 40%;
+        }
+
+        &.seat2 {
+            top: 9%;
+            left: -13%;
+        }
+
+        &.seat1 {
+            top: 33.5%;
+            left: -15%;
+        }
+
+        &.seat0 {
+            top: 70%;
+            left: -15%;
+        }
+    }
+
+    .pots-container {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 21rem;
+        z-index: 3;
+        height: fit-content;  
+        top: 13rem;
+        gap: .5rem;
+        color: white;
+
+        .pots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+
+            .principals, .pot {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            img {
+                height: 1rem;
+                object-fit: contain;
+                background: none;
+                mix-blend-mode: normal;
+                background: transparent;
+                image-rendering: auto;
+                border: none;
+                box-shadow: none;
+            }
+
+            .seondaires {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: .5rem;
+            }
+        }
+
+        .jetons { 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            img {
+                height: 3rem;
+                object-fit: contain;
+                background: none;
+                mix-blend-mode: normal;
+                background: transparent;
+                image-rendering: auto;
+                border: none;
+                box-shadow: none;
+            }
+        }
+    }
+
+    // .pots {
+    //     position: absolute;
+    //     display: flex;
+    //     align-items: center;
+    //     flex-direction: column;
+    //     row-gap: 1rem;
+    //     left: 45%;
+    //     top: 30%;
+    //     color: $background;
+    //     font-size: 1.7rem;
+    //     z-index: 1;
+    //     div{
+    //         display: flex;
+    //         column-gap: 1rem;
+    //         p{
+    //             font-size: 1rem;
+    //         }
+    //     }
+    // }
+
+    .community-cards {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding-left: .7rem;
+        width: 21rem;
+        height: 4rem;
+        gap: .5rem;
+        position: absolute;
+        top: 50%;
+        left: 8%;
+        z-index: 3;
+
+        .card-community {
+            width: 18%;
+        }
+    }
+
+    .player-action-container {
+        position: absolute;
+        top: 54rem;
+        left: 38px;
+        zoom: .8;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border-radius: .3rem;
+        gap: 1.5rem;
+
+        .action-container {
+            @include flex-center;
+            gap: 1rem;
+
+            .player-action {
+                width: 8rem;
+                height: 2.6rem;
+                border-radius: 1rem;
+                @include flex-center;
+                border: 2px solid #00FF99;
+                background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
+                cursor: pointer;
+                color: $background;
+            }
+        }
+
+        .input-group {
+            @include flex-center;
+            gap: 1rem;
+            color: $primary-text-color;
+            color: $background;
+            
+
+            .input {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: .5rem;
+
+                input {
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    border: none;
+                    text-align: center;
+                    outline: none;
+                    background-color: transparent;
+                }
+            }
+
+            .submit {
+                width: 8rem;
+                height: 2.6rem;
+                border-radius: 1rem;
+                @include flex-center;
+                background-color: $solid-background;
+                cursor: pointer;
+                @include flex-center;
+                border: 2px solid #00FF99;
+                background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
+            }
+        }
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.gold-button {
+  /* Dimensions et forme */
+  padding: 8px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+  border-radius: 50px;
+  cursor: pointer;
+  text-transform: uppercase;
+  
+  /* Couleurs du texte */
+  color: #3d3416;
+  
+  /* Bordure extérieure dorée */
+  border: 4px solid #b89240;
+  
+  /* Le dégradé de fond principal */
+  background: linear-gradient(to bottom, #f9e27c 0%, #d4af37 50%, #b8860b 100%);
+  
+  /* Les ombres pour l'effet 3D */
+  box-shadow: 
+    /* Lueur claire en haut (interne) */
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    /* Ombre sombre en bas (interne) */
+    inset 0 -4px 6px rgba(0, 0, 0, 0.3),
+    /* Ombre portée sous le bouton (externe) */
+    0 4px 10px rgba(0, 0, 0, 0.5);
+    
+  transition: transform 0.1s, brightness 0.2s;
+}
+
+/* Effet au survol */
+.gold-button:hover {
+  filter: brightness(1.1);
+}
+
+/* Effet quand on clique */
+.gold-button:active {
+  transform: scale(0.98);
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 451px) {
+    .game-container {
+        zoom: .9;
+    }
+}
+
+@media (max-width: 399px) {
+    .game-container {
+        zoom: .8;    
+    }
+}
+
+@media (max-width: 350px) {
+    .game-container {
+        zoom: .7;    
+    }
+}

@@ -1,0 +1,34 @@
+@use "../../styles/variable.scss" as *;
+
+.tracking-container {
+    max-width: 100vw;
+    width: 100%;
+    overflow: hidden;
+
+    .header-sub {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        gap: .2rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        width: 100%;
+        background-color: $border-separator;
+        height: 3rem;
+
+        .active {
+            background-color: $solid-background;
+        }
+
+        .source-transaction {
+            width: 100%;
+            height: 100%;
+            color: $primary-text-color;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: .2s ease-in-out;
+        }
+    }
+}

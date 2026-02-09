@@ -1,0 +1,18 @@
+@use "../../styles/variable.scss" as *;
+
+.table-container {
+    width: 100%;
+    height: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    
+    z-index: 0;
+
+    .game-content {
+        width: 100%;
+        height: 100%;
+       // @include flex-center;
+       display: flex;
+       justify-content: center;
+    }
+}

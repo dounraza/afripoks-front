@@ -1,0 +1,65 @@
+@use "../../styles/variable.scss" as *;
+
+.history-container {
+    @include flex-center;
+
+    .history-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 1.5rem;
+        max-width: 600px;
+        padding-top: 6.5rem;
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 3fr 1fr;
+            align-items: center;
+            padding: 1rem;
+            background: $interactive-component;
+            border: 1px solid $border-separator;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            width: 100%;
+
+            .date {
+                text-align: center;
+
+                .month {
+                    font-size: 1rem;
+                    font-weight: bold;
+                    color: $primary-text-color;
+                }
+
+                .day {
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    color: $solid-background;
+                }
+            }
+
+            .info {
+                display: flex;
+                flex-direction: column;
+                gap: 0.3rem;
+
+                .type {
+                    font-weight: 600;
+                    color: $primary-text-color;
+                }
+
+                .ref {
+                    font-size: 0.9rem;
+                    color: $secondary-text-links;
+                }
+            }
+
+            .status {
+                text-align: right;
+                font-weight: bold;
+                color: $borderfocus-rings;
+            }
+        }
+    }
+}

@@ -1,0 +1,34 @@
+@use "../../styles/variable.scss" as *;
+
+.depot-container {
+    @include flex-center;
+    flex-direction: column;
+    padding-top: 4.5rem;
+
+    .depot-content {
+        margin-top: 2rem;
+        width: 30rem;
+        color: $primary-text-color;
+        background: $interactive-component;
+        border-radius: 8px;
+
+        .title {
+            width: 100%;
+            @include flex-center;
+            color: $secondary-text-links;
+            font-size: 1.8rem;
+            padding: 1.3rem 0;
+        }
+
+        .form-container {
+            @include flex-center;
+            margin-top: 2rem;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .depot-content {
+            width: 100%;
+        }
+    }
+}

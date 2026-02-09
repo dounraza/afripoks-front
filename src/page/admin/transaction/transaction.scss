@@ -1,0 +1,575 @@
+// Variables
+$primary-color: #3498db;
+$success-color: #4caf50;
+$warning-color: #ff9800;
+$error-color: #f44336;
+$text-color: #2c3e50;
+$light-gray: #f5f7fa;
+$border-color: #f0f0f0;
+
+.transaction-container {
+  padding: 60px 20px 20px 20px;
+  background-color: #f8fafc;
+  min-height: calc(100vh - 60px); // Adjust based on your header height
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  .page-title {
+    color: $text-color;
+    margin: 0;
+    font-size: 1.5rem;
+  }
+}
+
+.header-actions {
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: white;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    color: $text-color;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(.loading) {
+      background-color: $light-gray;
+      border-color: $primary-color;
+      color: $primary-color;
+    }
+
+    &.loading {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    i {
+      transition: transform 0.3s ease;
+    }
+
+    &:hover:not(.loading) i {
+      transform: rotate(120deg);
+    }
+  }
+}
+
+.transaction-tabs {
+  display: flex;
+  background: $light-gray;
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+
+  .tab-btn {
+    border: none;
+    background: transparent;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #64748b;
+    transition: all 0.3s ease;
+    flex: 1;
+    justify-content: center;
+
+    i {
+      font-size: 1.1rem;
+    }
+
+    &.active {
+      background: #ffffff;
+      color: $primary-color;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// Loading and Error States
+.loading-spinner {
+  position: fixed;          // Fixe le loader par rapport à la fenêtre
+  top: 0;
+  left: 0;
+  width: 100vw;             // Largeur totale de la fenêtre
+  height: 100vh;            // Hauteur totale de la fenêtre
+  background-color: rgba(255, 255, 255, 0.8); // Fond blanc semi-transparent
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;   // Empile verticalement spinner + texte
+  gap: 12px;
+  color: $primary-color;
+  font-size: 1.1rem;
+  z-index: 9999;            // Au-dessus de tout
+
+  .spin {
+    font-size: 2rem;        // Agrandir l'icône pour bien voir
+    animation: spin 1s linear infinite;
+  }
+}
+
+// Animation du spin (si elle n'existe pas déjà)
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: #fff1f0;
+  border-radius: 8px;
+  margin: 20px 0;
+  color: $error-color;
+
+  .retry-btn {
+    margin-left: auto;
+    padding: 8px 16px;
+    background: $error-color;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: darken($error-color, 10%);
+    }
+  }
+}
+
+// Method Selection
+.method-selection {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: $text-color;
+  }
+
+  .method-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+
+    .method-card {
+      border: none;
+      background: white;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      padding: 25px 20px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .method-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+      }
+
+      span {
+        font-weight: 500;
+        color: $text-color;
+      }
+    }
+  }
+}
+
+// Navigation Path
+.navigation-path {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: #64748b;
+  font-size: 0.95rem;
+
+  .back-btn {
+    border: none;
+    background: transparent;
+    color: $primary-color;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+    padding: 5px 0;
+    transition: all 0.2s ease;
+
+    &:hover {
+      text-decoration: underline;
+      gap: 8px;
+    }
+  }
+
+  .current-method {
+    font-weight: 600;
+    color: $text-color;
+  }
+}
+
+// Data Table
+.data-table-container {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid $border-color;
+
+    h3 {
+      margin: 0;
+      color: $text-color;
+      font-size: 1.2rem;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 12px;
+
+      button {
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+
+        i {
+          font-size: 1rem;
+        }
+
+        &.export-btn {
+          background: #e3f2fd;
+          color: #2196f3;
+
+          &:hover {
+            background: darken(#e3f2fd, 5%);
+          }
+        }
+
+        &.refresh-btn {
+          background: #f5f5f5;
+          color: #616161;
+
+          &:hover {
+            background: darken(#f5f5f5, 5%);
+          }
+        }
+      }
+    }
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    padding: 0 20px;
+  }
+
+  .transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid $border-color;
+    }
+
+    th {
+      background: #f8f9fa;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba($primary-color, 0.03);
+    }
+  }
+}
+
+// Status Badges
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &.complété, &.completes {
+    background: #e8f5e9;
+    color: $success-color;
+  }
+
+  &.en-attente {
+    background: #fff3e0;
+    color: $warning-color;
+  }
+
+  &.annulé, &.en-cours {
+    background: #ffebee;
+    color: $error-color;
+  }
+}
+
+// Operator Badges
+.operator-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+
+  &.orange {
+    background: #fff3e0;
+    color: $warning-color;
+  }
+
+  &.free {
+    background: #e6fffb;
+    color: #13c2c2;
+  }
+
+  &.wave {
+    background: #f6ffed;
+    color: #52c41a;
+  }
+}
+
+// Crypto Badges
+.crypto-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .crypto-icon {
+    font-size: 1.1rem;
+
+    &.fe-hash { color: #f7931a; } // BTC
+    &.fe-zap { color: #627eea; }  // ETH
+    &.fe-dollar-sign { color: #26a17b; } // USDT
+  }
+}
+
+// Action Buttons
+.action-btn {
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 0.9rem;
+  }
+
+  &.view-btn {
+    background: #e3f2fd;
+    color: #2196f3;
+
+    &:hover {
+      background: darken(#e3f2fd, 10%);
+    }
+  }
+
+  &.edit-btn {
+    background: #fff3e0;
+    color: #ff9800;
+
+    &:hover {
+      background: darken(#fff3e0, 10%);
+    }
+  }
+}
+
+// Table Footer
+.table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-top: 1px solid $border-color;
+  color: #64748b;
+  font-size: 0.9rem;
+
+  .showing-entries {
+    white-space: nowrap;
+  }
+
+  .pagination {
+    display: flex;
+    gap: 8px;
+
+    .page-btn {
+      border: none;
+      min-width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $light-gray;
+      color: #64748b;
+      transition: all 0.2s ease;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &.active {
+        background: $primary-color;
+        color: white;
+      }
+
+      &:hover:not(:disabled):not(.active) {
+        background: darken($light-gray, 5%);
+      }
+
+      i {
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Responsive Design
+@media (max-width: 992px) {
+  .method-options {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .transaction-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .header-actions {
+    justify-content: flex-end;
+  }
+
+  .transaction-tabs {
+    .tab-btn {
+      padding: 10px;
+      font-size: 0.9rem;
+    }
+  }
+
+  .method-options {
+    grid-template-columns: 1fr !important;
+  }
+
+  .data-table-container {
+    .table-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 15px;
+    }
+
+    .table-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+
+  .table-footer {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+
+    .pagination {
+      justify-content: center;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .transaction-container {
+    padding: 15px;
+  }
+
+  .method-selection {
+    padding: 20px;
+  }
+
+  .data-table-container {
+    .table-header {
+      padding: 15px;
+    }
+
+    .transactions-table {
+      th, td {
+        padding: 10px 12px;
+      }
+    }
+  }
+}

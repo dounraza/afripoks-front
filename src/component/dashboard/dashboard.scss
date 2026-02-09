@@ -1,0 +1,255 @@
+// Variables couleurs basées sur votre login
+$primary-blue: #3b82f6;
+$primary-indigo: #6366f1;
+$background-light: #f8fafc;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$divider-color: #e2e8f0;
+$success-color: #10b981;
+$error-color: #ef4444;
+$warning-color: #f59e0b;
+
+// Mixins pour les ombres et dégradés
+@mixin card-shadow {
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.1);
+  }
+}
+
+@mixin gradient-bg {
+  background: linear-gradient(135deg, $primary-blue, $primary-indigo);
+}
+
+// Styles globaux
+.dashboard-container {
+  background-color: $background-light;
+  min-height: 100vh;
+}
+
+// AppBar styles
+.MuiAppBar-root {
+  &.dashboard-appbar {
+    background: white !important;
+    color: $text-primary !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid $divider-color;
+
+    .MuiToolbar-root {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    .MuiIconButton-root {
+      color: $text-primary;
+    }
+  }
+}
+
+// Drawer styles
+.MuiDrawer-paper {
+  &.dashboard-drawer {
+    background-color: $background-light !important;
+    border-right: none !important;
+
+    .MuiListItem-root {
+      border-radius: 8px;
+      margin: 4px 8px;
+      padding-left: 12px;
+      padding-right: 12px;
+
+      &.Mui-selected {
+        background-color: rgba($primary-blue, 0.1) !important;
+        color: $primary-blue !important;
+
+        .MuiListItemIcon-root {
+          color: $primary-blue !important;
+        }
+      }
+
+      &:hover {
+        background-color: rgba($primary-blue, 0.05) !important;
+      }
+    }
+
+    .MuiListItemIcon-root {
+      min-width: 40px !important;
+      color: $text-secondary;
+    }
+
+    .MuiDivider-root {
+      border-color: $divider-color;
+      margin: 12px 0;
+    }
+  }
+}
+
+// Cartes de statistiques
+.dashboard-card {
+  border-radius: 12px !important;
+  @include card-shadow;
+  border: none !important;
+  overflow: hidden;
+
+  .MuiCardContent-root {
+    padding: 20px !important;
+  }
+
+  .stat-value {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: $text-primary !important;
+    margin: 8px 0 4px 0 !important;
+  }
+
+  .stat-label {
+    font-size: 0.875rem !important;
+    color: $text-secondary !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-change {
+    font-size: 0.75rem !important;
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+
+    &.positive {
+      color: $success-color !important;
+    }
+
+    &.negative {
+      color: $error-color !important;
+    }
+
+    &.neutral {
+      color: $warning-color !important;
+    }
+  }
+
+  .gradient-avatar {
+    @include gradient-bg;
+    width: 48px;
+    height: 48px;
+
+    .MuiSvgIcon-root {
+      color: white;
+    }
+  }
+}
+
+// Section Recent Activity
+.recent-activity {
+  .MuiListItem-root {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    align-items: flex-start;
+
+    .MuiAvatar-root {
+      width: 32px;
+      height: 32px;
+      background-color: rgba($primary-blue, 0.1);
+      color: $primary-blue;
+    }
+
+    .MuiListItemText-primary {
+      font-size: 0.875rem !important;
+      color: $text-primary !important;
+    }
+
+    .MuiListItemText-secondary {
+      font-size: 0.75rem !important;
+      color: $text-secondary !important;
+    }
+  }
+
+  .MuiDivider-root {
+    margin-left: 56px;
+    border-color: $divider-color;
+  }
+}
+
+// Tableau des commandes
+.orders-table {
+  .MuiPaper-root {
+    box-shadow: none !important;
+    border: 1px solid $divider-color;
+    border-radius: 12px !important;
+    overflow: hidden;
+  }
+
+  .MuiTableHead-root {
+    background-color: $background-light;
+
+    .MuiTableCell-root {
+      font-weight: 600 !important;
+      color: $text-secondary !important;
+      border-bottom: 1px solid $divider-color;
+    }
+  }
+
+  .MuiTableRow-root {
+    &:hover {
+      background-color: rgba($primary-blue, 0.02) !important;
+    }
+  }
+
+  .MuiTableCell-root {
+    border-bottom: 1px solid $divider-color !important;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+
+    &.completed {
+      background-color: rgba($success-color, 0.1);
+      color: $success-color;
+    }
+
+    &.pending {
+      background-color: rgba($warning-color, 0.1);
+      color: $warning-color;
+    }
+
+    &.failed {
+      background-color: rgba($error-color, 0.1);
+      color: $error-color;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 900px) {
+  .dashboard-card {
+    .stat-value {
+      font-size: 1.5rem !important;
+    }
+
+    .gradient-avatar {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .MuiDrawer-paper {
+    &.dashboard-drawer {
+      width: 240px !important;
+    }
+  }
+
+  .MuiAppBar-root {
+    &.dashboard-appbar {
+      .MuiTypography-h6 {
+        font-size: 1.1rem !important;
+      }
+    }
+  }
+}
