@@ -203,18 +203,12 @@ const Tables = () => {
                         )}
 
                         {/* Featured Table */}
-                        <div className="section-container">
-                             
-                                    <div className="section-header">
-                                <h3 className="section-title">Sélection du LOBBY</h3>
-                            </div>
-                        </div>
                         {tables.length > 0 && (
                             <div className="featured-section">
                                 <div
                                     className="featured-card"
                                     style={{
-                                        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${pokerImages[0]})`,
+                                        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${pokerBackground})`,
                                         backgroundSize: 'cover',
                                         backgroundPosition: 'center'
                                     }}
@@ -241,8 +235,9 @@ const Tables = () => {
 
                         {/* Lobby */}
                         <div className="section-container">
-
-                    
+                            <div className="section-header">
+                                <h3 className="section-title">Sélection du LOBBY</h3>
+                            </div>
                             <div className="lobby-grid">
                                 {waitingTables.map((table, i) => (
                                     <div key={i} className="lobby-card">

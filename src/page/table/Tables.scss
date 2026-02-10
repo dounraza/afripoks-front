@@ -560,79 +560,86 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-// ── Bannière Rejoindre ────────────────────────────────────
-.rejoin-section {
-    margin-bottom: 8px;
-}
-
 .rejoin-banner {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;   // ← colonne sur mobile
+    gap: 10px;
     background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(234,179,8,0.05));
     border: 1px solid rgba(234,179,8,0.4);
     border-radius: 12px;
-    padding: 16px 20px;
-    gap: 16px;
+    padding: 14px 16px;
 
     .rejoin-table-name {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
-        color: #fde68a;
-        margin-bottom: 6px;
+        color: #0bdb00;
     }
 
+    // ← UNE SEULE LIGNE : 1 joueurs · SB 50 / BB 100 · 2000 Ar
     .rejoin-meta {
         display: flex;
-        gap: 16px;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 10px;
         color: rgba(255,255,255,0.7);
-        font-size: 13px;
+        font-size: 12px;
+        white-space: nowrap;
 
         span {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
+        }
+
+        span + span::before {
+            content: '·';
+            margin-right: 6px;
+            opacity: 0.4;
         }
     }
 
+    // ← REJOINDRE EN BAS, pleine largeur
     .rejoin-banner-right {
         display: flex;
         align-items: center;
-        gap: 10px;
-        flex-shrink: 0;
-    }
+        gap: 8px;
+        width: 100%;
 
-    .rejoin-main-btn {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        background: #eab308;
-        color: #000;
-        font-weight: 700;
-        padding: 10px 20px;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        transition: background 0.2s;
+        .rejoin-main-btn {
+            flex: 1;                // ← prend toute la largeur
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            background: #0bdb00;
+            color: #000;
+            font-weight: 700;
+            padding: 11px 0;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
 
-        &:hover { background: #fbbf24; }
-    }
+            &:hover { background: #0bdb00; }
+        }
 
-    .rejoin-dismiss-btn {
-        background: rgba(255,255,255,0.1);
-        color: rgba(255,255,255,0.5);
-        border: none;
-        border-radius: 6px;
-        width: 30px;
-        height: 30px;
-        cursor: pointer;
-        font-size: 13px;
-        transition: all 0.2s;
+        .rejoin-dismiss-btn {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            border: none;
+            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
 
-        &:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
+            &:hover {
+                background: rgba(255,255,255,0.2);
+                color: white;
+            }
         }
     }
 }
