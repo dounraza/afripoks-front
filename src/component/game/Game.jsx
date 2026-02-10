@@ -532,8 +532,8 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                             objectFit: 'contain',
                             padding: '2rem',
                             mixBlendMode: 'multiply', // Retire le blanc
-                            filter: 'contrast(1.1)', // Améliore le contraste
-                            marginTop: '36%',
+                            filter: 'contrast(1.1)' // Améliore le contraste
+                        
                         }}
                     />
                     

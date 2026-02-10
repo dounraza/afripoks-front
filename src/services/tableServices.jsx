@@ -6,6 +6,7 @@ export const getAll = async (setter, setSitCounts) => {
   try {
     const response = await api.get(API_URL);
     if(response.data){
+        
         setter(response.data.data);
         setSitCounts(new Map(Object.entries(response.data.occupiedSeats))); 
     }
