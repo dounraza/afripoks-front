@@ -11,6 +11,7 @@ import { Users, Wallet, Dices, Clock, RotateCcw } from "lucide-react";
 import { JoinedTableContext } from "../../contexts/JoinedTableContext";
 
 import PokerCardImage from '../../component/PockerCardImage';
+import io from 'socket.io-client'; // ✨ AJOUT
 
 const Tables = () => {
     const navigate = useNavigate();
@@ -31,6 +32,7 @@ const Tables = () => {
     });
 
     const { onlineUsers } = useContext(OnlineUserContext);
+
     const { joinedTables } = useContext(JoinedTableContext);
 
     const loadData = async () => {

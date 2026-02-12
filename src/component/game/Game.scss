@@ -11,38 +11,43 @@
     justify-content: center;
     align-items: center;
     position: relative;
-    width: 25rem;
-    height: 45rem;
-    zoom: 1;
+    width: 400px;  // Taille fixe au lieu de rem
+    height: 720px; // Taille fixe au lieu de rem
+    transform-origin: top center;
+    margin: 0 auto;
 
     .exit {
         position: absolute;
-        top: 2%;
-        left: 0%;
-       // width: 4rem;
-      //  height: 2rem;
+        top: 14px;  // Pixels fixes
+        left: 0;
         @include flex-center;
         border-radius: 3px;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
         color: $gold;
         cursor: pointer;
         z-index: 999;
+        padding: 8px 16px;
     }
 
     .table {
         position: absolute;
-        width: 21rem;
-        height: 36rem;
+        width: 336px;  // 21rem = 336px
+        height: 576px; // 36rem = 576px
         display: flex;
         align-items: center;
         justify-content: center;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
 
         .table-surface {
             z-index: 2;
+            width: 100%;
+            height: 100%;
 
             img {
-                width: 30rem;
-                height: 46rem;
+                width: 480px;
+                height: 736px;
                 background: none;
                 object-fit: contain;
                 mix-blend-mode: normal;
@@ -51,38 +56,35 @@
                 border: none;
                 box-shadow: none;
             }
-
         }
     }
 
     .player {
         position: absolute;
-        width: 5rem;
-        padding-top: 2pt;
-        padding-bottom: 2pt;
+        width: 80px;
+        padding: 3px 0;
         background-color: #2d1c0c;
-     //   border: 1px solid $gold;
         @include flex-center;
         color: $background;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        // gap: .5rem;
         font-size: 12px;
         z-index: 10;
+        border-radius: 4px;
 
         .amount {
             color: $gold;
             position: absolute;
-            top: -20px;
-            left: 101px;
             width: fit-content;
             height: fit-content;
-            font-size: .9rem;
+            font-size: 14px;
+            white-space: nowrap;
 
             .jeton img {
-                width: 2rem;
+                width: 32px;
+                height: 32px;
                 object-fit: contain;
                 background: none;
                 mix-blend-mode: normal;
@@ -92,38 +94,60 @@
                 box-shadow: none;
             }
 
-            &.p_1{
-                top: .7rem;
-                left: 110px;
-            } 
+            // Positions des jetons - pointent vers le centre de la table
+            &.p_0 {
+                top: -10px;
+                left: 90px;
+            }
 
-            &.p_2, &.p_0 {
-                top: 1.7rem;
+            &.p_1 {
+                top: 50%;
+                transform: translateY(-50%);
+                left: 90px;
+            }
+
+            &.p_2 {
+                top: 48px;
+                left: 85px;
             }
 
             &.p_3 {
-                left: 1.5rem;
-                top: 3.5rem;
+                left: 50%;
+                transform: translateX(-50%);
+                top: 65px;
+            }
+
+            &.p_4 {
+                top: 48px;
+                right: 85px;
+                left: auto;
             }
 
             &.p_5 {
-                top: .7rem;
-                left: -80px;
+                top: 50%;
+                transform: translateY(-50%);
+                right: 90px;
+                left: auto;
             }
 
-            &.p_6, &.p_4 {
-                left: -70px;
-                top: 1.7rem;
+            &.p_6 {
+                top: -10px;
+                right: 90px;
+                left: auto;
             }
 
             &.p_7 {
-                left: -1.5rem;
-                top: -3rem;
+                bottom: 65px;
+                left: 50%;
+                transform: translateX(-50%);
+                top: auto;
             }
 
             &.p_8 {
-                left: 4.5rem;
-                top: -3rem;
+                bottom: 65px;
+                left: 50%;
+                transform: translateX(-50%);
+                top: auto;
             }
         }
 
@@ -132,7 +156,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            top: -3.5rem;
+            top: -56px;
             z-index: -1;
 
             .card-containers {
@@ -143,16 +167,15 @@
         }
 
         .action {
-            color: $gold
+            color: $gold;
         }
 
         .btn-action {
             @include flex-center;
             position: absolute;
             top: 3%;
-            left: -37%;
-            width: 2rem;
-            aspect-ratio: 1;
+            width: 32px;
+            height: 32px;
             z-index: 3;
             color: white;
             border-radius: 50%;
@@ -161,26 +184,29 @@
             font-weight: bold;
             cursor: pointer;
 
-            &.right {
-                left: 95%;    
-            }
-
             &.deal-btn {
                 background-color: #e63946;
+                left: -50px;
             }
 
             &.sb-btn {
-                background: radial-gradient(ellipse at center, #1B3B6F 0%, #0F1E33 100%);    
+                background: radial-gradient(ellipse at center, #1B3B6F 0%, #0F1E33 100%);
+                left: -50px;
             }
 
             &.bb-btn {
                 background: radial-gradient(ellipse at center, #a47148 0%, #4b2e1e 100%);
+                left: -50px;
             }
 
+            &.right {
+                left: auto;
+                right: -50px;
+            }
         }
 
         &.win {
-             background-color: #065a2e;  
+            background-color: #065a2e;
         }
 
         .stacks {
@@ -195,66 +221,68 @@
                 left: 0;
                 height: 100%;
                 width: 100%;
-                background-color: #579;  
-             //   background: radial-gradient(circle,rgba(36, 145, 102, 1) 20%, rgba(15, 94, 57, 1) 88%);
+                background-color: #579;
                 z-index: -1;
                 animation: shrinkToLeft 12s linear forwards;
             }
+        }
+
+        @keyframes shrinkToLeft {
+            0% {
+                left: 0;
+                width: 100%;
             }
-            @keyframes shrinkToLeft {
-                0% {
-                    left: 0;
-                    width: 100%;
-                }
-                100% {
-                    left: 0;
-                    width: 0%;
-                }
+            100% {
+                left: 0;
+                width: 0%;
             }
-        
-        &.seat8 {
-            top: 94%;
-            left: 5%;
         }
 
-        &.seat7 {
-            top: 94%;
-            left: 72%;
-        }
-
-        &.seat6 {
-            top: 70%;
-            left: 91%;
-        }
-
-        &.seat5 {
-            top: 33.5%;
-            left: 91%;
-        }
-
-        &.seat4 {
-            top: 9%;
-            left: 89%;
-        }
-
-        &.seat3 {
-            top: 0%;
-            left: 40%;
-        }
-
-        &.seat2 {
-            top: 9%;
-            left: -13%;
+        // Positions autour de la table - EN DEHORS (padding table = 64px)
+        &.seat0 {
+            bottom: 85px;
+            left: -10px;
         }
 
         &.seat1 {
-            top: 33.5%;
-            left: -15%;
+            top: 45%;
+            left: -18px;
         }
 
-        &.seat0 {
-            top: 70%;
-            left: -15%;
+        &.seat2 {
+            top: 22%;
+            left: 5px;
+        }
+
+        &.seat3 {
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        &.seat4 {
+            top: 22%;
+            right: 5px;
+        }
+
+        &.seat5 {
+            top: 45%;
+            right: -18px;
+        }
+
+        &.seat6 {
+            bottom: 85px;
+            right: -10px;
+        }
+
+        &.seat7 {
+            bottom: 20px;
+            right: 80px;
+        }
+
+        &.seat8 {
+            bottom: 20px;
+            left: 80px;
         }
     }
 
@@ -263,11 +291,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 21rem;
+        width: 336px;
         z-index: 3;
-        height: fit-content;  
-        top: 13rem;
-        gap: .5rem;
+        height: fit-content;
+        top: 50%;  // Centrer verticalement
+        left: 50%;
+        transform: translate(-50%, -50%);
+        gap: 8px;
         color: white;
 
         .pots {
@@ -275,7 +305,7 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            gap: 1rem;
+            gap: 16px;
 
             .principals, .pot {
                 display: flex;
@@ -284,7 +314,7 @@
             }
 
             img {
-                height: 1rem;
+                height: 16px;
                 object-fit: contain;
                 background: none;
                 mix-blend-mode: normal;
@@ -297,16 +327,17 @@
             .seondaires {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: .5rem;
+                gap: 8px;
             }
         }
 
-        .jetons { 
+        .jetons {
             display: flex;
             justify-content: center;
             align-items: center;
+
             img {
-                height: 3rem;
+                height: 48px;
                 object-fit: contain;
                 background: none;
                 mix-blend-mode: normal;
@@ -318,37 +349,18 @@
         }
     }
 
-    // .pots {
-    //     position: absolute;
-    //     display: flex;
-    //     align-items: center;
-    //     flex-direction: column;
-    //     row-gap: 1rem;
-    //     left: 45%;
-    //     top: 30%;
-    //     color: $background;
-    //     font-size: 1.7rem;
-    //     z-index: 1;
-    //     div{
-    //         display: flex;
-    //         column-gap: 1rem;
-    //         p{
-    //             font-size: 1rem;
-    //         }
-    //     }
-    // }
-
     .community-cards {
         display: flex;
         justify-content: flex-start;
         align-items: center;
-        padding-left: .7rem;
-        width: 21rem;
-        height: 4rem;
-        gap: .5rem;
+        padding-left: 11px;
+        width: 336px;
+        height: 64px;
+        gap: 8px;
         position: absolute;
-        top: 50%;
-        left: 8%;
+        top: 360px;  // 50% de 720px
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 3;
 
         .card-community {
@@ -358,25 +370,26 @@
 
     .player-action-container {
         position: absolute;
-        top: 54rem;
-        left: 38px;
-        zoom: .8;
+        bottom: -140px;  // Position fixe en bas
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 10;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        border-radius: .3rem;
-        gap: 1.5rem;
+        border-radius: 5px;
+        gap: 24px;
+        width: 100%;
 
         .action-container {
             @include flex-center;
-            gap: 1rem;
+            gap: 16px;
 
             .player-action {
-                width: 8rem;
-                height: 2.6rem;
-                border-radius: 1rem;
+                width: 128px;
+                height: 42px;
+                border-radius: 16px;
                 @include flex-center;
                 border: 2px solid #00FF99;
                 background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
@@ -387,31 +400,31 @@
 
         .input-group {
             @include flex-center;
-            gap: 1rem;
+            gap: 16px;
             color: $primary-text-color;
             color: $background;
-            
 
             .input {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                gap: .5rem;
+                gap: 8px;
 
                 input {
-                    font-size: 1.2rem;
+                    font-size: 19px;
                     font-weight: bold;
                     border: none;
                     text-align: center;
                     outline: none;
                     background-color: transparent;
+                    width: 80px;
                 }
             }
 
             .submit {
-                width: 8rem;
-                height: 2.6rem;
-                border-radius: 1rem;
+                width: 128px;
+                height: 42px;
+                border-radius: 16px;
                 @include flex-center;
                 background-color: $solid-background;
                 cursor: pointer;
@@ -431,80 +444,75 @@
 }
 
 .action-button {
-  /* Dimensions et forme */
-  padding: 8px 24px;
-  font-size: 16px;
-  font-weight: bold;
-  font-family: Arial, sans-serif;
-  border-radius: 50px;
-  cursor: pointer;
-  text-transform: uppercase;
-  
-  /* Couleurs du texte */
-  color: #3d3416;
-  
-  
-  &.green {
-      /* Le dégradé de fond principal */
-      background: linear-gradient(to bottom, #91f97c 0%, #0cc53a 50%, #0bb853 100%);
-      /* Bordure extérieure dorée */
-      border: 4px solid #40b85e;
-      color: white;
-  }
+    padding: 8px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    border-radius: 50px;
+    cursor: pointer;
+    text-transform: uppercase;
+    color: #3d3416;
 
-  &.red {
-      /* Le dégradé de fond principal */
-      background: linear-gradient(to bottom, #f98b7c 0%, #eb3131 50%, #b80b28 100%);
-      /* Bordure extérieure dorée */
-      border: 4px solid #b84440;
-      color: white;
-  }
+    &.green {
+        background: linear-gradient(to bottom, #91f97c 0%, #0cc53a 50%, #0bb853 100%);
+        border: 4px solid #40b85e;
+        color: white;
+    }
 
-  &.gold {
-      /* Le dégradé de fond principal */
-      background: linear-gradient(to bottom, #dbb50b 0%, #d6af00 50%, #ff9409 100%);
-      /* Bordure extérieure dorée */
-      border: 4px solid #f39912;
-      color: white;
-  }
-  
-  /* Les ombres pour l'effet 3D */
-  box-shadow: 
-    /* Lueur claire en haut (interne) */
-    inset 0 2px 4px rgba(255, 255, 255, 0.8),
-    /* Ombre sombre en bas (interne) */
-    inset 0 -4px 6px rgba(0, 0, 0, 0.3),
-    /* Ombre portée sous le bouton (externe) */
-    0 4px 10px rgba(0, 0, 0, 0.5);
-    
-  transition: transform 0.1s, brightness 0.2s;
+    &.red {
+        background: linear-gradient(to bottom, #f98b7c 0%, #eb3131 50%, #b80b28 100%);
+        border: 4px solid #b84440;
+        color: white;
+    }
+
+    &.gold {
+        background: linear-gradient(to bottom, #dbb50b 0%, #d6af00 50%, #ff9409 100%);
+        border: 4px solid #f39912;
+        color: white;
+    }
+
+    box-shadow:
+        inset 0 2px 4px rgba(255, 255, 255, 0.8),
+        inset 0 -4px 6px rgba(0, 0, 0, 0.3),
+        0 4px 10px rgba(0, 0, 0, 0.5);
+
+    transition: transform 0.1s, brightness 0.2s;
+
+    &:hover {
+        filter: brightness(1.1);
+    }
+
+    &:active {
+        transform: scale(0.98);
+        box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
 }
 
-/* Effet au survol */
-.gold-button:hover {
-  filter: brightness(1.1);
-}
-
-/* Effet quand on clique */
-.gold-button:active {
-  transform: scale(0.98);
-  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
-}
-
+// Media queries avec scale au lieu de zoom pour meilleure compatibilité
 @media (max-width: 451px) {
     .game-container {
-        zoom: .9;
+        transform: scale(0.9);
     }
 }
 
 @media (max-width: 399px) {
     .game-container {
-        zoom: .8;    
+        transform: scale(0.8);
     }
 }
 
 @media (max-width: 350px) {
     .game-container {
-        zoom: .7;    
+        transform: scale(0.7);
+    }
+}
+
+// Wrapper pour centrer le container scalé
+@media (max-width: 451px) {
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
     }
 }

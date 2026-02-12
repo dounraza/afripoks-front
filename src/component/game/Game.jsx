@@ -20,7 +20,7 @@ import GameHistoryModal from './GameHistoryModal';
 import { onlineUsersSocket } from '../../engine/socket';
 
 import TableTabs from './TableTabs';
-
+import TableChat from './TableChat';
 const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
     const [tableState, setTableState] = useState({});
     const [betSize, setBetSize] = useState(0);
@@ -90,6 +90,8 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         audio.play().catch(() => {});
       }
     }
+    // Dans le composant Game, ajoutez avant le return :
+    const currentUserId = sessionStorage.getItem('userId');
     
     /**
      * rand just utils function to get random number
@@ -468,6 +470,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     return (
         <div key={tableId} className="game-container">
             <ToastContainer />
+          
             {tableState.handInProgress && tableState.toAct === tableState.seat && ( 
                 <PlayerActions
                     tableState={tableState}
@@ -512,7 +515,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 className="table"
                 ref={tableRef}
                 style={{
-                  marginTop: 8,
+                  marginTop: 10,
                 }}
             >
                 <div 
@@ -527,10 +530,10 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         src={tableTexture} 
                         alt=""
                         style={{
-                            width: 'calc(485px)',
-                            height: 'calc(712px)',
+                            width: 'calc(444px)',
+                            height: 'calc(745px)',
                             objectFit: 'contain',
-                            padding: '2rem',
+                            padding: '4rem',
                             mixBlendMode: 'multiply', // Retire le blanc
                             filter: 'contrast(1.1)' // Améliore le contraste
                         
@@ -629,6 +632,14 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 getSrcCard={getSrcCard}
                 playerNames={tableState.playerNames || []}
             />
+            {/* Ajoutez le chat ici */}
+                <TableChat 
+                    socketRef={socketRef}
+                    tableId={tableId}
+                    tableState={tableState} // Ajoutez ceci
+                    currentUserId={currentUserId}
+                    playerNames={tableState.playerNames || []}
+                />
         </div>
     );
 };

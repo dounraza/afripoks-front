@@ -1,0 +1,46 @@
+.game-server-stats {
+    position: absolute;
+    top: 2%;
+    left: 5%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(20, 20, 20, 0.9));
+    border: 2px solid #FFD700;
+    border-radius: 8px;
+    padding: 8px 16px;
+    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #FFD700;
+
+        svg {
+            color: #FFA500;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 16px;
+            color: #FFF;
+        }
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 24px;
+        background: rgba(255, 215, 0, 0.3);
+    }
+}
+
+@media (max-width: 451px) {
+    .game-server-stats {
+        transform: scale(0.85);
+        transform-origin: top left;
+        left: 3%;
+        top: 1%;
+    }
+}
