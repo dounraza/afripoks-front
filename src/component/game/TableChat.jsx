@@ -168,7 +168,7 @@ const TableChat = ({ socketRef, tableId, tableState, currentUserId, playerNames 
                     <div className="chat-header">
                         <div className="chat-title">
                             <MessageCircle size={18} />
-                            <span>Chat de table</span>
+                            <span>Chat entre Joueurs</span>
                             {unreadCount > 0 && isMinimized && (
                                 <span className="unread-badge-header">{unreadCount}</span>
                             )}

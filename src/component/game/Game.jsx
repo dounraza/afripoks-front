@@ -530,10 +530,10 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         src={tableTexture} 
                         alt=""
                         style={{
-                            width: 'calc(444px)',
-                            height: 'calc(745px)',
+                            width: 'calc(408px)',
+                            height: 'calc(615px)',
                             objectFit: 'contain',
-                            padding: '4rem',
+                            padding: '1rem',
                             mixBlendMode: 'multiply', // Retire le blanc
                             filter: 'contrast(1.1)' // Améliore le contraste
                         

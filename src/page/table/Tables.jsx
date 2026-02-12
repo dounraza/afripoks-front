@@ -24,7 +24,10 @@ const Tables = () => {
     const [solde, setSolde] = useState(0);
     const [loading, setLoading] = useState(true);
     const isNavigatingRef = useRef(false);
-
+    // ✨ NOUVEAUX ÉTATS POUR LES STATS DE CONNEXION
+    const [connectedUsersCount, setConnectedUsersCount] = useState(0);
+    const [tableUsersCount, setTableUsersCount] = useState({});
+    const socketRef = useRef(null);
     // ─── TABLE QUE L'UTILISATEUR VIENT DE QUITTER (retour arrière) ───────
     const [lastTableId, setLastTableId] = useState(() => {
         const saved = sessionStorage.getItem('lastTableId');
@@ -138,7 +141,7 @@ const Tables = () => {
                     <div className="stat-item">
                         <Users size={18} />
                         <span className="stat-label">En ligne:</span>
-                        <span className="stat-value">{onlineUsers.length}</span>
+                        <span className="stat-value">{connectedUsersCount}</span>
                     </div>
                     <div className="stat-item">
                         <Dices size={18} />
