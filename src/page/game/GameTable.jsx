@@ -38,7 +38,6 @@ const GameTable = () => {
                style={{ 
                    position: 'relative',
                    minHeight: window.innerHeight,
-                   height: '45rem',
                    backgroundImage: 'url("/table-bg.jpg")'
                }} 
             > 
@@ -51,16 +50,7 @@ const GameTable = () => {
                 />
                 
                 {/* Overlay vert sur la table */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(135deg, rgba(26, 77, 46, 0.85) 0%, rgba(45, 95, 63, 0.85) 50%, rgba(26, 77, 46, 0.85) 100%)',
-                    mixBlendMode: 'multiply',
-                    pointerEvents: 'none'
-                }} />
+               
                 
                 <div className="game-content"
                    style={{
