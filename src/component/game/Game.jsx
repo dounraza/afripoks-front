@@ -531,7 +531,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         alt=""
                         style={{
                             width: 'calc(408px)',
-                            height: 'calc(615px)',
+                            height: 'calc(650px)',
                             objectFit: 'contain',
                             padding: '1rem',
                             mixBlendMode: 'multiply', // Retire le blanc
