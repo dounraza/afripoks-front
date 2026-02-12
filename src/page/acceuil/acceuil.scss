@@ -1,5 +1,6 @@
 @use "../../styles/variable.scss" as *;
 
+
 .bg-acceuil {
   width: 100%;
   min-height: 100vh; // Utilisation de min-height pour éviter les problèmes de contenu tronqué
@@ -249,8 +250,17 @@
   }
 }
 
+
 @media (max-width: 768px) {
   .bg-acceuil {
+     width: 100vw;
+    min-height: 100dvh;
+    background-attachment: scroll;
+    margin-left: calc(-50vw + 50%); // Centrer si dans un container
+    margin-right: calc(-50vw + 50%);
+    left: 0;
+    right: 0;
+    
     .content-acceuil {
       gap: 1.5rem;
       padding: 1rem;
@@ -324,6 +334,10 @@
 
 @media (max-width: 480px) {
   .bg-acceuil {
+    background-attachment: scroll; // Important pour mobile
+    background-size: cover;
+    min-height: 100dvh; // Utiliser dvh au lieu de vh sur mobile
+    
     .content-acceuil {
       gap: 1rem;
       padding: 0.8rem;
