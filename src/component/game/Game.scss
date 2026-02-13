@@ -358,6 +358,8 @@
     }
 
     .player-action-container {
+             
+        padding: 20px;
         position: absolute;
         top: 54rem;
         left: 38px;
@@ -373,7 +375,9 @@
         .action-container {
             @include flex-center;
             gap: 1rem;
-
+               display: flex;
+            gap: 12px;
+            justify-content: center;
             .player-action {
                 width: 8rem;
                 height: 2.6rem;
@@ -385,7 +389,267 @@
                 color: $background;
             }
         }
+        .poker-button {
+        padding: 14px 32px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-align: center;
+            border: 5px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            text-transform: none; 
+            min-width: 120px;
+            position: relative;
+    }
+   .poker-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 12px rgba(0, 0, 0, 0.4),
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+        }
 
+        .poker-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .button-green {
+            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
+            color: white;
+        }
+
+        .button-teal {
+            background: linear-gradient(180deg, #00BFA5 0%, #00897B 100%);
+            color: white;
+        }
+
+        .button-red {
+            background: linear-gradient(180deg, #FF5252 0%, #D32F2F 100%);
+            color: white;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .bet-input-container {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(180deg, #FFC107 0%, #FFA000 100%);
+            border-radius: 25px;
+            padding: 8px 16px;
+            border: 5px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+            min-width: 180px;
+            justify-content: space-between;
+        }
+
+        .bet-control {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            user-select: none;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 
+                inset 0 3px 4px rgba(255, 255, 255, 0.6),
+                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .bet-control:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+            box-shadow: 
+                inset 0 3px 4px rgba(255, 255, 255, 0.7),
+                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .bet-control:active {
+            transform: scale(0.95);
+            box-shadow: 
+                inset 0 2px 3px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .bet-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000000;
+            min-width: 80px;
+            text-align: center;
+        }
+.bet-control svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+    stroke-width: 3;
+}
+
+
+/* Bouton SE COUCHER (vert) */
+.btn-fold {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #16a34a,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  transition: all 0.1s ease;
+}
+
+.btn-fold:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #16a34a,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton SUIVRE/PAROLE (vert clair) */
+.btn-call {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #059669,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+}
+
+.btn-call:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #059669,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton TAPIS (rouge) */
+.btn-allin {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #dc2626,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+}
+
+.btn-allin:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #dc2626,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton de mise (jaune/orange) */
+.btn-bet {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 30px;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #d97706,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.btn-bet:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #d97706,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Boutons +/- */
+.btn-bet button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+/* Bouton MISER/RELANCER (turquoise) */
+.btn-raise {
+  background: linear-gradient(180deg, #2dd4bf 0%, #14b8a6 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #0d9488,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+}
+
+.btn-raise:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #0d9488,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+.bet-control svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+    stroke-width: 3;
+}
         .input-group {
             @include flex-center;
             gap: 1rem;

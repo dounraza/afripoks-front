@@ -12,38 +12,48 @@ const PlayerActions = ({
 }) => {
     if (!tableState.handInProgress || tableState.toAct !== tableState.seat) return null;
     return (
-        <div className="player-action-container">
-            <div className="action-container">
-                {tableState.legalActions.actions.map((action) => (
-                    (action !== 'raise' && action !== 'bet') ? (
-                        <div key={action} className="gold-button" onClick={() => emitPlayerAction(action)}>
-                            {actionLabels[action] || action.charAt(0).toUpperCase() + action.slice(1)}
-                        </div>
-                    ) : null
-                ))}
-                {(tableState.legalActions.actions.includes('raise') || tableState.legalActions.actions.includes('bet')) && (
-                    <div className="gold-button" onClick={() => emitPlayerAction('raise', Number(tableState.legalActions.chipRange.max))}>
-                        Tapis
-                    </div>
-                )}
-            </div>
-            {(tableState.legalActions.actions.includes('raise') || tableState.legalActions.actions.includes('bet')) && (
-                <div className="input-group">
-                    <div className="input gold-button">
-                        <div className="" onClick={minusRange}><Minus /></div>
-                        <input
-                            type="number"
-                            min={tableState.legalActions.chipRange.min}
-                            max={tableState.legalActions.chipRange.max}
-                            value={betSize}
-                            onChange={(e) => setBetSize(Number(e.target.value))}
-                        />
-                        <div className="" onClick={addRange}><Plus /></div>
-                    </div>
-                    <div className="gold-button" onClick={() => emitPlayerAction('raise')}>Miser / Relancer</div>
+   <div className="player-action-container">
+    <div className="action-container">
+        {tableState.legalActions.actions.map((action) => (
+            (action !== 'raise' && action !== 'bet') ? (
+                <div 
+                    key={action} 
+                    className={`poker-button ${
+                        action === 'fold' ? 'button-green' : 
+                        action === 'check' ? 'button-teal' : 
+                        action === 'call' ? 'button-green' :
+                        'button-teal'
+                    }`}
+                    onClick={() => emitPlayerAction(action)}
+                >
+                    {actionLabels[action] || action.charAt(0).toUpperCase() + action.slice(1)}
                 </div>
-            )}
+            ) : null
+        ))}
+        {(tableState.legalActions.actions.includes('raise') || tableState.legalActions.actions.includes('bet')) && (
+            <div className="poker-button button-red" onClick={() => emitPlayerAction('raise', Number(tableState.legalActions.chipRange.max))}>
+                Tapis
+            </div>
+        )}
+    </div>
+    {(tableState.legalActions.actions.includes('raise') || tableState.legalActions.actions.includes('bet')) && (
+        <div className="input-group">
+            <div className="bet-input-container">
+                <div className="bet-control button-minus" onClick={minusRange}>
+                    <Minus />
+                </div>
+                <div className="bet-amount">
+                    {betSize}
+                </div>
+                <div className="bet-control button-plus" onClick={addRange}>
+                    <Plus />
+                </div>
+            </div>
+            <div className="poker-button button-teal" onClick={() => emitPlayerAction('raise')}>Miser / Relancer</div>
         </div>
+    )}
+</div>
+        
     );
 };
 
