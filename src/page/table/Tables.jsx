@@ -1,3 +1,4 @@
+// src/pages/Tables/Tables.jsx
 import { useContext, useEffect, useState, useRef } from "react";
 import Nav from "../../component/nav/Nav";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,9 +10,8 @@ import "./Tables.scss";
 import { OnlineUserContext } from "../../contexts/OnlineUserContext";
 import { Users, Wallet, Dices, Clock, RotateCcw } from "lucide-react";
 import { JoinedTableContext } from "../../contexts/JoinedTableContext";
-
 import PokerCardImage from '../../component/PockerCardImage';
-import io from 'socket.io-client'; // ✨ AJOUT
+import { useConnectedUsers } from '../../hooks/useConnectedUsers'; // ✅ SEUL hook nécessaire
 
 const Tables = () => {
     const navigate = useNavigate();
@@ -24,29 +24,43 @@ const Tables = () => {
     const [solde, setSolde] = useState(0);
     const [loading, setLoading] = useState(true);
     const isNavigatingRef = useRef(false);
-    // ✨ NOUVEAUX ÉTATS POUR LES STATS DE CONNEXION
-    const [connectedUsersCount, setConnectedUsersCount] = useState(0);
+    
+    // ✅ ÉTATS POUR LES STATS DE CONNEXION
     const [tableUsersCount, setTableUsersCount] = useState({});
-    const socketRef = useRef(null);
-    // ─── TABLE QUE L'UTILISATEUR VIENT DE QUITTER (retour arrière) ───────
+
     const [lastTableId, setLastTableId] = useState(() => {
         const saved = sessionStorage.getItem('lastTableId');
         return saved ? Number(saved) : null;
     });
 
     const { onlineUsers } = useContext(OnlineUserContext);
-
     const { joinedTables } = useContext(JoinedTableContext);
+    
+    // ✅ SEUL hook pour les utilisateurs connectés (gère le socket + fallback)
+    const { connectedCount } = useConnectedUsers();
 
     const loadData = async () => {
         setLoading(true);
         try {
+            console.log('📥 [Tables] Début du chargement des données');
+            
+            console.log('📥 [Tables] Appel getAll...');
             await getAll(setTables, setSitCounts);
+            console.log('✅ [Tables] getAll terminé');
+            
             const userId = sessionStorage.getItem('userId');
-            if (userId) await getSolde(userId, setSolde);
+            if (userId) {
+                console.log('📥 [Tables] Appel getSolde pour userId:', userId);
+                await getSolde(userId, setSolde);
+                console.log('✅ [Tables] getSolde terminé');
+            }
+            
+            console.log('✅ [Tables] Tous les chargements terminés!');
         } catch (error) {
+            console.error('❌ [Tables] Erreur chargement:', error);
             toast.error("Erreur lors du chargement des tables");
         } finally {
+            console.log('🏁 [Tables] setLoading(false)');
             setLoading(false);
         }
     };
@@ -55,7 +69,6 @@ const Tables = () => {
         if (!isNavigatingRef.current) {
             loadData();
         }
-        // Réinitialiser le flag après le chargement
         isNavigatingRef.current = false;
     }, [location.key]);
 
@@ -69,9 +82,15 @@ const Tables = () => {
         return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
-    // ─── Naviguer vers une table ET mémoriser son id ──────────────────────
+    // ✅ Émettre "join_table" quand l'utilisateur navigue vers une table
     const goToTable = (tableId, caveValue) => {
-        isNavigatingRef.current = true; // Activer le flag avant navigation
+        const userId = sessionStorage.getItem('userId');
+        const username = sessionStorage.getItem('userName');
+        
+        // Note: Le socket gérant les utilisateurs connectés est dans useConnectedUsers
+        console.log('📤 Navigation vers table:', { tableId, userId, username });
+
+        isNavigatingRef.current = true;
         sessionStorage.setItem('lastTableId', String(tableId));
         setLastTableId(tableId);
         navigate(`/game/${tableId}`, { state: { cave: caveValue } });
@@ -87,11 +106,11 @@ const Tables = () => {
                 goToTable(selectedTableId, cave);
             } else {
                 toast.error("Votre solde est insuffisant !");
-                return; // Sortir si le solde est insuffisant
+                return;
             }
         } else {
             toast.error(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
-            return; // Sortir si la cave est insuffisante
+            return;
         }
 
         setShowModalCave(false);
@@ -101,12 +120,10 @@ const Tables = () => {
 
     const playGame = () => verifyCave(selectedTableId);
 
-    // ─── Table à rejoindre : celle mémorisée si elle existe encore ────────
     const lastTable = lastTableId
         ? tables.find(t => Number(t.id) === Number(lastTableId))
         : null;
 
-    // ─── Lobby : toutes les tables SAUF la lastTable (évite doublon) ──────
     const waitingTables = tables.filter(t => Number(t.id) !== Number(lastTableId));
 
     const pokerImages = [
@@ -136,17 +153,22 @@ const Tables = () => {
             <div className="tables-container" style={{ backgroundImage: `url(${pokerBackground})` }}>
                 <div className="overlay"></div>
 
-                {/* Header Stats */}
+                {/* ✅ Header Stats avec le compteur */}
                 <div className="header-stats">
                     <div className="stat-item">
                         <Users size={18} />
                         <span className="stat-label">En ligne:</span>
-                        <span className="stat-value">{connectedUsersCount}</span>
+                        <span className="stat-value" style={{ 
+                            color: connectedCount > 0 ? '#4CAF50' : '#999',
+                            fontWeight: 'bold'
+                        }}>
+                            {connectedCount}
+                        </span>
                     </div>
                     <div className="stat-item">
                         <Dices size={18} />
                         <span className="stat-label">Tables:</span>
-                        <span className="stat-value">{joinedTables.length}</span>
+                        <span className="stat-value">{joinedTables?.length || 0}</span>
                     </div>
                     <div className="stat-item wallet">
                         <Wallet size={18} />
@@ -161,9 +183,6 @@ const Tables = () => {
                     </div>
                 ) : (
                     <>
-                        {/* ══════════════════════════════════════════════════
-                            SECTION REJOINDRE — visible uniquement au retour
-                        ══════════════════════════════════════════════════ */}
                         {lastTable && (
                             <div className="section-container rejoin-section">
                                 <div className="section-header">
@@ -207,13 +226,12 @@ const Tables = () => {
                             </div>
                         )}
 
-                        {/* Featured Table */}
                         <div className="section-container">
-                             
-                                    <div className="section-header">
+                            <div className="section-header">
                                 <h3 className="section-title">Sélection du LOBBY</h3>
                             </div>
                         </div>
+
                         {tables.length > 0 && (
                             <div className="featured-section">
                                 <div
@@ -244,14 +262,10 @@ const Tables = () => {
                             </div>
                         )}
 
-                        {/* Lobby */}
                         <div className="section-container">
-
-                    
                             <div className="lobby-grid">
                                 {waitingTables.map((table, i) => (
                                     <div key={i} className="lobby-card">
-                                       
                                         <div className="lobby-card-image">
                                             <PokerCardImage
                                                 index={i}
@@ -279,7 +293,9 @@ const Tables = () => {
                                                 </div>
                                                 <div className="info-chip">
                                                     <Users size={12} />
-                                                    <span>{sitCounts.get(String(table?.id)) || 0}/9</span>
+                                                    <span>
+                                                        {tableUsersCount[table.id] || sitCounts.get(String(table?.id)) || 0}/9
+                                                    </span>
                                                 </div>
                                             </div>
                                             <button
