@@ -65,6 +65,26 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
     const [lastMatchHistory, setLastMatchHistory] = useState(null)
 
+    
+    useEffect(() => {
+        const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
+        socketRef.current = socket;
+
+        const userId = sessionStorage.getItem('userId');
+        const username = sessionStorage.getItem('userName'); // ✅ FIX: 'userName' pas 'username'
+
+        // Rejoindre la table
+        socket.emit('join_table', { tableId, userId, username });
+
+        // ✅ CLEANUP CORRECT
+        return () => {
+            // Émettre que l'utilisateur quitte la table (événement custom)
+            socket.emit('leave_table', { tableId, userId });
+            
+            // Déconnexion propre
+            socket.disconnect(); // ✅ Pas socket.emit('disconnect')
+        };
+    }, [tableId]);
     /**
      * Plays sound
      * 
