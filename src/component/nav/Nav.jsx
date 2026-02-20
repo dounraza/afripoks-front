@@ -22,7 +22,7 @@ const Nav = () => {
     };
 
     const disconnect = () => {
-        if (isAuthenticated) logout();
+        if (isAuthenticated) console.log('deconnexione');sessionStorage.clear(); logout();
         navigate("/login");
     };
 
