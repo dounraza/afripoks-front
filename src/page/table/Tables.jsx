@@ -4,14 +4,14 @@ import Nav from "../../component/nav/Nav";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getAll, getById } from "../../services/tableServices";
 import { getSolde } from "../../services/soldeService";
+import { getConnectedUsers } from "../../services/api";
 import { toast, ToastContainer } from "react-toastify";
 import pokerBackground from '../../image/bg.jpg';
 import "./Tables.scss";
 import { OnlineUserContext } from "../../contexts/OnlineUserContext";
-import { Users, Wallet, Dices, Clock, RotateCcw } from "lucide-react";
+import { Users, Wallet, Dices, Clock, RotateCcw, RefreshCw } from "lucide-react";
 import { JoinedTableContext } from "../../contexts/JoinedTableContext";
 import PokerCardImage from '../../component/PockerCardImage';
-import { useConnectedUsers } from '../../hooks/useConnectedUsers'; // ✅ SEUL hook nécessaire
 
 const Tables = () => {
     const navigate = useNavigate();
@@ -36,8 +36,8 @@ const Tables = () => {
     const { onlineUsers } = useContext(OnlineUserContext);
     const { joinedTables } = useContext(JoinedTableContext);
     
-    // ✅ SEUL hook pour les utilisateurs connectés (gère le socket + fallback)
-    const { connectedCount } = useConnectedUsers();
+    // ✅ Utiliser la longueur du contexte OnlineUserContext au lieu du hook
+    const connectedCount = onlineUsers?.length || 0;
 
     const loadData = async () => {
         setLoading(true);
@@ -51,6 +51,7 @@ const Tables = () => {
             const userId = sessionStorage.getItem('userId');
             if (userId) {
                 console.log('📥 [Tables] Appel getSolde pour userId:', userId);
+                // await getSolde(userId, setSolde);
                 await getSolde(userId, setSolde);
                 console.log('✅ [Tables] getSolde terminé');
             }

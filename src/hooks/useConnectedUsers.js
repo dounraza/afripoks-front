@@ -10,6 +10,7 @@ export const useConnectedUsers = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const socketRef = useRef(null);
+  const hasInitializedRef = useRef(false); // ✅ Éviter les doublons de montage
 
   // 🔄 Rafraîchir via l'API REST
   const fetchUsersFromAPI = async () => {
@@ -19,7 +20,7 @@ export const useConnectedUsers = () => {
       const data = await getConnectedUsers();
       console.log('📡 [useConnectedUsers] Réponse complète:', JSON.stringify(data, null, 2));
       
-      const count = data.totalConnected || 0;
+      const count = data?.totalConnected || data?.total || data?.count || 0;
       console.log(`✅ Utilisateurs en ligne (API) : ${count}`);
       console.log('✅ Données utilisateurs:', data.connectedUsersList);
       
@@ -38,6 +39,13 @@ export const useConnectedUsers = () => {
   };
 
   useEffect(() => {
+    // ✅ Vérifier que c'est la première exécution seulement
+    if (hasInitializedRef.current) {
+      console.log('⏭️ [useConnectedUsers] Déjà initialisé, skip');
+      return;
+    }
+    hasInitializedRef.current = true;
+
     // 1️⃣ Socket.io - Écouter les mises à jour en temps réel
     if (!socketRef.current) {
       const token = sessionStorage.getItem('token') || 
@@ -66,9 +74,15 @@ export const useConnectedUsers = () => {
 
       // 2️⃣ Écouter les mises à jour utilisateurs via Socket
       socket.on('users_count_update', (data) => {
-        console.log('📊 Mise à jour temps réel (Socket):', data);
-        setConnectedCount(data.total || 0);
-        setUsersList(data.users || []);
+        console.log('📊 Mise à jour socket reçue:', data);
+        // ✅ STRICTE: Seulement accepter si data.total > 0 ET est un nombre
+        if (typeof data?.total === 'number' && data.total > 0) {
+          console.log(`✅ Mise à jour valide: ${data.total} utilisateurs`);
+          setConnectedCount(data.total);
+          setUsersList(data.users || []);
+        } else {
+          console.warn('⚠️ Socket retourne des données invalides, ignorer:', data);
+        }
       });
 
       socket.on('disconnect', (reason) => {
@@ -76,10 +90,18 @@ export const useConnectedUsers = () => {
       });
     }
 
-    // ❌ SUPPRIMÉ: Ne pas faire de GET /api/userConnected qui retourne toujours 0
-    // Utiliser SEULEMENT le socket qui fonctionne correctement!
+    // ✅ Appel initial à l'API pour avoir une valeur de base
+    fetchUsersFromAPI().catch(err => console.error('❌ Erreur initial fetch:', err));
+
+    // ✅ FALLBACK: Rafraîchir l'API toutes les 30 secondes si le socket ne fonctionne pas bien
+    const fallbackInterval = setInterval(() => {
+      console.log('🔄 [Fallback] Rafraîchissement API (fallback 30s)...');
+      fetchUsersFromAPI();
+    }, 30000);
 
     return () => {
+      console.log('🏁 [useConnectedUsers] Cleanup');
+      clearInterval(fallbackInterval);
       // ✅ IMPORTANT: Fermer la socket quand le composant se démonte
       // sinon des sockets s'accumulent et l'utilisateur est compté plusieurs fois!
       if (socketRef.current) {

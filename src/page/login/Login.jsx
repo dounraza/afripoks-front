@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import pokerBackground from '../../image/bg.jpg'; 
 import logo from '../../styles/image/logo.jpeg';
+import { socket } from "../../engine/socket"; // ✅ importer le socket
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -33,9 +34,17 @@ const Login = () => {
 
         try {
             const success = await authService(formData.email, formData.password);
-            if (success) {
-                setTimeout(() => navigate('/table'), 1500);
-            } else {
+           if (success) {
+            const userId = sessionStorage.getItem('userId');
+            const username = sessionStorage.getItem('userName');
+
+            // ✅ Juste dispatcher, le context s'occupe du reste
+            window.dispatchEvent(new CustomEvent('userLogin', {
+                detail: { userId, username }
+            }));
+
+            setTimeout(() => navigate('/table'), 1500);
+        } else {
                 toast.error("Incorrect email or password");
                 setIsLoading(false);
             }
