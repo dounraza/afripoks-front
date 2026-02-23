@@ -21,7 +21,6 @@ import { onlineUsersSocket } from '../../engine/socket';
 
 import TableTabs from './TableTabs';
 import TableChat from './TableChat';
-
 const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
     const [tableState, setTableState] = useState({});
     const [betSize, setBetSize] = useState(0);
@@ -39,7 +38,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const foldedPlayers = useRef(new Set());
     const isPossibleAction = useRef(true);
     const [soundMute, setSoundMute] = useState(false);
-    const soundMuteRef = useRef(false); // ✅ ref pour éviter de recréer le socket
     const [avatars, setAvatars] = useState([]);
     const tableRef = useRef(null);
     const playerRefs = [
@@ -62,217 +60,76 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const [allInArr, setAllInArr] = useState([]);
     const [gameOver, setGameOver] = useState(false);
     const potRef = useRef(null);
-    const [hideStack, setHideStack] = useState(false);
-    const [winAllIn, setWinAllIn] = useState(false);
-    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-    const [lastMatchHistory, setLastMatchHistory] = useState(null);
+    const [hideStack, setHideStack] = useState(false)
+    const [winAllIn, setWinAllIn] = useState(false)
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+    const [lastMatchHistory, setLastMatchHistory] = useState(null)
 
-    // ✅ Sync soundMuteRef quand soundMute change (sans recréer le socket)
-    useEffect(() => {
-        soundMuteRef.current = soundMute;
-    }, [soundMute]);
+    
+    // useEffect(() => {
+    //     const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
+    //     socketRef.current = socket;
 
+    //     const userId = sessionStorage.getItem('userId');
+    //     const username = sessionStorage.getItem('userName'); // ✅ FIX: 'userName' pas 'username'
+
+    //     // Rejoindre la table
+    //     socket.emit('join_table', { tableId, userId, username });
+
+    //     // ✅ CLEANUP CORRECT
+    //     return () => {
+    //         // Émettre que l'utilisateur quitte la table (événement custom)
+    //         socket.emit('leave_table', { tableId, userId });
+            
+    //         // Déconnexion propre
+    //         socket.disconnect(); // ✅ Pas socket.emit('disconnect')
+    //     };
+    // }, [tableId]);
     /**
      * Plays sound
+     * 
+     * @param {string} type 
+     * @param {bool} soundMute 
      */
-    const playSound = (type, muteOverride) => {
-        const sounds = {
-            fold: '/sounds/fold.mp3',
-            raise: '/sounds/raise.mp3',
-            check: '/sounds/check.mp3',
-            call: '/sounds/call.wav',
-            join: '/sounds/join.mp3',
-            allin: '/sounds/allin.mp3',
-            win: '/sounds/win.wav',
-            shareCards: '/sounds/share-cards.mp3',
-            showCard: '/sounds/show-card.wav',
-            coinWin: '/sounds/coin-win.wav',
-        };
-
-        // muteOverride permet de passer un booléen explicite, sinon on utilise la ref
-        const muted = muteOverride !== undefined ? muteOverride : soundMuteRef.current;
-        if (!muted) {
-            const audio = new Audio(sounds[type]);
-            audio.play().catch(() => {});
-        }
-    };
-
+    const playSound = (type, soundMute) => {
+      const sounds = {
+        fold: '/sounds/fold.mp3',
+        raise: '/sounds/raise.mp3',
+        check: '/sounds/check.mp3',
+        call: '/sounds/call.wav',
+        join: '/sounds/join.mp3',
+        allin: '/sounds/allin.mp3',
+        win: '/sounds/win.wav',
+        shareCards: '/sounds/share-cards.mp3',
+        showCard: '/sounds/show-card.wav',
+        coinWin: '/sounds/coin-win.wav',
+      };
+      
+      if (!soundMute) {
+        const audio = new Audio(sounds[type]);
+        audio.play().catch(() => {});
+      }
+    }
+    // Dans le composant Game, ajoutez avant le return :
     const currentUserId = sessionStorage.getItem('userId');
-
+    
+    /**
+     * rand just utils function to get random number
+     */
     function rand(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-
-    // ✅ UN SEUL useEffect socket — suppression du premier useEffect qui créait un 2ème socket
-    useEffect(() => {
-        const userId = sessionStorage.getItem('userId');
-        const username = sessionStorage.getItem('userName');
-        if (!tableId) return;
-
-        const socket = io(process.env.REACT_APP_BASE_URL, {
-            auth: {
-                token: sessionStorage.getItem("accessToken"),
-            },
-        });
-        socketRef.current = socket;
-
-        socket.on('connect', () => {
-            // Rejoindre la room de comptage de présence
-            socket.emit('join_table', { tableId, userId, username });
-
-            if (!tableSessionIdShared) {
-                playSound('join'); // ✅ utilise soundMuteRef.current via la fonction
-                socket.emit('joinAnyTable', { tableId, userId, playerCave });
-                onlineUsersSocket.emit('joined-tables:join', { uid: parseInt(userId), tid: parseInt(tableId) });
-            } else {
-                socket.emit('joinTableSession', { tableId, tableSessionId: tableSessionIdShared, userId, playerCave });
-            }
-        });
-
-        socket.on('playerActionError', (data) => {
-            toast.error(data.message || "Une erreur est survenue.");
-        });
-
-        socket.on('joinError', (data) => {
-            toast.error(data.message);
-            onlineUsersSocket.emit('joined-tables:leave', { uid: userId, tid: tableId });
-        });
-
-        socket.on('win', (data) => {
-            setGameOver(true);
-            setGame(false);
-            setCommunity(data.communityCards);
-            setShouldShareCards(false);
-            setWinData(data);
-
-            const foldedPlayersArray = Array.from(foldedPlayers.current);
-            setLastMatchHistory({
-                communityCards: data.communityCards || [],
-                allCards: data.allCards || [],
-                playerNames: [],
-                foldedPlayers: foldedPlayersArray
-            });
-
-            playSound('win'); // ✅ utilise soundMuteRef.current
-        });
-
-        async function shareCardsHandler() {
-            console.log('Share cards');
-            setGameOver(false);
-            setWinData({});
-            setCommunity([]);
-            setCommunityShow([]);
-            setCommunityToShow([]);
-            setAllInArr([]);
-
-            setShouldShareCards(true);
-            setTimeout(async () => {
-                setSharingCards(true);
-                playSound('shareCards'); // ✅ utilise soundMuteRef.current
-            }, 300);
-        }
-        socket.on('shareCards', shareCardsHandler);
-
-        socket.on('start', () => {
-            setWinData({});
-            setGame(true);
-            setCommunity([]);
-            setCommunityShow([]);
-            setAllInArr([]);
-            foldedPlayers.current = new Set();
-            console.log("Start");
-            setShouldShareCards(false);
-            setSharingCards(false);
-        });
-
-        socket.on('tableState', (data) => {
-            const minBet = data?.legalActions?.chipRange?.min ?? 0;
-            setBetSize(minBet);
-            setTableState(data);
-            setTableSessionId(data.tableId);
-            setAvatars(data.avatars);
-
-            if (data.communityCards.length > 0) {
-                console.log(data.communityCards);
-                console.log('latest comm card', latestCommCard);
-                if (latestCommCard !== data.communityCards[data.communityCards.length - 1]) {
-                    if (data.communityCards.length === 3) {
-                        setCommunityReversNb(3);
-                    } else {
-                        setCommunityReversNb(1);
-                    }
-                    setTimeout(() => {
-                        setMoveCommCards(true);
-                    }, 100);
-                }
-                setTimeout(() => {
-                    setMoveCommCards(false);
-                    setCommunity(data.communityCards);
-                    setCommunityReversNb(0);
-                    latestCommCard = data.communityCards[data.communityCards.length - 1];
-                }, 500);
-            }
-
-            if (data.toAct == data.seat) {
-                isPossibleAction.current = true;
-            }
-
-            for (const item of (data?.actions ?? [])) {
-                if (item.action === 'fold') {
-                    foldedPlayers.current.add(item.playerId);
-                }
-            }
-
-            const lastAction = data?.actions[data?.actions.length - 1];
-            if (lastAction) {
-                const playerId = lastAction?.playerId;
-                const seatInfo = data?.seats[playerId];
-
-                if (lastAction.action === 'raise' && seatInfo.stack === 0) {
-                    playSound('allin'); // ✅ utilise soundMuteRef.current
-                    setAllInArr(prev => [...prev, seatInfo]);
-                    return;
-                }
-                playSound(lastAction.action); // ✅ utilise soundMuteRef.current
-            }
-        });
-
-        socket.on('quitsuccess', () => {
-            onlineUsersSocket.emit('joined-tables:leave', { uid: parseInt(userId), tid: parseInt(tableId) });
-            navigate('/table');
-        });
-
-        socket.on('quiterror', () => {
-            quitter();
-        });
-
-        socket.on('timeerror', (data) => {
-            toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, {
-                autoClose: 10000
-            });
-        });
-
-        // ✅ Cleanup propre : un seul socket, une seule déconnexion
-        return () => {
-            socket.emit('leave_table', { tableId, userId });
-            socket.disconnect();
-            socketRef.current = null;
-        };
-
-    // ✅ Seulement tableId — soundMute et winAllIn retirés des dépendances
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tableId]);
-
+    
     useEffect(() => {
         const diff = community.length - communityShow.length;
-        setIsRevealFinished(false);
+        setIsRevealFinished(false);   
 
-        if (diff <= 0) {
-            setIsRevealFinished(true);
+        if (diff <= 0){
+            setIsRevealFinished(true); 
             return;
         }
 
-        if (diff === 3) {
+        if (diff === 3){
             setCommunityShow(community);
             setTimeout(() => {
                 setCommunityToShow(community);
@@ -295,9 +152,9 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         const timeouts = [];
         if (diff > 1) {
             let timeindex = 0;
-            for (let i = communityShow.length; i < community.length; i++) {
+            for(let i = communityShow.length; i < community.length; i++) {
                 const newShowCards = community.slice(0, i + 1);
-
+                
                 const timeout = setTimeout(() => {
                     console.log('Community show', newShowCards);
                     console.log(i);
@@ -313,13 +170,179 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 }, (timeindex * 1000));
 
                 timeouts.push(timeout);
-                timeindex++;
+                timeindex ++;
             }
         }
         return () => {
             timeouts.forEach(t => clearTimeout(t));
         };
     }, [community]);
+
+    useEffect(() => {
+        const userId = sessionStorage.getItem('userId');
+        if(!tableId) return;
+
+        socketRef.current = io(process.env.REACT_APP_BASE_URL, {
+            auth: {
+                token: sessionStorage.getItem("accessToken"),
+            },
+        });
+
+        socketRef.current.on('connect', () => {
+            if(!tableSessionIdShared) {
+                playSound('join', soundMute);
+                socketRef.current.emit('joinAnyTable', { tableId, userId, playerCave });
+
+                onlineUsersSocket.emit('joined-tables:join', { uid: parseInt(userId), tid: parseInt(tableId) });
+            }else {           
+                socketRef.current.emit('joinTableSession',{ tableId, tableSessionId: tableSessionIdShared, userId, playerCave });
+            }
+        });
+
+        socketRef.current.on('playerActionError', (data) => {
+            toast.error(data.message || "Une erreur est survenue.");
+        });
+
+
+        socketRef.current.on('joinError', (data) => {
+            toast.error(data.message);
+            onlineUsersSocket.emit('joined-tables:leave', { uid: userId, tid: tableId });
+        });
+
+        socketRef.current.on('win', (data) => {
+            setGameOver(true);
+            
+            setGame(false);
+            setCommunity(data.communityCards);
+            
+            setShouldShareCards(false);
+            
+            setWinData(data);
+            
+            // Sauvegarder l'historique du dernier match
+            // Convertir le Set en Array pour la sérialisation
+            const foldedPlayersArray = Array.from(foldedPlayers.current);
+            
+            setLastMatchHistory({
+                communityCards: data.communityCards || [],
+                allCards: data.allCards || [],
+                playerNames: [],
+                foldedPlayers: foldedPlayersArray
+            });
+            
+            playSound('win', soundMute);
+        });
+
+        async function shareCardsHandler() {
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            console.log('Share cards')
+            setGameOver(false);
+            setWinData({});
+            setCommunity([]);
+            setCommunityShow([]);
+            setCommunityToShow([]);
+            setAllInArr([]);
+            
+            setShouldShareCards(true);
+            setTimeout(async () => {
+                setSharingCards(true);
+                const playerIds = tableState.playerIds?.filter(id => id !== null);
+                playSound('shareCards');
+            }, 300);
+        }
+        socketRef.current.on('shareCards', shareCardsHandler);
+
+        socketRef.current.on('start', () => {
+            setWinData({});
+            setGame(true);
+            setCommunity([]);
+            setCommunityShow([]);
+            setAllInArr([]);
+            foldedPlayers.current = new Set();
+
+            console.log("Start");
+            setShouldShareCards(false);
+            setSharingCards(false);
+        });
+
+        socketRef.current.on('tableState', (data) => {
+            const minBet = data?.legalActions?.chipRange?.min ?? 0;
+            setBetSize(minBet);
+            setTableState(data);
+            setTableSessionId(data.tableId);
+            
+            setAvatars(data.avatars);
+
+            if(data.communityCards.length > 0) {
+                console.log(data.communityCards);
+                console.log('latest comm card', latestCommCard);
+                if (latestCommCard !== data.communityCards[data.communityCards.length -1]) {
+                    if (data.communityCards.length === 3) {
+                        setCommunityReversNb(3);
+                    } else {
+                        setCommunityReversNb(1);
+                    }
+                    setTimeout(() => {
+                        setMoveCommCards(true);
+                    }, 100);
+                }
+                setTimeout(() => {
+                    setMoveCommCards(false);
+                    setCommunity(data.communityCards);
+                    setCommunityReversNb(0);
+                    latestCommCard = data.communityCards[data.communityCards.length -1];
+                }, 500);
+            }
+
+            if(data.toAct == data.seat) {
+                isPossibleAction.current=true;
+            }
+
+            for(const item of (data?.actions ?? [])) {
+                if(item.action === 'fold') {
+                    foldedPlayers.current.add(item.playerId)
+                }
+            }
+            
+            const lastAction = data?.actions[data?.actions.length - 1];
+            
+            if (lastAction) {
+                const playerId = lastAction?.playerId;
+                const seatInfo = data?.seats[playerId];
+                
+                if (lastAction.action === 'raise' && seatInfo.stack === 0) {
+                  playSound('allin', soundMute);
+                  setAllInArr(prev => [...prev, seatInfo]);
+                  return;
+                }
+                playSound(lastAction.action, soundMute);
+            }
+        });
+
+        socketRef.current.on('quitsuccess', () => {
+            onlineUsersSocket.emit('joined-tables:leave', { uid: parseInt(userId), tid: parseInt(tableId) });
+            navigate('/table');
+        });
+
+        socketRef.current.on('quiterror', () => {
+            quitter();
+        });
+
+        socketRef.current.on('timeerror', (data) => {
+            toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, {
+                autoClose: 10000
+            });
+        });
+
+
+        return () => {
+            socketRef.current?.disconnect();
+            socketRef.current = null;
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tableId, soundMute, winAllIn]);
 
     useEffect(() => {
         if (!game || !tableState.activeSeats) return;
@@ -340,6 +363,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             bbSeat = activeSeats[(dealerIdx + 2) % playerCount];
         }
 
+        // Ne set que si pas déjà définis
         if (sb === -1) setSb(sbSeat);
         if (bb === -1) setBb(bbSeat);
         if (dealer === -1) setDealer(dealerSeat);
@@ -350,52 +374,67 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     useEffect(() => {
         setSb(-1);
         setBb(-1);
-        setDealer(-1);
+        setDealer(-1);    
     }, [game]);
 
     // Récupérer le dernier historique depuis l'API
     useEffect(() => {
         const fetchLastHistory = async () => {
             if (!tableId) return;
-
+            
             try {
                 const historyData = await getLastHistory(tableId);
-
+                
+                // Adapter les données de l'API au format attendu
                 if (historyData) {
+                    // Convertir les joueurs qui ont foldé en Array si nécessaire
                     let foldedPlayersArray = [];
                     if (historyData.foldedPlayers) {
-                        foldedPlayersArray = Array.isArray(historyData.foldedPlayers)
-                            ? historyData.foldedPlayers
+                        foldedPlayersArray = Array.isArray(historyData.foldedPlayers) 
+                            ? historyData.foldedPlayers 
                             : Array.from(historyData.foldedPlayers);
                     } else if (historyData.foldes) {
-                        foldedPlayersArray = Array.isArray(historyData.foldes)
-                            ? historyData.foldes
-                            : (typeof historyData.foldes === 'string'
-                                ? JSON.parse(historyData.foldes)
+                        // Si l'API retourne 'foldes' au lieu de 'foldedPlayers'
+                        foldedPlayersArray = Array.isArray(historyData.foldes) 
+                            ? historyData.foldes 
+                            : (typeof historyData.foldes === 'string' 
+                                ? JSON.parse(historyData.foldes) 
                                 : []);
                     }
-
+                    
+                    // Parser les données si elles sont en string JSON
                     let parsedAllCards = historyData.allCards || historyData.main_joueurs || [];
                     let parsedPlayerNames = historyData.playerNames || historyData.noms_joueurs || [];
-
+                    
+                    // Si les données sont en string JSON, les parser
                     if (typeof parsedAllCards === 'string') {
-                        try { parsedAllCards = JSON.parse(parsedAllCards); } catch (e) { console.error('Error parsing allCards:', e); }
+                        try {
+                            parsedAllCards = JSON.parse(parsedAllCards);
+                        } catch (e) {
+                            console.error('Error parsing allCards:', e);
+                        }
                     }
-
+                    
                     if (typeof parsedPlayerNames === 'string') {
-                        try { parsedPlayerNames = JSON.parse(parsedPlayerNames); } catch (e) { console.error('Error parsing playerNames:', e); }
+                        try {
+                            parsedPlayerNames = JSON.parse(parsedPlayerNames);
+                        } catch (e) {
+                            console.error('Error parsing playerNames:', e);
+                        }
                     }
-
+                    
                     setLastMatchHistory({
                         communityCards: historyData.communityCards || historyData.cartes_communes || [],
                         allCards: parsedAllCards,
                         playerNames: parsedPlayerNames,
                         foldedPlayers: foldedPlayersArray,
+                        // Garder aussi les données brutes au cas où le format serait différent
                         playerNamesMap: historyData.playerNamesMap || historyData.noms_joueurs_map || null
                     });
                 }
             } catch (error) {
                 console.error('Error fetching last history:', error);
+                // En cas d'erreur, on ne fait rien (pas de données fictives)
             }
         };
 
@@ -410,15 +449,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         const betSizeSend = betSizeParam ? betSizeParam : betSize;
         const { min, max } = tableState.legalActions.chipRange;
         const clampedBet = Math.max(min, Math.min(betSizeSend, max));
-
+        
+        let actionTrue = action;
         socketRef.current.emit('playerAction', {
             tableId: tableId,
-            tableSessionId: tableState.tableId,
-            playerSeats: tableState.seat,
-            action: action,
+            tableSessionId: tableState.tableId, 
+            playerSeats: tableState.seat, 
+            action: actionTrue, 
             bet: clampedBet
         });
-    };
+    }
 
     const quitter = () => {
         socketRef.current.emit("quit", {
@@ -430,7 +470,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
     const getSrcCard = (card_id) => {
         const final_id_card = card_id.replace('T', 0).toUpperCase();
-        return require(`../../image/card2/${final_id_card}.svg`);
+        return require(`../../image/card2/${final_id_card}.svg`);  
     };
 
     const actionLabels = {
@@ -440,18 +480,18 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     };
 
     const addRange = () => {
-        setBetSize(Math.min((betSize + 10), tableState.legalActions.chipRange.max));
-    };
+        setBetSize(Math.min((betSize + 10 ), tableState.legalActions.chipRange.max));
+    }
 
     const minusRange = () => {
-        setBetSize(Math.max((betSize - 1), tableState.legalActions.chipRange.min));
-    };
+        setBetSize(Math.max((betSize - 1 ), tableState.legalActions.chipRange.min));
+    }
 
     return (
         <div key={tableId} className="game-container">
             <ToastContainer />
-
-            {tableState.handInProgress && tableState.toAct === tableState.seat && (
+          
+            {tableState.handInProgress && tableState.toAct === tableState.seat && ( 
                 <PlayerActions
                     tableState={tableState}
                     betSize={betSize}
@@ -478,7 +518,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 isRevealFinished={isRevealFinished}
                 tableId={tableId}
             />
-
+            
             <Pots
                 tableState={tableState}
                 jetonMany={jetonMany}
@@ -491,12 +531,14 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 shouldShareCards={shouldShareCards}
             />
 
-            <div
+            <div 
                 className="table"
                 ref={tableRef}
-                style={{ marginTop: 10 }}
+                style={{
+                  marginTop: 10,
+                }}
             >
-                <div
+                <div 
                     className="table-surface"
                     style={{
                         display: 'flex',
@@ -504,20 +546,22 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         justifyContent: 'center',
                     }}
                 >
-                    <img
-                        src={tableTexture}
+                    <img 
+                        src={tableTexture} 
                         alt=""
                         style={{
                             width: 'calc(408px)',
                             height: 'calc(650px)',
                             objectFit: 'contain',
                             padding: '1rem',
-                            mixBlendMode: 'multiply',
-                            filter: 'contrast(1.1)'
+                            mixBlendMode: 'multiply', // Retire le blanc
+                            filter: 'contrast(1.1)' // Améliore le contraste
+                        
                         }}
                     />
+                    
+                    
                 </div>
-
                 {tableState.seats && (tableState.seats).map((chips, i) => {
                     return (
                         <Player
@@ -547,18 +591,20 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 })}
             </div>
 
-            <div
-                className="exit"
-                onClick={() => quitter()}
-                style={{
-                    padding: '4px 8px 4px 8px',
-                    background: '#ff3030ff',
-                    color: '#FFF',
-                }}
-            >
-                <ArrowBigLeft size={24} style={{ marginRight: 0 }} />
-                Quitter
-            </div>
+            {/* {!tableState.handInProgress && ( */}
+                <div 
+                    className="exit" 
+                    onClick={() => quitter()}
+                    style={{
+                      padding: '4px 8px 4px 8px', 
+                      background: '#ff3030ff',
+                      color: '#FFF',
+                    }}
+                >
+                    <ArrowBigLeft size={24} style={{ marginRight: 0 }} />
+                    Quitter
+                </div>
+            {/* )} */}
 
             <div
                 style={{
@@ -570,13 +616,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     zIndex: 999,
                 }}
             >
-                <div style={{ display: 'flex' }}>
+                <div style={{
+                    display: 'flex'
+                }}>
                     <TableTabs />
                 </div>
 
                 <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
-
-                <div
+                
+                <div 
+                    className="" 
                     onClick={() => setIsHistoryModalOpen(true)}
                     style={{
                         color: '#FFD700',
@@ -592,24 +641,25 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     }}
                 >
                     <History size={20} />
+                    {/* <span>Historique</span> */}
                 </div>
             </div>
 
-            <GameHistoryModal
+            <GameHistoryModal 
                 isOpen={isHistoryModalOpen}
                 onClose={() => setIsHistoryModalOpen(false)}
                 lastMatchData={lastMatchHistory}
                 getSrcCard={getSrcCard}
                 playerNames={tableState.playerNames || []}
             />
-
-            <TableChat
-                socketRef={socketRef}
-                tableId={tableId}
-                tableState={tableState}
-                currentUserId={currentUserId}
-                playerNames={tableState.playerNames || []}
-            />
+            {/* Ajoutez le chat ici */}
+                <TableChat 
+                    socketRef={socketRef}
+                    tableId={tableId}
+                    tableState={tableState} // Ajoutez ceci
+                    currentUserId={currentUserId}
+                    playerNames={tableState.playerNames || []}
+                />
         </div>
     );
 };
