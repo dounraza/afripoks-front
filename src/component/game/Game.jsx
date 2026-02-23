@@ -11,7 +11,7 @@ import rever from "../../styles/image/rever.png";
 import jeton from "../../styles/image/jeton.png";
 import jetonMany from "../../styles/image/jetonMany.png";
 import tableTexture from "../../styles/image/vert_table.png";
-
+import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
 import PlayerActions from './PlayerActions';
 import Player from './Player';
 import CommunityCards from './CommunityCards';
@@ -76,7 +76,17 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const [lastMatchHistory, setLastMatchHistory] = useState(null);
 
     const currentUserId = sessionStorage.getItem('userId');
+    const [isLandscape, setIsLandscape] = useState(
+    window.innerWidth > window.innerHeight
+        );
 
+        useEffect(() => {
+            const handleResize = () => {
+                setIsLandscape(window.innerWidth > window.innerHeight);
+            };
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+        }, []);
     // ✅ orientation-vertical ou orientation-horizontal selon rotation
     const orientation = (tableRotation === 90 || tableRotation === 270)
         ? 'horizontal'
@@ -359,7 +369,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
     // ✅ Toggle manuel orientation
     const toggleOrientation = () => {
-        setTableRotation(prev => prev === 0 ? 90 : 0);
+        setTableRotation(prev => prev === 0 ? 270 : 0);
     };
 
     // ✅ Guards : tous les champs requis sont présents
@@ -418,7 +428,12 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                     }}
                 >
                     <img
-                        src={tableTexture}
+                       src={
+                        tableRotation === 0 ? tableTexture :
+                       
+                        tableRotation === 270 ? tableTextureLandscape :
+                        tableTexture
+                      }
                         alt=""
                         style={{
                             width: '408px',
