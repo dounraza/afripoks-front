@@ -781,34 +781,3 @@
         zoom: .7;    
     }
 }
-
-// ============================================================
-// RESPONSIVE — mode horizontal
-// La table tournée à 90° est ~36rem de large
-// Il faut réduire le zoom pour qu'elle rentre dans l'écran
-// ============================================================
-@media (max-width: 600px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.75;
-        width: 100vw;
-        overflow: visible;
-    }
-}
-
-@media (max-width: 480px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.6;
-    }
-}
-
-@media (max-width: 400px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.5;
-    }
-}
-
-@media (max-width: 350px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.45;
-    }
-}
