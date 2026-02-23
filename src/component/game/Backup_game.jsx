@@ -10,7 +10,7 @@ import rever from "../../styles/image/rever.png";
 import jeton from "../../styles/image/jeton.png";
 import jetonMany from "../../styles/image/jetonMany.png";
 import tableTexture from "../../styles/image/vert_table.png";
-
+import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
 import PlayerActions from './PlayerActions';
 import Player from './Player';
 import CommunityCards from './CommunityCards';
@@ -65,7 +65,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
     const [lastMatchHistory, setLastMatchHistory] = useState(null)
 
-    
+      // ✅ Tu ajoutes ici
+    const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsLandscape(window.innerWidth > window.innerHeight);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     // useEffect(() => {
     //     const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
     //     socketRef.current = socket;
@@ -547,7 +556,8 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     }}
                 >
                     <img 
-                        src={tableTexture} 
+                        
+                        src={isLandscape ? tableTextureLandscape : tableTexture}
                         alt=""
                         style={{
                             width: 'calc(408px)',

@@ -789,7 +789,7 @@
 // ============================================================
 @media (max-width: 600px) {
     .game-container.orientation-horizontal {
-        zoom: 0.75;
+        zoom: 0.8;
         width: 100vw;
         overflow: visible;
     }
@@ -797,18 +797,18 @@
 
 @media (max-width: 480px) {
     .game-container.orientation-horizontal {
-        zoom: 0.6;
+        zoom: 0.7;
     }
 }
 
 @media (max-width: 400px) {
     .game-container.orientation-horizontal {
-        zoom: 0.5;
+        zoom: 0.6;
     }
 }
 
 @media (max-width: 350px) {
     .game-container.orientation-horizontal {
-        zoom: 0.45;
+        zoom: 0.4;
     }
 }
