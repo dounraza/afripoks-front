@@ -1,0 +1,60 @@
+// ============================================================
+// POSITIONS JOUEURS — mode horizontal
+// Chaque mise (.amount) est à DROITE et EN BAS du joueur
+// ============================================================
+
+.game-container {
+
+    &.orientation-horizontal {
+        .player {
+            &.seat0 {
+                top: 83%;
+                left: 17%;
+                transform: translateX(-50%);
+            }
+            &.seat1 {
+                top: 72%;
+                left: -42%;
+            }
+            &.seat2 {
+                top: 40%;
+                left: -48%;
+            }
+            &.seat3 {
+                top: 19%;
+                left: -23%;
+            }
+            &.seat4 {
+                top: 13%;
+                left: 36%;
+                transform: translateX(-50%);
+            }
+            &.seat5 {
+                top: 18%;
+                left: 96%;
+            }
+            &.seat6 {
+                top: 40%;
+                left: 124%;
+            }
+            &.seat7 {
+                top: 69%;
+                left: 124%;
+            }
+            &.seat8 {
+                top: 83%;
+                left: 70%;
+            }
+
+            // ✅ À droite et en bas pour tous les joueurs en horizontal
+            .amount {
+                &.p_0, &.p_1, &.p_2, &.p_3,
+                &.p_4, &.p_5, &.p_6, &.p_7, &.p_8 {
+                    top: 3.2rem !important;
+                    left: 5.5rem !important;
+                    transform: none !important;
+                }
+            }
+        }
+    }
+}

@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { io } from 'socket.io-client';
 import { toast, ToastContainer } from "react-toastify";
 import {useNavigate} from 'react-router-dom';
-import { ArrowBigLeft, History, Smile } from 'lucide-react';
+import { ArrowBigLeft, History } from 'lucide-react';
 import { getLastHistory } from '../../services/tableServices';
+import { OnlineUserContext } from '../../contexts/OnlineUserContext';
 
 import "./Game.scss";
 import rever from "../../styles/image/rever.png";
@@ -18,11 +19,23 @@ import Pots from './Pots';
 import SoundButton from './SoundButton';
 import GameHistoryModal from './GameHistoryModal';
 import { onlineUsersSocket } from '../../engine/socket';
-
 import TableTabs from './TableTabs';
 import TableChat from './TableChat';
 
-const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
+// ✅ Rotation auto selon seat — uniquement 0°/90°/180°/270°
+const SEAT_ROTATIONS = {
+    0: 0,
+    1: 0,
+    2: 90,
+    3: 90,
+    4: 180,
+    5: 180,
+    6: 270,
+    7: 270,
+    8: 90,
+};
+
+const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
     const [tableState, setTableState] = useState({});
     const [betSize, setBetSize] = useState(0);
     const [winData, setWinData] = useState({});
@@ -39,19 +52,15 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const foldedPlayers = useRef(new Set());
     const isPossibleAction = useRef(true);
     const [soundMute, setSoundMute] = useState(false);
-    const soundMuteRef = useRef(false); // ✅ ref pour éviter de recréer le socket
+    const soundMuteRef = useRef(false);
     const [avatars, setAvatars] = useState([]);
     const tableRef = useRef(null);
+    const { onlineUsers } = useContext(OnlineUserContext);
+    const [tableRotation, setTableRotation] = useState(0);
     const playerRefs = [
-        useRef(null),
-        useRef(null),
-        useRef(null),
-        useRef(null),
-        useRef(null),
-        useRef(null),
-        useRef(null),
-        useRef(null),
-        useRef(null),
+        useRef(null), useRef(null), useRef(null),
+        useRef(null), useRef(null), useRef(null),
+        useRef(null), useRef(null), useRef(null),
     ];
     const [shouldShareCards, setShouldShareCards] = useState(false);
     const [sharingCards, setSharingCards] = useState(false);
@@ -63,18 +72,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const [gameOver, setGameOver] = useState(false);
     const potRef = useRef(null);
     const [hideStack, setHideStack] = useState(false);
-    const [winAllIn, setWinAllIn] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [lastMatchHistory, setLastMatchHistory] = useState(null);
 
-    // ✅ Sync soundMuteRef quand soundMute change (sans recréer le socket)
-    useEffect(() => {
-        soundMuteRef.current = soundMute;
-    }, [soundMute]);
+    const currentUserId = sessionStorage.getItem('userId');
 
-    /**
-     * Plays sound
-     */
+    // ✅ orientation-vertical ou orientation-horizontal selon rotation
+    const orientation = (tableRotation === 90 || tableRotation === 270)
+        ? 'horizontal'
+        : 'vertical';
+
     const playSound = (type, muteOverride) => {
         const sounds = {
             fold: '/sounds/fold.mp3',
@@ -88,8 +95,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             showCard: '/sounds/show-card.wav',
             coinWin: '/sounds/coin-win.wav',
         };
-
-        // muteOverride permet de passer un booléen explicite, sinon on utilise la ref
         const muted = muteOverride !== undefined ? muteOverride : soundMuteRef.current;
         if (!muted) {
             const audio = new Audio(sounds[type]);
@@ -97,31 +102,32 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         }
     };
 
-    const currentUserId = sessionStorage.getItem('userId');
+    // ✅ Rotation auto dès que le seat est connu
+    useEffect(() => {
+        if (tableState.seat !== undefined && tableState.seat !== null) {
+            const rotation = SEAT_ROTATIONS[tableState.seat] ?? 0;
+            setTableRotation(rotation);
+        }
+    }, [tableState.seat]);
 
-    function rand(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+    useEffect(() => {
+        soundMuteRef.current = soundMute;
+    }, [soundMute]);
 
-    // ✅ UN SEUL useEffect socket — suppression du premier useEffect qui créait un 2ème socket
     useEffect(() => {
         const userId = sessionStorage.getItem('userId');
         const username = sessionStorage.getItem('userName');
         if (!tableId) return;
 
         const socket = io(process.env.REACT_APP_BASE_URL, {
-            auth: {
-                token: sessionStorage.getItem("accessToken"),
-            },
+            auth: { token: sessionStorage.getItem("accessToken") },
         });
         socketRef.current = socket;
 
         socket.on('connect', () => {
-            // Rejoindre la room de comptage de présence
             socket.emit('join_table', { tableId, userId, username });
-
             if (!tableSessionIdShared) {
-                playSound('join'); // ✅ utilise soundMuteRef.current via la fonction
+                playSound('join');
                 socket.emit('joinAnyTable', { tableId, userId, playerCave });
                 onlineUsersSocket.emit('joined-tables:join', { uid: parseInt(userId), tid: parseInt(tableId) });
             } else {
@@ -129,9 +135,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             }
         });
 
-        socket.on('playerActionError', (data) => {
-            toast.error(data.message || "Une erreur est survenue.");
-        });
+        socket.on('playerActionError', (data) => toast.error(data.message || "Une erreur est survenue."));
 
         socket.on('joinError', (data) => {
             toast.error(data.message);
@@ -144,7 +148,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunity(data.communityCards);
             setShouldShareCards(false);
             setWinData(data);
-
             const foldedPlayersArray = Array.from(foldedPlayers.current);
             setLastMatchHistory({
                 communityCards: data.communityCards || [],
@@ -152,26 +155,22 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
             });
-
-            playSound('win'); // ✅ utilise soundMuteRef.current
+            playSound('win');
         });
 
-        async function shareCardsHandler() {
-            console.log('Share cards');
+        socket.on('shareCards', async () => {
             setGameOver(false);
             setWinData({});
             setCommunity([]);
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
-
             setShouldShareCards(true);
-            setTimeout(async () => {
+            setTimeout(() => {
                 setSharingCards(true);
-                playSound('shareCards'); // ✅ utilise soundMuteRef.current
+                playSound('shareCards');
             }, 300);
-        }
-        socket.on('shareCards', shareCardsHandler);
+        });
 
         socket.on('start', () => {
             setWinData({});
@@ -180,7 +179,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow([]);
             setAllInArr([]);
             foldedPlayers.current = new Set();
-            console.log("Start");
             setShouldShareCards(false);
             setSharingCards(false);
         });
@@ -193,17 +191,9 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setAvatars(data.avatars);
 
             if (data.communityCards.length > 0) {
-                console.log(data.communityCards);
-                console.log('latest comm card', latestCommCard);
                 if (latestCommCard !== data.communityCards[data.communityCards.length - 1]) {
-                    if (data.communityCards.length === 3) {
-                        setCommunityReversNb(3);
-                    } else {
-                        setCommunityReversNb(1);
-                    }
-                    setTimeout(() => {
-                        setMoveCommCards(true);
-                    }, 100);
+                    setCommunityReversNb(data.communityCards.length === 3 ? 3 : 1);
+                    setTimeout(() => setMoveCommCards(true), 100);
                 }
                 setTimeout(() => {
                     setMoveCommCards(false);
@@ -213,27 +203,21 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 }, 500);
             }
 
-            if (data.toAct == data.seat) {
-                isPossibleAction.current = true;
-            }
+            if (data.toAct == data.seat) isPossibleAction.current = true;
 
             for (const item of (data?.actions ?? [])) {
-                if (item.action === 'fold') {
-                    foldedPlayers.current.add(item.playerId);
-                }
+                if (item.action === 'fold') foldedPlayers.current.add(item.playerId);
             }
 
             const lastAction = data?.actions[data?.actions.length - 1];
             if (lastAction) {
-                const playerId = lastAction?.playerId;
-                const seatInfo = data?.seats[playerId];
-
-                if (lastAction.action === 'raise' && seatInfo.stack === 0) {
-                    playSound('allin'); // ✅ utilise soundMuteRef.current
+                const seatInfo = data?.seats[lastAction?.playerId];
+                if (lastAction.action === 'raise' && seatInfo?.stack === 0) {
+                    playSound('allin');
                     setAllInArr(prev => [...prev, seatInfo]);
                     return;
                 }
-                playSound(lastAction.action); // ✅ utilise soundMuteRef.current
+                playSound(lastAction.action);
             }
         });
 
@@ -242,95 +226,54 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             navigate('/table');
         });
 
-        socket.on('quiterror', () => {
-            quitter();
-        });
+        socket.on('quiterror', () => quitter());
 
         socket.on('timeerror', (data) => {
-            toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, {
-                autoClose: 10000
-            });
+            toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, { autoClose: 10000 });
         });
 
-        // ✅ Cleanup propre : un seul socket, une seule déconnexion
         return () => {
             socket.emit('leave_table', { tableId, userId });
             socket.disconnect();
             socketRef.current = null;
         };
-
-    // ✅ Seulement tableId — soundMute et winAllIn retirés des dépendances
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tableId]);
 
     useEffect(() => {
         const diff = community.length - communityShow.length;
         setIsRevealFinished(false);
-
-        if (diff <= 0) {
-            setIsRevealFinished(true);
-            return;
-        }
-
-        if (diff === 3) {
+        if (diff <= 0) { setIsRevealFinished(true); return; }
+        if (diff === 3 || diff === 1) {
             setCommunityShow(community);
-            setTimeout(() => {
-                setCommunityToShow(community);
-            }, 100);
+            setTimeout(() => setCommunityToShow(community), 100);
             setIsRevealFinished(true);
             return;
         }
-
-        setIsRevealFinished(false);
-
-        if (diff === 1) {
-            setCommunityShow(community);
-            setTimeout(() => {
-                setCommunityToShow(community);
-            }, 100);
-            setIsRevealFinished(true);
-            return;
-        }
-
         const timeouts = [];
-        if (diff > 1) {
-            let timeindex = 0;
-            for (let i = communityShow.length; i < community.length; i++) {
-                const newShowCards = community.slice(0, i + 1);
-
-                const timeout = setTimeout(() => {
-                    console.log('Community show', newShowCards);
-                    console.log(i);
-                    setTimeout(() => {
-                        setCommunityShow(newShowCards);
-                        setTimeout(() => {
-                            setCommunityToShow(prev => [...prev, newShowCards[i]]);
-                        }, 100);
-                    }, 500);
-                    if (i + 1 === community.length) {
-                        setIsRevealFinished(true);
-                    }
-                }, (timeindex * 1000));
-
-                timeouts.push(timeout);
-                timeindex++;
-            }
+        let timeindex = 0;
+        for (let i = communityShow.length; i < community.length; i++) {
+            const newShowCards = community.slice(0, i + 1);
+            const timeout = setTimeout(() => {
+                setTimeout(() => {
+                    setCommunityShow(newShowCards);
+                    setTimeout(() => setCommunityToShow(prev => [...prev, newShowCards[i]]), 100);
+                }, 500);
+                if (i + 1 === community.length) setIsRevealFinished(true);
+            }, timeindex * 1000);
+            timeouts.push(timeout);
+            timeindex++;
         }
-        return () => {
-            timeouts.forEach(t => clearTimeout(t));
-        };
+        return () => timeouts.forEach(t => clearTimeout(t));
     }, [community]);
 
     useEffect(() => {
         if (!game || !tableState.activeSeats) return;
-
         const activeSeats = tableState.activeSeats;
         const dealerSeat = tableState.deal_btn;
         const playerCount = activeSeats.length;
-
         const dealerIdx = activeSeats.indexOf(dealerSeat);
         if (dealerIdx === -1) return;
-
         let sbSeat, bbSeat;
         if (playerCount === 2) {
             sbSeat = dealerSeat;
@@ -339,53 +282,35 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             sbSeat = activeSeats[(dealerIdx + 1) % playerCount];
             bbSeat = activeSeats[(dealerIdx + 2) % playerCount];
         }
-
         if (sb === -1) setSb(sbSeat);
         if (bb === -1) setBb(bbSeat);
         if (dealer === -1) setDealer(dealerSeat);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game, tableState]);
 
     useEffect(() => {
-        setSb(-1);
-        setBb(-1);
-        setDealer(-1);
+        setSb(-1); setBb(-1); setDealer(-1);
     }, [game]);
 
-    // Récupérer le dernier historique depuis l'API
     useEffect(() => {
         const fetchLastHistory = async () => {
             if (!tableId) return;
-
             try {
                 const historyData = await getLastHistory(tableId);
-
                 if (historyData) {
                     let foldedPlayersArray = [];
                     if (historyData.foldedPlayers) {
                         foldedPlayersArray = Array.isArray(historyData.foldedPlayers)
-                            ? historyData.foldedPlayers
-                            : Array.from(historyData.foldedPlayers);
+                            ? historyData.foldedPlayers : Array.from(historyData.foldedPlayers);
                     } else if (historyData.foldes) {
                         foldedPlayersArray = Array.isArray(historyData.foldes)
                             ? historyData.foldes
-                            : (typeof historyData.foldes === 'string'
-                                ? JSON.parse(historyData.foldes)
-                                : []);
+                            : (typeof historyData.foldes === 'string' ? JSON.parse(historyData.foldes) : []);
                     }
-
                     let parsedAllCards = historyData.allCards || historyData.main_joueurs || [];
                     let parsedPlayerNames = historyData.playerNames || historyData.noms_joueurs || [];
-
-                    if (typeof parsedAllCards === 'string') {
-                        try { parsedAllCards = JSON.parse(parsedAllCards); } catch (e) { console.error('Error parsing allCards:', e); }
-                    }
-
-                    if (typeof parsedPlayerNames === 'string') {
-                        try { parsedPlayerNames = JSON.parse(parsedPlayerNames); } catch (e) { console.error('Error parsing playerNames:', e); }
-                    }
-
+                    if (typeof parsedAllCards === 'string') { try { parsedAllCards = JSON.parse(parsedAllCards); } catch (e) {} }
+                    if (typeof parsedPlayerNames === 'string') { try { parsedPlayerNames = JSON.parse(parsedPlayerNames); } catch (e) {} }
                     setLastMatchHistory({
                         communityCards: historyData.communityCards || historyData.cartes_communes || [],
                         allCards: parsedAllCards,
@@ -398,31 +323,27 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 console.error('Error fetching last history:', error);
             }
         };
-
         fetchLastHistory();
     }, [tableId]);
 
     const emitPlayerAction = (action, betSizeParam = undefined) => {
         if (!isPossibleAction.current) return;
-
         isPossibleAction.current = false;
-
-        const betSizeSend = betSizeParam ? betSizeParam : betSize;
+        const betSizeSend = betSizeParam ?? betSize;
         const { min, max } = tableState.legalActions.chipRange;
         const clampedBet = Math.max(min, Math.min(betSizeSend, max));
-
         socketRef.current.emit('playerAction', {
-            tableId: tableId,
+            tableId,
             tableSessionId: tableState.tableId,
             playerSeats: tableState.seat,
-            action: action,
+            action,
             bet: clampedBet
         });
     };
 
     const quitter = () => {
         socketRef.current.emit("quit", {
-            tableId: tableId,
+            tableId,
             tableSessionId: tableState.tableId,
             playerSeats: tableState.seat,
         });
@@ -433,22 +354,19 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         return require(`../../image/card2/${final_id_card}.svg`);
     };
 
-    const actionLabels = {
-        fold: 'Se coucher',
-        check: 'Parole',
-        call: 'Suivre',
+    const addRange = () => setBetSize(Math.min(betSize + 10, tableState.legalActions.chipRange.max));
+    const minusRange = () => setBetSize(Math.max(betSize - 1, tableState.legalActions.chipRange.min));
+
+    // ✅ Toggle manuel orientation
+    const toggleOrientation = () => {
+        setTableRotation(prev => prev === 0 ? 90 : 0);
     };
 
-    const addRange = () => {
-        setBetSize(Math.min((betSize + 10), tableState.legalActions.chipRange.max));
-    };
-
-    const minusRange = () => {
-        setBetSize(Math.max((betSize - 1), tableState.legalActions.chipRange.min));
-    };
+    // ✅ Guards : tous les champs requis sont présents
+    const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
 
     return (
-        <div key={tableId} className="game-container">
+        <div key={tableId} className={`game-container orientation-${orientation}`}>
             <ToastContainer />
 
             {tableState.handInProgress && tableState.toAct === tableState.seat && (
@@ -491,25 +409,20 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 shouldShareCards={shouldShareCards}
             />
 
-            <div
-                className="table"
-                ref={tableRef}
-                style={{ marginTop: 10 }}
-            >
+            <div className="table" ref={tableRef} style={{ marginTop: 10 }}>
                 <div
                     className="table-surface"
                     style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        transform: `rotate(${tableRotation}deg)`,
+                        transition: 'transform 0.3s ease-in-out',
                     }}
                 >
                     <img
                         src={tableTexture}
                         alt=""
                         style={{
-                            width: 'calc(408px)',
-                            height: 'calc(650px)',
+                            width: '408px',
+                            height: '650px',
                             objectFit: 'contain',
                             padding: '1rem',
                             mixBlendMode: 'multiply',
@@ -518,65 +431,87 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     />
                 </div>
 
-                {tableState.seats && (tableState.seats).map((chips, i) => {
-                    return (
-                        <Player
-                            key={i}
-                            i={i}
-                            chips={chips}
-                            tableState={tableState}
-                            winData={winData}
-                            sb={sb}
-                            bb={bb}
-                            dealer={dealer}
-                            avatars={avatars}
-                            playerRefs={playerRefs}
-                            tableRef={tableRef}
-                            getSrcCard={getSrcCard}
-                            rever={rever}
-                            foldedPlayers={foldedPlayers}
-                            shouldShareCards={shouldShareCards}
-                            sharingCards={sharingCards}
-                            allInArr={allInArr}
-                            isRevealFinished={isRevealFinished}
-                            gameOver={gameOver}
-                            hideStack={hideStack}
-                            tableId={tableId}
-                        />
-                    );
-                })}
+                {tableReady && tableState.seats.map((chips, i) => (
+                    <Player
+                        key={i}
+                        i={i}
+                        chips={chips}
+                        tableState={tableState}
+                        winData={winData}
+                        sb={sb}
+                        bb={bb}
+                        dealer={dealer}
+                        avatars={avatars}
+                        playerRefs={playerRefs}
+                        tableRef={tableRef}
+                        getSrcCard={getSrcCard}
+                        rever={rever}
+                        foldedPlayers={foldedPlayers}
+                        shouldShareCards={shouldShareCards}
+                        sharingCards={sharingCards}
+                        allInArr={allInArr}
+                        isRevealFinished={isRevealFinished}
+                        gameOver={gameOver}
+                        hideStack={hideStack}
+                        tableId={tableId}
+                        tableRotation={tableRotation}
+                        currentUserId={currentUserId}
+                    />
+                ))}
             </div>
 
+            {/* Bouton Quitter */}
             <div
                 className="exit"
                 onClick={() => quitter()}
-                style={{
-                    padding: '4px 8px 4px 8px',
-                    background: '#ff3030ff',
-                    color: '#FFF',
-                }}
+                style={{ padding: '4px 8px', background: '#ff3030ff', color: '#FFF' }}
             >
-                <ArrowBigLeft size={24} style={{ marginRight: 0 }} />
+                <ArrowBigLeft size={24} />
                 Quitter
             </div>
 
-            <div
-                style={{
-                    position: 'absolute',
-                    top: '2%',
-                    right: '5%',
-                    display: 'flex',
-                    gap: '12px',
-                    zIndex: 999,
-                }}
-            >
-                <div style={{ display: 'flex' }}>
-                    <TableTabs />
-                </div>
+            {/* ✅ Barre du haut avec bouton orientation */}
+            <div style={{
+                position: 'absolute',
+                top: '2%',
+                right: '5%',
+                display: 'flex',
+                gap: '8px',
+                zIndex: 9999,
+                alignItems: 'center',
+            }}>
+                <div style={{ display: 'flex' }}><TableTabs /></div>
 
                 <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
 
-                <div
+                {/* ✅ Toggle vertical ↕ / horizontal ↔ */}
+                <button
+                    onClick={toggleOrientation}
+                    title={orientation === 'vertical' ? 'Passer en horizontal' : 'Passer en vertical'}
+                    style={{
+                        cursor: 'pointer',
+                        borderRadius: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        border: '2px solid #FFD700',
+                        color: '#FFD700',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        userSelect: 'none',
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        padding: 0,
+                        flexShrink: 0,
+                        outline: 'none',
+                    }}
+                >
+                    {orientation === 'vertical' ? '⇔' : '⇕'}
+                </button>
+
+                {/* Historique */}
+                <button
                     onClick={() => setIsHistoryModalOpen(true)}
                     style={{
                         color: '#FFD700',
@@ -586,13 +521,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         alignItems: 'center',
                         justifyContent: 'center',
                         width: 32,
-                        paddingTop: 4,
-                        paddingBottom: 4,
+                        height: 32,
                         border: '2px solid #FFD700',
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        padding: 0,
+                        outline: 'none',
+                        flexShrink: 0,
                     }}
                 >
                     <History size={20} />
-                </div>
+                </button>
             </div>
 
             <GameHistoryModal
@@ -610,6 +548,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 currentUserId={currentUserId}
                 playerNames={tableState.playerNames || []}
             />
+
+            {/* Debug discret */}
+            {tableState.seat !== undefined && (
+                <div style={{
+                    position: 'absolute', bottom: '1%', right: '2%',
+                    fontSize: '10px', color: 'rgba(255,215,0,0.4)', zIndex: 500,
+                }}>
+                    Seat {tableState.seat} · {tableRotation}° · {orientation}
+                </div>
+            )}
         </div>
     );
 };
