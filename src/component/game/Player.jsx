@@ -167,7 +167,7 @@ const Player = ({
                 )}
 
                 <div className="player-cards">
-                    {(winData?.allCards ?? []).length > 0 ? (
+                    {(winData?.allCards ?? []).length > 0 && isRevealFinished ? (
                         <div className="card-containers">
                             {(winData.allCards[i] ?? []).length > 0 && !foldedPlayers.current.has(i) && (
                                 <>

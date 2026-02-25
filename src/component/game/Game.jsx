@@ -73,6 +73,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const [communityToShow, setCommunityToShow] = useState([]);
     const [allInArr, setAllInArr] = useState([]);
     const [gameOver, setGameOver] = useState(false);
+    const [playPotAnimation, setPlayPotAnimation] = useState(false);
     const potRef = useRef(null);
     const [hideStack, setHideStack] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
@@ -156,32 +157,23 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         });
 
         socket.on('win', (data) => {
-            // Store win data and reveal community cards first.
-            // Apply the actual win (setWinData / setGameOver) only after community reveal finishes.
+            // Buffer the win and force a community reveal sequence first.
             setGame(false);
-            setCommunity(data.communityCards);
             setShouldShareCards(false);
-            // If there are no community cards to reveal, apply immediately
-            if (!data.communityCards || data.communityCards.length === 0) {
-                setWinData(data);
-                setGameOver(true);
-                const foldedPlayersArray = Array.from(foldedPlayers.current);
-                setLastMatchHistory({
-                    communityCards: data.communityCards || [],
-                    allCards: data.allCards || [],
-                    playerNames: [],
-                    foldedPlayers: foldedPlayersArray
-                });
-                playSound('win');
-            } else {
-                // otherwise keep pending until reveal finished
-                pendingWinRef.current = data;
-            }
+            // Reset current community show to force the reveal effect
+            setCommunity([]);
+            setCommunityShow([]);
+            setCommunityToShow([]);
+            // Slight delay to ensure reset propagation, then set the community to trigger reveal useEffect
+            setTimeout(() => setCommunity(data.communityCards || []), 50);
+            // Always keep the win pending until the reveal completes
+            pendingWinRef.current = data;
         });
 
         socket.on('shareCards', async () => {
             setGameOver(false);
             setWinData({});
+            setPlayPotAnimation(false);
             setCommunity([]);
             setCommunityShow([]);
             setCommunityToShow([]);
@@ -199,6 +191,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             setCommunity([]);
             setCommunityShow([]);
             setAllInArr([]);
+            setPlayPotAnimation(false);
             foldedPlayers.current = new Set();
             setShouldShareCards(false);
             setSharingCards(false);
@@ -300,7 +293,6 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 setIsRevealFinished(true);
             }
             setWinData(data);
-            setGameOver(true);
             setShouldShareCards(false);
             const foldedPlayersArray = Array.from(foldedPlayers.current);
             setLastMatchHistory({
@@ -309,7 +301,13 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
             });
-            playSound('win');
+            // Delay awarding so hole cards render first, then animate pot
+            setPlayPotAnimation(false);
+            setTimeout(() => {
+                setGameOver(true);
+                setPlayPotAnimation(true);
+                playSound('win');
+            }, 800);
             pendingWinRef.current = null;
         }
     }, [isRevealFinished]);
@@ -450,7 +448,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 jeton={jeton}
                 potRef={potRef}
                 playerRefs={playerRefs}
-                animatePotToWinner={isRevealFinished && winData?.winStates?.some(w => w.isWinner)}
+                animatePotToWinner={playPotAnimation && winData?.winStates?.some(w => w.isWinner)}
                 winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
                 playSound={playSound}
                 shouldShareCards={shouldShareCards}
