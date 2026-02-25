@@ -53,6 +53,8 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const [isRevealFinished, setIsRevealFinished] = useState(false);
     const foldedPlayers = useRef(new Set());
     const pendingWinRef = useRef(null);
+    const [hasPendingWin, setHasPendingWin] = useState(false);
+    const [displaySeats, setDisplaySeats] = useState([]);
     const isPossibleAction = useRef(true);
     const [soundMute, setSoundMute] = useState(false);
     const soundMuteRef = useRef(false);
@@ -168,6 +170,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             setTimeout(() => setCommunity(data.communityCards || []), 50);
             // Always keep the win pending until the reveal completes
             pendingWinRef.current = data;
+            setHasPendingWin(true);
         });
 
         socket.on('shareCards', async () => {
@@ -201,6 +204,10 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             const minBet = data?.legalActions?.chipRange?.min ?? 0;
             setBetSize(minBet);
             setTableState(data);
+            // Update visible seats only when not in a pending-award state
+            if (!hasPendingWin && !playPotAnimation) {
+                setDisplaySeats(data.seats || []);
+            }
             setTableSessionId(data.tableId);
             setAvatars(data.avatars);
 
@@ -309,6 +316,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 playSound('win');
             }, 800);
             pendingWinRef.current = null;
+            setHasPendingWin(false);
         }
     }, [isRevealFinished]);
 
@@ -332,6 +340,13 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         if (dealer === -1) setDealer(dealerSeat);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game, tableState]);
+
+    // Keep displaySeats in sync with tableState.seats except when awarding pot
+    useEffect(() => {
+        if (!tableState.seats) return;
+        if (hasPendingWin || playPotAnimation) return;
+        setDisplaySeats(tableState.seats);
+    }, [tableState.seats, hasPendingWin, playPotAnimation]);
 
     useEffect(() => {
         setSb(-1); setBb(-1); setDealer(-1);
@@ -481,7 +496,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                     />
                 </div>
 
-                {tableReady && tableState.seats.map((chips, i) => (
+                {tableReady && (displaySeats.length ? displaySeats : tableState.seats).map((chips, i) => (
                     <Player
                         key={i}
                         i={i}
