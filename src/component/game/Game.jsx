@@ -10,8 +10,10 @@ import "./Game.scss";
 import rever from "../../styles/image/rever.png";
 import jeton from "../../styles/image/jeton.png";
 import jetonMany from "../../styles/image/jetonMany.png";
-import tableTexture from "../../styles/image/vert_table.png";
-import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
+import tableTexture from "../../styles/image/table_vert_p.png";
+//vert_table_rot
+import tableTextureLandscape from "../../styles/image/vert_led.png";
+// import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
 import PlayerActions from './PlayerActions';
 import Player from './Player';
 import CommunityCards from './CommunityCards';
