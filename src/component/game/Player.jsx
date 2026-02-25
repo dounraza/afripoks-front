@@ -26,6 +26,9 @@ const Player = ({
     tableId,
     tableRotation,
     currentUserId,
+    showWinnerCards,
+    hasPendingWin,
+    playPotAnimation,
 }) => {
     const [smileysOpen, setSmileysOpen] = useState(false);
     const [smiley, setSmiley] = useState(null);
@@ -119,7 +122,7 @@ const Player = ({
                         const playerAction = tableState.actions?.find(item => item.playerId === i);
                         const actionKeepsActive = playerAction && ['call', 'allin', 'raise'].includes(playerAction.action);
                         const isActiveSeat = tableState.activeSeats?.includes(i);
-                        const hasShownCards = (winData?.allCards && (winData.allCards[i] ?? []).length > 0) || shouldShareCards || sharingCards;
+                        const hasShownCards = (winData?.allCards && (winData.allCards[i] ?? []).length > 0 && showWinnerCards) || shouldShareCards || sharingCards;
                         return (actionKeepsActive || isActiveSeat || hasShownCards) ? 1 : 0.5;
                     })(),
                     border: isCurrentPlayer ? '3px solid #00FF00' : '1px solid transparent'
@@ -167,7 +170,7 @@ const Player = ({
                 )}
 
                 <div className="player-cards">
-                    {(winData?.allCards ?? []).length > 0 && isRevealFinished ? (
+                    {(winData?.allCards ?? []).length > 0 && isRevealFinished && showWinnerCards ? (
                         <div className="card-containers">
                             {(winData.allCards[i] ?? []).length > 0 && !foldedPlayers.current.has(i) && (
                                 <>
@@ -337,7 +340,7 @@ const Player = ({
                         })()
                     }
                 </div>
-                <div className="stacks">
+                <div className="stacks" style={{ opacity: (hasPendingWin || playPotAnimation) ? 0 : 1, transition: 'opacity 0.3s ease-in-out' }}>
                     {/* {hideStack ? '...' : ( */}
                         <>
                             {isRevealFinished && winData?.winStates?.find(w => w.seat === i)?.handName ? (
