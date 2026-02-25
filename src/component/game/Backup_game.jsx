@@ -10,7 +10,8 @@ import rever from "../../styles/image/rever.png";
 import jeton from "../../styles/image/jeton.png";
 import jetonMany from "../../styles/image/jetonMany.png";
 import tableTexture from "../../styles/image/vert_table.png";
-import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
+//vert_table_rot
+import tableTextureLandscape from "../../styles/image/vert_afripoks.png";
 import PlayerActions from './PlayerActions';
 import Player from './Player';
 import CommunityCards from './CommunityCards';
