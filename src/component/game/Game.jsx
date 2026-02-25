@@ -55,6 +55,9 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const pendingWinRef = useRef(null);
     const [hasPendingWin, setHasPendingWin] = useState(false);
     const [displaySeats, setDisplaySeats] = useState([]);
+    const [showWinnerCards, setShowWinnerCards] = useState(false);
+    const frozenSeatsRef = useRef(null);
+    const lastStableSeatsRef = useRef(null);
     const isPossibleAction = useRef(true);
     const [soundMute, setSoundMute] = useState(false);
     const soundMuteRef = useRef(false);
@@ -159,6 +162,11 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         });
 
         socket.on('win', (data) => {
+            // Use the LAST STABLE seats (from before the win arrived), not current tableState
+            // because tableState.seats might already have updated values from server
+            frozenSeatsRef.current = lastStableSeatsRef.current 
+                ? JSON.parse(JSON.stringify(lastStableSeatsRef.current))
+                : JSON.parse(JSON.stringify(tableState.seats || []));
             // Buffer the win and force a community reveal sequence first.
             setGame(false);
             setShouldShareCards(false);
@@ -177,6 +185,9 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             setGameOver(false);
             setWinData({});
             setPlayPotAnimation(false);
+            setShowWinnerCards(false);
+            frozenSeatsRef.current = null;
+            lastStableSeatsRef.current = null;
             setCommunity([]);
             setCommunityShow([]);
             setCommunityToShow([]);
@@ -195,6 +206,9 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             setCommunityShow([]);
             setAllInArr([]);
             setPlayPotAnimation(false);
+            setShowWinnerCards(false);
+            frozenSeatsRef.current = null;
+            lastStableSeatsRef.current = null;
             foldedPlayers.current = new Set();
             setShouldShareCards(false);
             setSharingCards(false);
@@ -204,10 +218,12 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             const minBet = data?.legalActions?.chipRange?.min ?? 0;
             setBetSize(minBet);
             setTableState(data);
-            // Update visible seats only when not in a pending-award state
+            // Capture last stable seats ONLY when NOT in a pending win/animation phase
+            // This ensures we have a pre-win snapshot before tableState gets updated with new stacks
             if (!hasPendingWin && !playPotAnimation) {
-                setDisplaySeats(data.seats || []);
+                lastStableSeatsRef.current = JSON.parse(JSON.stringify(data.seats || []));
             }
+            // Never auto-update displaySeats from tableState; only update via callback after animation
             setTableSessionId(data.tableId);
             setAvatars(data.avatars);
 
@@ -299,8 +315,10 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 setCommunityToShow(data.communityCards);
                 setIsRevealFinished(true);
             }
+            // Store win data for pot animation targeting, show winner cards after reveal
             setWinData(data);
             setShouldShareCards(false);
+            setShowWinnerCards(true); // Show winner cards now that reveal is complete
             const foldedPlayersArray = Array.from(foldedPlayers.current);
             setLastMatchHistory({
                 communityCards: data.communityCards || [],
@@ -308,6 +326,8 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
             });
+            // KEEP STACKS FROZEN during animation - don't release yet
+            // hasPendingWin stays true to prevent displaySeats from updating
             // Delay awarding so hole cards render first, then animate pot
             setPlayPotAnimation(false);
             setTimeout(() => {
@@ -316,7 +336,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 playSound('win');
             }, 800);
             pendingWinRef.current = null;
-            setHasPendingWin(false);
+            // Keep hasPendingWin true until onPotAnimationEnd releases it
         }
     }, [isRevealFinished]);
 
@@ -343,14 +363,26 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
     // Keep displaySeats in sync with tableState.seats except when awarding pot
     useEffect(() => {
+        // During pending win or animation, use frozen snapshot
+        if (hasPendingWin || playPotAnimation) {
+            if (frozenSeatsRef.current && frozenSeatsRef.current.length > 0) {
+                setDisplaySeats(frozenSeatsRef.current);
+            }
+            return;
+        }
+        // Otherwise sync normally
         if (!tableState.seats) return;
-        if (hasPendingWin || playPotAnimation) return;
         setDisplaySeats(tableState.seats);
-    }, [tableState.seats, hasPendingWin, playPotAnimation]);
+    }, [tableState.seats, hasPendingWin, playPotAnimation, gameOver]);
 
     useEffect(() => {
         setSb(-1); setBb(-1); setDealer(-1);
-    }, [game]);
+        // Initialize displaySeats when new game starts (and freeze is released)
+        if (tableState.seats && !hasPendingWin && !playPotAnimation) {
+            frozenSeatsRef.current = null;
+            setDisplaySeats(tableState.seats);
+        }
+    }, [game, tableState.seats, hasPendingWin, playPotAnimation]);
 
     useEffect(() => {
         const fetchLastHistory = async () => {
@@ -422,6 +454,18 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         setTableRotation(prev => prev === 0 ? 270 : 0);
     };
 
+    // Callback when pot animation finishes to update displayed stacks
+    const onPotAnimationEnd = () => {
+        // NOW release the freeze and show updated stacks + winner cards
+        frozenSeatsRef.current = null;
+        setHasPendingWin(false); // Unfreeze stacks
+        setPlayPotAnimation(false);
+        setShowWinnerCards(true); // Reveal winner cards after animation completes
+        if (tableState.seats) {
+            setDisplaySeats(tableState.seats);
+        }
+    };
+
     // ✅ Guards : tous les champs requis sont présents
     const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
 
@@ -467,6 +511,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
                 playSound={playSound}
                 shouldShareCards={shouldShareCards}
+                onPotAnimationEnd={onPotAnimationEnd}
             />
 
             <div className="table" ref={tableRef} style={{ marginTop: 10 }}>
@@ -496,7 +541,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                     />
                 </div>
 
-                {tableReady && (displaySeats.length ? displaySeats : tableState.seats).map((chips, i) => (
+                {tableReady && (displaySeats.length > 0 ? displaySeats : tableState.seats).map((chips, i) => (
                     <Player
                         key={i}
                         i={i}
@@ -521,6 +566,9 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                         tableId={tableId}
                         tableRotation={tableRotation}
                         currentUserId={currentUserId}
+                        showWinnerCards={showWinnerCards}
+                        hasPendingWin={hasPendingWin}
+                        playPotAnimation={playPotAnimation}
                     />
                 ))}
             </div>

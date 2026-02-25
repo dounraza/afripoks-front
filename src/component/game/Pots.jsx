@@ -3,7 +3,7 @@ import singleJeton from '../../styles/image/single-jeton.png';
 import singleJeton1 from '../../styles/image/single-jeton-1.png';
 import singleJeton2 from '../../styles/image/single-jeton-2.png';
 
-const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winnerSeats, playerRefs, playSound, shouldShareCards }) => {
+const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winnerSeats, playerRefs, playSound, shouldShareCards, onPotAnimationEnd }) => {
     const [potsAnimation, setPotsAnimation] = useState([]);
     const [animate, setAnimate] = useState(false);
     const [potVisible, setPotVisible] = useState(true);
@@ -52,6 +52,10 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                 setPotsAnimation([]);
                 setAnimate(false);
                 setPotVisible(false); // <-- le pot principal reste caché
+                // Callback: update stacks after animation completes
+                if (onPotAnimationEnd) {
+                    onPotAnimationEnd();
+                }
             }, 1000);
         } else {
             setPotsAnimation([]);
