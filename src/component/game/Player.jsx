@@ -113,7 +113,15 @@ const Player = ({
                 }
                 style={{ 
                     borderRadius: 6,
-                    opacity: tableState.activeSeats?.includes(i) ? 1 : 0.5,
+                    opacity: (() => {
+                        const isFolded = foldedPlayers && foldedPlayers.current && foldedPlayers.current.has(i);
+                        if (!isFolded) return 1;
+                        const playerAction = tableState.actions?.find(item => item.playerId === i);
+                        const actionKeepsActive = playerAction && ['call', 'allin', 'raise'].includes(playerAction.action);
+                        const isActiveSeat = tableState.activeSeats?.includes(i);
+                        const hasShownCards = (winData?.allCards && (winData.allCards[i] ?? []).length > 0) || shouldShareCards || sharingCards;
+                        return (actionKeepsActive || isActiveSeat || hasShownCards) ? 1 : 0.5;
+                    })(),
                     border: isCurrentPlayer ? '3px solid #00FF00' : '1px solid transparent'
                 }}
                 key={i}
