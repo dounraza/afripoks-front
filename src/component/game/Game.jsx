@@ -52,6 +52,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const [communityShow, setCommunityShow] = useState([]);
     const [isRevealFinished, setIsRevealFinished] = useState(false);
     const foldedPlayers = useRef(new Set());
+    const pendingWinRef = useRef(null);
     const isPossibleAction = useRef(true);
     const [soundMute, setSoundMute] = useState(false);
     const soundMuteRef = useRef(false);
@@ -155,19 +156,27 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         });
 
         socket.on('win', (data) => {
-            setGameOver(true);
+            // Store win data and reveal community cards first.
+            // Apply the actual win (setWinData / setGameOver) only after community reveal finishes.
             setGame(false);
             setCommunity(data.communityCards);
             setShouldShareCards(false);
-            setWinData(data);
-            const foldedPlayersArray = Array.from(foldedPlayers.current);
-            setLastMatchHistory({
-                communityCards: data.communityCards || [],
-                allCards: data.allCards || [],
-                playerNames: [],
-                foldedPlayers: foldedPlayersArray
-            });
-            playSound('win');
+            // If there are no community cards to reveal, apply immediately
+            if (!data.communityCards || data.communityCards.length === 0) {
+                setWinData(data);
+                setGameOver(true);
+                const foldedPlayersArray = Array.from(foldedPlayers.current);
+                setLastMatchHistory({
+                    communityCards: data.communityCards || [],
+                    allCards: data.allCards || [],
+                    playerNames: [],
+                    foldedPlayers: foldedPlayersArray
+                });
+                playSound('win');
+            } else {
+                // otherwise keep pending until reveal finished
+                pendingWinRef.current = data;
+            }
         });
 
         socket.on('shareCards', async () => {
@@ -278,6 +287,25 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         }
         return () => timeouts.forEach(t => clearTimeout(t));
     }, [community]);
+
+    // Apply pending win data after community reveal finishes so awarding is delayed (surprise)
+    useEffect(() => {
+        if (isRevealFinished && pendingWinRef.current) {
+            const data = pendingWinRef.current;
+            setWinData(data);
+            setGameOver(true);
+            setShouldShareCards(false);
+            const foldedPlayersArray = Array.from(foldedPlayers.current);
+            setLastMatchHistory({
+                communityCards: data.communityCards || [],
+                allCards: data.allCards || [],
+                playerNames: [],
+                foldedPlayers: foldedPlayersArray
+            });
+            playSound('win');
+            pendingWinRef.current = null;
+        }
+    }, [isRevealFinished]);
 
     useEffect(() => {
         if (!game || !tableState.activeSeats) return;
