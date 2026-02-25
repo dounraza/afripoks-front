@@ -292,6 +292,13 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     useEffect(() => {
         if (isRevealFinished && pendingWinRef.current) {
             const data = pendingWinRef.current;
+            // Ensure community and shown cards are visible before applying win
+            if (data.communityCards && data.communityCards.length > 0) {
+                setCommunity(data.communityCards);
+                setCommunityShow(data.communityCards);
+                setCommunityToShow(data.communityCards);
+                setIsRevealFinished(true);
+            }
             setWinData(data);
             setGameOver(true);
             setShouldShareCards(false);
@@ -594,15 +601,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 playerNames={tableState.playerNames || []}
             />
 
-            {/* Debug discret */}
-            {tableState.seat !== undefined && (
-                <div style={{
-                    position: 'absolute', bottom: '1%', right: '2%',
-                    fontSize: '10px', color: 'rgba(255,215,0,0.4)', zIndex: 500,
-                }}>
-                    Seat {tableState.seat} · {tableRotation}° · {orientation}
-                </div>
-            )}
+            {/* Debug message removed for production UI */}
         </div>
     );
 };
