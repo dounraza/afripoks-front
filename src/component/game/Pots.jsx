@@ -10,11 +10,17 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
     
 
     useEffect(() => {
-        if (
-            animatePotToWinner &&
-            winnerSeats.length > 0 &&
-            potRef.current
-        ) {
+        // Try to run the pot->winner animation but wait/retry if player refs are not mounted yet.
+        let retryTimer = null;
+        let endTimer = null;
+
+        const startAnimation = () => {
+            if (!potRef.current) {
+                // pot not mounted yet, retry shortly
+                retryTimer = setTimeout(startAnimation, 50);
+                return;
+            }
+
             const potRect = potRef.current.getBoundingClientRect();
 
             const newAnimations = winnerSeats.map((seat) => {
@@ -36,6 +42,12 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                 return null;
             }).filter(Boolean);
 
+            if (newAnimations.length === 0) {
+                // Some winner refs not ready yet, retry shortly
+                retryTimer = setTimeout(startAnimation, 50);
+                return;
+            }
+
             setPotsAnimation(newAnimations);
             setAnimate(false);
             setPotVisible(true);
@@ -48,7 +60,7 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
             }, 20);
 
             // Cache le pot principal après l'animation
-            setTimeout(() => {
+            endTimer = setTimeout(() => {
                 setPotsAnimation([]);
                 setAnimate(false);
                 setPotVisible(false); // <-- le pot principal reste caché
@@ -57,12 +69,21 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                     onPotAnimationEnd();
                 }
             }, 1000);
+        };
+
+        if (animatePotToWinner && winnerSeats.length > 0) {
+            startAnimation();
         } else {
             setPotsAnimation([]);
             setAnimate(false);
             setPotVisible(true); // <-- le pot principal réapparaît pour la prochaine main
         }
-    }, [animatePotToWinner, winnerSeats, playerRefs]);
+
+        return () => {
+            if (retryTimer) clearTimeout(retryTimer);
+            if (endTimer) clearTimeout(endTimer);
+        };
+    }, [animatePotToWinner, winnerSeats, playerRefs, potRef, playSound, onPotAnimationEnd]);
 
     useEffect(() => {
         const images = [singleJeton, singleJeton1, singleJeton2, jetonMany, jeton];
