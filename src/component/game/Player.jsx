@@ -102,7 +102,11 @@ const Player = ({
                     ${(winData?.winStates ?? []).length > 0 && winData.winStates.find(w => w.seat === i)?.isWinner && isRevealFinished ?'win': '' }
                     ${tableState.toAct === i ?'active': '' }`
                 }
-                style={{ borderRadius: 6 }}
+                style={{ 
+                    borderRadius: 6,
+                    opacity: foldedPlayers.current.has(i) ? 0.6 : 1,
+                    transition: 'opacity 0.3s ease-in-out'
+                }}
                 key={i}
             >
                 <div
