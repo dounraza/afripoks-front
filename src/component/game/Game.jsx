@@ -22,20 +22,11 @@ import { onlineUsersSocket } from '../../engine/socket';
 import TableTabs from './TableTabs';
 import TableChat from './TableChat';
 
-// ✅ Rotation auto selon seat — uniquement 0°/90°/180°/270°
 const SEAT_ROTATIONS = {
-    0: 0,
-    1: 0,
-    2: 90,
-    3: 90,
-    4: 180,
-    5: 180,
-    6: 270,
-    7: 270,
-    8: 90,
+    0: 0, 1: 0, 2: 90, 3: 90, 4: 180,
+    5: 180, 6: 270, 7: 270, 8: 90,
 };
 
-// ✅ Seat CSS affiché en bas de l'écran
 const BOTTOM_SEAT = 0;
 
 const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
@@ -89,20 +80,12 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
     const orientation = (tableRotation === 90 || tableRotation === 270) ? 'horizontal' : 'vertical';
 
-    // ✅ Calcul de la rotation visuelle des seats
-    // Le joueur connecté (mySeat) doit toujours apparaître à BOTTOM_SEAT
     const mySeat = tableState.seat;
     const totalSeats = tableState.seats?.length ?? 9;
 
-    // visualSeat → realSeat : quel joueur réel afficher à cette position visuelle ?
-    const getRealSeat = (visualSeat) => {
-        return (mySeat + visualSeat - BOTTOM_SEAT + totalSeats) % totalSeats;
-    };
+    const getRealSeat = (visualSeat) => (mySeat + visualSeat - BOTTOM_SEAT + totalSeats) % totalSeats;
+    const getVisualSeat = (realSeat) => (realSeat - mySeat + BOTTOM_SEAT + totalSeats) % totalSeats;
 
-    // realSeat → visualSeat : à quelle position visuelle afficher ce joueur réel ?
-    const getVisualSeat = (realSeat) => {
-        return (realSeat - mySeat + BOTTOM_SEAT + totalSeats) % totalSeats;
-    };
     const playSound = (type, muteOverride) => {
         const sounds = {
             fold: '/sounds/fold.mp3',
@@ -123,7 +106,6 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         }
     };
 
-    // ✅ Rotation auto dès que le seat est connu
     useEffect(() => {
         if (tableState.seat !== undefined && tableState.seat !== null) {
             const rotation = SEAT_ROTATIONS[tableState.seat] ?? 0;
@@ -131,9 +113,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         }
     }, [tableState.seat]);
 
-    useEffect(() => {
-        soundMuteRef.current = soundMute;
-    }, [soundMute]);
+    useEffect(() => { soundMuteRef.current = soundMute; }, [soundMute]);
 
     useEffect(() => {
         const userId = sessionStorage.getItem('userId');
@@ -157,7 +137,6 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         });
 
         socket.on('playerActionError', (data) => toast.error(data.message || "Une erreur est survenue."));
-
         socket.on('joinError', (data) => {
             toast.error(data.message);
             onlineUsersSocket.emit('joined-tables:leave', { uid: userId, tid: tableId });
@@ -189,10 +168,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             setHideStack(false);
             foldedPlayers.current = new Set();
             setShouldShareCards(true);
-            setTimeout(() => {
-                setSharingCards(true);
-                playSound('shareCards');
-            }, 300);
+            setTimeout(() => { setSharingCards(true); playSound('shareCards'); }, 300);
         });
 
         socket.on('start', () => {
@@ -250,9 +226,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             onlineUsersSocket.emit('joined-tables:leave', { uid: parseInt(userId), tid: parseInt(tableId) });
             navigate('/table');
         });
-
         socket.on('quiterror', () => quitter());
-
         socket.on('timeerror', (data) => {
             toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, { autoClose: 10000 });
         });
@@ -317,9 +291,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game, tableState]);
 
-    useEffect(() => {
-        setSb(-1); setBb(-1); setDealer(-1);
-    }, [game]);
+    useEffect(() => { setSb(-1); setBb(-1); setDealer(-1); }, [game]);
 
     useEffect(() => {
         const fetchLastHistory = async () => {
@@ -386,204 +358,243 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const addRange = () => setBetSize(Math.min(betSize + 10, tableState.legalActions.chipRange.max));
     const minusRange = () => setBetSize(Math.max(betSize - 1, tableState.legalActions.chipRange.min));
 
-    const toggleOrientation = () => {
-        setTableRotation(prev => prev === 0 ? 270 : 0);
-    };
+    const toggleOrientation = () => setTableRotation(prev => prev === 0 ? 270 : 0);
 
     const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
 
     return (
-        <div className="game-wrapper">
-        <div key={tableId} className={`game-container orientation-${orientation}`}>
-            <ToastContainer />
-
-            {tableState.handInProgress && tableState.toAct === tableState.seat && (
-                <PlayerActions
-                    tableState={tableState}
-                    betSize={betSize}
-                    setBetSize={setBetSize}
-                    emitPlayerAction={emitPlayerAction}
-                    addRange={addRange}
-                    minusRange={minusRange}
-                />
-            )}
-
-            <CommunityCards
-                key={tableId}
-                community={community}
-                communityShow={communityShow}
-                communityToShow={communityToShow}
-                communityReversNb={communityReversNb}
-                moveCommCards={moveCommCards}
-                gameOver={gameOver}
-                allInArr={allInArr}
-                winData={winData}
-                getSrcCard={getSrcCard}
-                playSound={playSound}
-                soundMute={soundMute}
-                isRevealFinished={isRevealFinished}
-                tableId={tableId}
-            />
-
-            <Pots
-                tableState={tableState}
-                jetonMany={jetonMany}
-                jeton={jeton}
-                potRef={potRef}
-                playerRefs={playerRefs}
-                animatePotToWinner={isRevealFinished && winData?.winStates?.some(w => w.isWinner)}
-                winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
-                playSound={playSound}
-                shouldShareCards={shouldShareCards}
-                getVisualSeat={getVisualSeat}
-                onPotAnimationEnd={() => {
-                    // Animation terminée - le solde s'affichera après 50ms
-                    setTimeout(() => setHideStack(false), 50);
-                }}
-            />
-
-            <div className="table" ref={tableRef} style={{ marginTop: 10 }}>
-                <div
-                    className="table-surface"
+        <div
+            className="game-wrapper"
+            style={{
+                width: '100vw',
+                minHeight: '100vh',
+                height: 'auto',
+                backgroundColor: '#000',
+                backgroundImage: 'url(/table-bg.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundAttachment: 'fixed',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+                overflowX: 'hidden',
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                margin: 0,
+                padding: 0,
+            }}
+        >
+            {/* ✅ BARRE DU HAUT — directement dans game-wrapper, PAS dans game-container
+                Ainsi overflow:hidden du game-container ne la coupe plus jamais */}
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 99999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+                padding: '6px 10px',
+                background: 'rgba(0,0,0,0.85)',
+                boxSizing: 'border-box',
+                minHeight: '46px',
+            }}>
+                {/* Bouton Quitter */}
+                <button
+                    onClick={() => quitter()}
                     style={{
-                        transform: `rotate(${tableRotation}deg)`,
-                        transition: 'transform 0.3s ease-in-out',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '6px 12px',
+                        background: 'linear-gradient(135deg, #cc0000, #ff4444)',
+                        color: '#FFF',
+                        border: '2px solid #ff6666',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        fontWeight: 'bold',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                        outline: 'none',
+                        flexShrink: 0,
                     }}
                 >
-                    <img
-                        src={tableRotation === 0 ? tableTexture : tableRotation === 270 ? tableTextureLandscape : tableTexture}
-                        alt=""
+                    <ArrowBigLeft size={16} />
+                    Quitter
+                </button>
+
+                {/* Boutons droite */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex' }}><TableTabs /></div>
+                    <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
+                    <button
+                        onClick={toggleOrientation}
+                        title={orientation === 'vertical' ? 'Passer en horizontal' : 'Passer en vertical'}
                         style={{
-                            width: '408px',
-                            height: '650px',
-                            objectFit: 'contain',
-                            padding: '1rem',
-                            mixBlendMode: 'multiply',
-                            filter: 'contrast(1.1)'
+                            cursor: 'pointer',
+                            borderRadius: 4,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 32,
+                            height: 32,
+                            border: '2px solid #FFD700',
+                            color: '#FFD700',
+                            fontSize: 18,
+                            fontWeight: 'bold',
+                            userSelect: 'none',
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 0,
+                            flexShrink: 0,
+                            outline: 'none',
                         }}
+                    >
+                        {orientation === 'vertical' ? '⇔' : '⇕'}
+                    </button>
+                    <button
+                        onClick={() => setIsHistoryModalOpen(true)}
+                        style={{
+                            color: '#FFD700',
+                            cursor: 'pointer',
+                            borderRadius: 4,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: 32,
+                            height: 32,
+                            border: '2px solid #FFD700',
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            padding: 0,
+                            outline: 'none',
+                            flexShrink: 0,
+                        }}
+                    >
+                        <History size={20} />
+                    </button>
+                </div>
+            </div>
+
+            {/* game-container avec paddingTop pour ne pas être caché sous la barre fixe */}
+            <div key={tableId} className={`game-container orientation-${orientation}`} style={{ paddingTop: '50px' }}>
+                <ToastContainer />
+
+                {tableState.handInProgress && tableState.toAct === tableState.seat && (
+                    <PlayerActions
+                        tableState={tableState}
+                        betSize={betSize}
+                        setBetSize={setBetSize}
+                        emitPlayerAction={emitPlayerAction}
+                        addRange={addRange}
+                        minusRange={minusRange}
                     />
+                )}
+
+                <CommunityCards
+                    key={tableId}
+                    community={community}
+                    communityShow={communityShow}
+                    communityToShow={communityToShow}
+                    communityReversNb={communityReversNb}
+                    moveCommCards={moveCommCards}
+                    gameOver={gameOver}
+                    allInArr={allInArr}
+                    winData={winData}
+                    getSrcCard={getSrcCard}
+                    playSound={playSound}
+                    soundMute={soundMute}
+                    isRevealFinished={isRevealFinished}
+                    tableId={tableId}
+                />
+
+                <Pots
+                    tableState={tableState}
+                    jetonMany={jetonMany}
+                    jeton={jeton}
+                    potRef={potRef}
+                    playerRefs={playerRefs}
+                    animatePotToWinner={isRevealFinished && winData?.winStates?.some(w => w.isWinner)}
+                    winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
+                    playSound={playSound}
+                    shouldShareCards={shouldShareCards}
+                    getVisualSeat={getVisualSeat}
+                    onPotAnimationEnd={() => { setTimeout(() => setHideStack(false), 50); }}
+                />
+
+                <div className="table" ref={tableRef} style={{ marginTop: 10 }}>
+                    <div
+                        className="table-surface"
+                        style={{
+                            transform: `rotate(${tableRotation}deg)`,
+                            transition: 'transform 0.3s ease-in-out',
+                        }}
+                    >
+                        <img
+                            src={tableRotation === 0 ? tableTexture : tableRotation === 270 ? tableTextureLandscape : tableTexture}
+                            alt=""
+                            style={{
+                                width: '408px',
+                                height: '650px',
+                                objectFit: 'contain',
+                                padding: '1rem',
+                                mixBlendMode: 'multiply',
+                                filter: 'contrast(1.1)'
+                            }}
+                        />
+                    </div>
+
+                    {tableReady && Array.from({ length: totalSeats }).map((_, visualSeat) => {
+                        const realSeat = getRealSeat(visualSeat);
+                        const chips = tableState.seats[realSeat];
+                        return (
+                            <Player
+                                key={visualSeat}
+                                i={realSeat}
+                                visualSeat={visualSeat}
+                                chips={chips}
+                                tableState={tableState}
+                                winData={winData}
+                                sb={sb}
+                                bb={bb}
+                                dealer={dealer}
+                                avatars={avatars}
+                                playerRefs={playerRefs}
+                                tableRef={tableRef}
+                                getSrcCard={getSrcCard}
+                                rever={rever}
+                                foldedPlayers={foldedPlayers}
+                                shouldShareCards={shouldShareCards}
+                                sharingCards={sharingCards}
+                                allInArr={allInArr}
+                                isRevealFinished={isRevealFinished}
+                                gameOver={gameOver}
+                                hideStack={hideStack}
+                                tableId={tableId}
+                                tableRotation={tableRotation}
+                                currentUserId={currentUserId}
+                            />
+                        );
+                    })}
                 </div>
 
-                {/* ✅ ROTATION : on boucle sur les seats VISUELS et on passe le seat RÉEL comme "i" */}
-                {tableReady && Array.from({ length: totalSeats }).map((_, visualSeat) => {
-                    const realSeat = getRealSeat(visualSeat);
-                    const chips = tableState.seats[realSeat]; // ← chips du joueur réel
+                <GameHistoryModal
+                    isOpen={isHistoryModalOpen}
+                    onClose={() => setIsHistoryModalOpen(false)}
+                    lastMatchData={lastMatchHistory}
+                    getSrcCard={getSrcCard}
+                    playerNames={tableState.playerNames || []}
+                />
 
-                    return (
-                        <Player
-                            key={visualSeat}
-                            i={realSeat}            // ← données jeu (seat réel)
-                            visualSeat={visualSeat} // ← position CSS (seat visuel)
-                            chips={chips}
-                            tableState={tableState}
-                            winData={winData}
-                            sb={sb}
-                            bb={bb}
-                            dealer={dealer}
-                            avatars={avatars}
-                            playerRefs={playerRefs}
-                            tableRef={tableRef}
-                            getSrcCard={getSrcCard}
-                            rever={rever}
-                            foldedPlayers={foldedPlayers}
-                            shouldShareCards={shouldShareCards}
-                            sharingCards={sharingCards}
-                            allInArr={allInArr}
-                            isRevealFinished={isRevealFinished}
-                            gameOver={gameOver}
-                            hideStack={hideStack}
-                            tableId={tableId}
-                            tableRotation={tableRotation}
-                            currentUserId={currentUserId}
-                        />
-                    );
-                })}
+                <TableChat
+                    socketRef={socketRef}
+                    tableId={tableId}
+                    tableState={tableState}
+                    currentUserId={currentUserId}
+                    playerNames={tableState.playerNames || []}
+                />
             </div>
-
-            {/* Bouton Quitter */}
-            <div
-                className="exit"
-                onClick={() => quitter()}
-                style={{ padding: '4px 8px', background: '#ff3030ff', color: '#FFF' }}
-            >
-                <ArrowBigLeft size={24} />
-                Quitter
-            </div>
-
-            {/* Barre du haut */}
-            <div style={{
-                position: 'absolute',
-                top: '2%',
-                right: '5%',
-                display: 'flex',
-                gap: '8px',
-                zIndex: 9999,
-                alignItems: 'center',
-            }}>
-                <div style={{ display: 'flex' }}><TableTabs /></div>
-                <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
-                <button
-                    onClick={toggleOrientation}
-                    title={orientation === 'vertical' ? 'Passer en horizontal' : 'Passer en vertical'}
-                    style={{
-                        cursor: 'pointer',
-                        borderRadius: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 32,
-                        height: 32,
-                        border: '2px solid #FFD700',
-                        color: '#FFD700',
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                        userSelect: 'none',
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        padding: 0,
-                        flexShrink: 0,
-                        outline: 'none',
-                    }}
-                >
-                    {orientation === 'vertical' ? '⇔' : '⇕'}
-                </button>
-                <button
-                    onClick={() => setIsHistoryModalOpen(true)}
-                    style={{
-                        color: '#FFD700',
-                        cursor: 'pointer',
-                        borderRadius: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 32,
-                        height: 32,
-                        border: '2px solid #FFD700',
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        padding: 0,
-                        outline: 'none',
-                        flexShrink: 0,
-                    }}
-                >
-                    <History size={20} />
-                </button>
-            </div>
-
-            <GameHistoryModal
-                isOpen={isHistoryModalOpen}
-                onClose={() => setIsHistoryModalOpen(false)}
-                lastMatchData={lastMatchHistory}
-                getSrcCard={getSrcCard}
-                playerNames={tableState.playerNames || []}
-            />
-
-            <TableChat
-                socketRef={socketRef}
-                tableId={tableId}
-                tableState={tableState}
-                currentUserId={currentUserId}
-                playerNames={tableState.playerNames || []}
-            />
-        </div>
         </div>
     );
 };

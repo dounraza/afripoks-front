@@ -29,11 +29,14 @@ const GameTable = () => {
     return (
         <>
             <ToastContainer />
-
             <div
                 className="table-container"
                 style={{
                     backgroundImage: `url(${process.env.PUBLIC_URL}/table-bg.jpg)`,
+                    // scroll activé — pas de overflow: hidden ici
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    WebkitOverflowScrolling: 'touch', // scroll fluide Android/iOS
                 }}
             >
                 <div className="game-content">
