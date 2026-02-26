@@ -10,8 +10,12 @@ import "./Game.scss";
 import rever from "../../styles/image/rever.png";
 import jeton from "../../styles/image/jeton.png";
 import jetonMany from "../../styles/image/jetonMany.png";
+// import tableTexture from "../../styles/image/vert_table.png";
+// import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
 import tableTexture from "../../styles/image/table_vert_p.png";
+//vert_table_rot
 import tableTextureLandscape from "../../styles/image/vert_led.png";
+// import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
 import PlayerActions from './PlayerActions';
 import Player from './Player';
 import CommunityCards from './CommunityCards';
@@ -22,51 +26,40 @@ import { onlineUsersSocket } from '../../engine/socket';
 import TableTabs from './TableTabs';
 import TableChat from './TableChat';
 
+// ✅ Rotation auto selon seat — uniquement 0°/90°/180°/270°
 const SEAT_ROTATIONS = {
-    0: 0, 1: 0,
-    2: 90, 3: 90,
-    4: 180, 5: 180,
-    6: 270, 7: 270,
+    0: 0,
+    1: 0,
+    2: 90,
+    3: 90,
+    4: 180,
+    5: 180,
+    6: 270,
+    7: 270,
     8: 90,
 };
 
 const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
-    const [tableState, setTableState]             = useState({});
-    const [betSize, setBetSize]                   = useState(0);
-    const [winData, setWinData]                   = useState({});
-    const [sb, setSb]                             = useState(-1);
-    const [bb, setBb]                             = useState(-1);
-    const [dealer, setDealer]                     = useState(-1);
-    const [game, setGame]                         = useState(false);
-    const socketRef                               = useRef(null);
-    const navigate                                = useNavigate();
-    const playerCave                              = cavePlayer;
-    const [community, setCommunity]               = useState([]);
-    const [communityShow, setCommunityShow]       = useState([]);
+    const [tableState, setTableState] = useState({});
+    const [betSize, setBetSize] = useState(0);
+    const [winData, setWinData] = useState({});
+    const [sb, setSb] = useState(-1);
+    const [bb, setBb] = useState(-1);
+    const [dealer, setDealer] = useState(-1);
+    const [game, setGame] = useState(false);
+    const socketRef = useRef(null);
+    const navigate = useNavigate();
+    const playerCave = cavePlayer;
+    const [community, setCommunity] = useState([]);
+    const [communityShow, setCommunityShow] = useState([]);
     const [isRevealFinished, setIsRevealFinished] = useState(false);
-    const foldedPlayers                           = useRef(new Set());
-    const pendingWinRef                           = useRef(null);
-    const [hasPendingWin, setHasPendingWin]       = useState(false);
-    const [displaySeats, setDisplaySeats]         = useState([]);
-    const [showWinnerCards, setShowWinnerCards]   = useState(false);
-
-    // ── Refs de freeze de solde ──────────────────────────────────────────────
-    // frozenSeatsRef     : snapshot affiché pendant les animations
-    // frozenSeatsRef : snapshot figé pendant animations
-    //   all-in  → data.seats au moment du tapis (joueur all-in = 0)
-    //   normal  → tableState.seats courant
-    const frozenSeatsRef        = useRef(null);
-    const isAllInRef            = useRef(false);
-    const [isAllIn, setIsAllIn] = useState(false); // state React pour déclencher le useEffect
-    const allowDisplayUpdateRef = useRef(true);
-    // ────────────────────────────────────────────────────────────────────────
-
-    const isPossibleAction      = useRef(true);
-    const [soundMute, setSoundMute]       = useState(false);
-    const soundMuteRef                    = useRef(false);
-    const [avatars, setAvatars]           = useState([]);
-    const tableRef                        = useRef(null);
-    const { onlineUsers }                 = useContext(OnlineUserContext);
+    const foldedPlayers = useRef(new Set());
+    const isPossibleAction = useRef(true);
+    const [soundMute, setSoundMute] = useState(false);
+    const soundMuteRef = useRef(false);
+    const [avatars, setAvatars] = useState([]);
+    const tableRef = useRef(null);
+    const { onlineUsers } = useContext(OnlineUserContext);
     const [tableRotation, setTableRotation] = useState(0);
     const playerRefs = [
         useRef(null), useRef(null), useRef(null),
@@ -74,89 +67,69 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         useRef(null), useRef(null), useRef(null),
     ];
     const [shouldShareCards, setShouldShareCards] = useState(false);
-    const [sharingCards, setSharingCards]         = useState(false);
+    const [sharingCards, setSharingCards] = useState(false);
     const [communityReversNb, setCommunityReversNb] = useState(0);
     let latestCommCard = null;
-    const [moveCommCards, setMoveCommCards]     = useState(false);
+    const [moveCommCards, setMoveCommCards] = useState(false);
     const [communityToShow, setCommunityToShow] = useState([]);
-    const [allInArr, setAllInArr]               = useState([]);
-    const [gameOver, setGameOver]               = useState(false);
-    const [playPotAnimation, setPlayPotAnimation] = useState(false);
-    const potRef                                = useRef(null);
-    const [hideStack, setHideStack]             = useState(false);
+    const [allInArr, setAllInArr] = useState([]);
+    const [gameOver, setGameOver] = useState(false);
+    const potRef = useRef(null);
+    const [hideStack, setHideStack] = useState(false);
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-    const [lastMatchHistory, setLastMatchHistory]     = useState(null);
+    const [lastMatchHistory, setLastMatchHistory] = useState(null);
+
     const currentUserId = sessionStorage.getItem('userId');
-    const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
+    const [isLandscape, setIsLandscape] = useState(
+    window.innerWidth > window.innerHeight
+        );
 
-    useEffect(() => {
-        const handleResize = () => setIsLandscape(window.innerWidth > window.innerHeight);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const orientation = (tableRotation === 90 || tableRotation === 270) ? 'horizontal' : 'vertical';
+        useEffect(() => {
+            const handleResize = () => {
+                setIsLandscape(window.innerWidth > window.innerHeight);
+            };
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+        }, []);
+    // ✅ orientation-vertical ou orientation-horizontal selon rotation
+    const orientation = (tableRotation === 90 || tableRotation === 270)
+        ? 'horizontal'
+        : 'vertical';
 
     const playSound = (type, muteOverride) => {
         const sounds = {
-            fold: '/sounds/fold.mp3', raise: '/sounds/raise.mp3',
-            check: '/sounds/check.mp3', call: '/sounds/call.wav',
-            join: '/sounds/join.mp3', allin: '/sounds/allin.mp3',
-            win: '/sounds/win.wav', shareCards: '/sounds/share-cards.mp3',
-            showCard: '/sounds/show-card.wav', coinWin: '/sounds/coin-win.wav',
+            fold: '/sounds/fold.mp3',
+            raise: '/sounds/raise.mp3',
+            check: '/sounds/check.mp3',
+            call: '/sounds/call.wav',
+            join: '/sounds/join.mp3',
+            allin: '/sounds/allin.mp3',
+            win: '/sounds/win.wav',
+            shareCards: '/sounds/share-cards.mp3',
+            showCard: '/sounds/show-card.wav',
+            coinWin: '/sounds/coin-win.wav',
         };
         const muted = muteOverride !== undefined ? muteOverride : soundMuteRef.current;
-        if (!muted) { const a = new Audio(sounds[type]); a.play().catch(() => {}); }
+        if (!muted) {
+            const audio = new Audio(sounds[type]);
+            audio.play().catch(() => {});
+        }
     };
 
+    // ✅ Rotation auto dès que le seat est connu
     useEffect(() => {
-        if (tableState.seat !== undefined && tableState.seat !== null)
-            setTableRotation(SEAT_ROTATIONS[tableState.seat] ?? 0);
+        if (tableState.seat !== undefined && tableState.seat !== null) {
+            const rotation = SEAT_ROTATIONS[tableState.seat] ?? 0;
+            setTableRotation(rotation);
+        }
     }, [tableState.seat]);
 
-    useEffect(() => { soundMuteRef.current = soundMute; }, [soundMute]);
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // Révélation des cartes communes UNE PAR UNE (suspense all-in)
-    // Appelé depuis socket.on('win') quand isAllInRef = true
-    // ──────────────────────────────────────────────────────────────────────────
-    const revealCommunityOneByOne = (cards, onDone) => {
-        if (!cards || cards.length === 0) {
-            setIsRevealFinished(true);
-            onDone && onDone();
-            return;
-        }
-
-        // Réinitialiser proprement avant de commencer
-        setCommunity(cards);          // toutes les cartes connues du serveur
-        setCommunityShow([]);         // affichées progressivement
-        setCommunityToShow([]);
-        setIsRevealFinished(false);
-
-        let index = 0;
-        const revealNext = () => {
-            index++;
-            const slice = cards.slice(0, index);
-            setCommunityShow(slice);
-            setCommunityToShow(slice);
-            playSound('showCard');
-            if (index < cards.length) {
-                setTimeout(revealNext, 1400); // 1.4s de suspense entre chaque carte
-            } else {
-                // Révélation terminée → déclencher le win
-                setIsRevealFinished(true);
-                onDone && onDone();
-            }
-        };
-
-        setTimeout(revealNext, 700); // délai avant la première carte
-    };
-
-    // ──────────────────────────────────────────────────────────────────────────
-    // SOCKETS
-    // ──────────────────────────────────────────────────────────────────────────
     useEffect(() => {
-        const userId   = sessionStorage.getItem('userId');
+        soundMuteRef.current = soundMute;
+    }, [soundMute]);
+
+    useEffect(() => {
+        const userId = sessionStorage.getItem('userId');
         const username = sessionStorage.getItem('userName');
         if (!tableId) return;
 
@@ -177,61 +150,37 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         });
 
         socket.on('playerActionError', (data) => toast.error(data.message || "Une erreur est survenue."));
+
         socket.on('joinError', (data) => {
             toast.error(data.message);
             onlineUsersSocket.emit('joined-tables:leave', { uid: userId, tid: tableId });
         });
 
-        // ── WIN ──────────────────────────────────────────────────────────────
         socket.on('win', (data) => {
-            // Si all-in : frozenSeatsRef est déjà sur data.seats du moment du tapis (stack=0)
-            // Si main normale : on prend tableState.seats courant (soldes après les mises)
-            if (!frozenSeatsRef.current || frozenSeatsRef.current.length === 0) {
-                frozenSeatsRef.current = JSON.parse(JSON.stringify(tableState.seats || []));
-            }
-
-            // Forcer displaySeats sur snapshot figé AVANT tout setState async
-            setDisplaySeats(frozenSeatsRef.current);
-            allowDisplayUpdateRef.current = false;
-
+            setGameOver(true);
             setGame(false);
+            setCommunity(data.communityCards);
             setShouldShareCards(false);
-            setHasPendingWin(true);
-            pendingWinRef.current = data;
-
-            const cardsToReveal = data.communityCards || [];
-
-            if (isAllInRef.current && cardsToReveal.length > 0) {
-                // All-in : révélation une par une avec suspense
-                // isRevealFinished sera mis à true par revealCommunityOneByOne → useEffect win
-                revealCommunityOneByOne(cardsToReveal, null);
-            } else {
-                // Main normale (fold/non all-in) : révélation standard
-                setCommunity([]);
-                setCommunityShow([]);
-                setCommunityToShow([]);
-                setIsRevealFinished(false);
-                setTimeout(() => setCommunity(cardsToReveal), 50);
-            }
+            setWinData(data);
+            const foldedPlayersArray = Array.from(foldedPlayers.current);
+            setLastMatchHistory({
+                communityCards: data.communityCards || [],
+                allCards: data.allCards || [],
+                playerNames: [],
+                foldedPlayers: foldedPlayersArray
+            });
+            playSound('win');
         });
 
-        // ── SHARE CARDS ───────────────────────────────────────────────────────
         socket.on('shareCards', async () => {
             setGameOver(false);
             setWinData({});
-            setShowWinnerCards(false);
-            setPlayPotAnimation(false);
-            setHideStack(false);
-
-            frozenSeatsRef.current        = null;
-            isAllInRef.current            = false;
-            allowDisplayUpdateRef.current = true;
-            setIsAllIn(false);
-
             setCommunity([]);
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
+            setHideStack(false); // Afficher le solde à nouveau
+            foldedPlayers.current = new Set(); // Réinitialiser les joueurs fold
             setShouldShareCards(true);
             setTimeout(() => {
                 setSharingCards(true);
@@ -239,38 +188,26 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             }, 300);
         });
 
-        // ── START ─────────────────────────────────────────────────────────────
         socket.on('start', () => {
             setWinData({});
             setGame(true);
             setCommunity([]);
             setCommunityShow([]);
             setAllInArr([]);
-            setPlayPotAnimation(false);
-            setShowWinnerCards(false);
-            setHideStack(false);
-
-            frozenSeatsRef.current        = null;
-            isAllInRef.current            = false;
-            allowDisplayUpdateRef.current = true;  // ← seul endroit où on libère le verrou
-            setIsAllIn(false);
-
+            setHideStack(false); // Afficher le solde à nouveau
             foldedPlayers.current = new Set();
             setShouldShareCards(false);
             setSharingCards(false);
         });
 
-        // ── TABLE STATE ───────────────────────────────────────────────────────
         socket.on('tableState', (data) => {
             const minBet = data?.legalActions?.chipRange?.min ?? 0;
             setBetSize(minBet);
-            // ✅ TOUJOURS mettre à jour tableState — sinon les cartes ne s'affichent pas
             setTableState(data);
             setTableSessionId(data.tableId);
             setAvatars(data.avatars);
 
-            // ── Cartes communes (mode normal, hors all-in) ───────────────────
-            if (!isAllInRef.current && data.communityCards.length > 0) {
+            if (data.communityCards.length > 0) {
                 if (latestCommCard !== data.communityCards[data.communityCards.length - 1]) {
                     setCommunityReversNb(data.communityCards.length === 3 ? 3 : 1);
                     setTimeout(() => setMoveCommCards(true), 100);
@@ -290,41 +227,25 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             }
 
             const lastAction = data?.actions[data?.actions.length - 1];
-            if (!lastAction) return;
-
-            const seatInfo = data?.seats[lastAction?.playerId];
-
-            // ── Détection ALL-IN (tapis) ─────────────────────────────────────
-            if (lastAction.action === 'raise' && seatInfo?.stack === 0) {
-                playSound('allin');
-                isAllInRef.current            = true;
-                allowDisplayUpdateRef.current = false;
-
-                // Geler sur data.seats = soldes APRÈS le tapis (joueur all-in = 0)
-                frozenSeatsRef.current = JSON.parse(JSON.stringify(data.seats || []));
-
-                setIsAllIn(true);
-                setAllInArr(prev => [...prev, seatInfo]);
-                return;
+            if (lastAction) {
+                const seatInfo = data?.seats[lastAction?.playerId];
+                if (lastAction.action === 'raise' && seatInfo?.stack === 0) {
+                    playSound('allin');
+                    setHideStack(true); // Cacher immédiatement le solde après all-in
+                    setAllInArr(prev => [...prev, seatInfo]);
+                    return;
+                }
+                playSound(lastAction.action);
             }
-
-            // ── Call / raise APRÈS un all-in ─────────────────────────────────
-            // Le joueur qui suit doit voir son solde mis à jour (ex: 10000 - 9000 = 1000)
-            // On met à jour le snapshot figé avec les nouveaux soldes
-            if (isAllInRef.current && (lastAction.action === 'call' || lastAction.action === 'raise')) {
-                frozenSeatsRef.current = JSON.parse(JSON.stringify(data.seats || []));
-                // Forcer la mise à jour de displaySeats avec le nouveau snapshot
-                setDisplaySeats(JSON.parse(JSON.stringify(data.seats || [])));
-            }
-
-            playSound(lastAction.action);
         });
 
         socket.on('quitsuccess', () => {
             onlineUsersSocket.emit('joined-tables:leave', { uid: parseInt(userId), tid: parseInt(tableId) });
             navigate('/table');
         });
+
         socket.on('quiterror', () => quitter());
+
         socket.on('timeerror', (data) => {
             toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, { autoClose: 10000 });
         });
@@ -337,24 +258,23 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tableId]);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Révélation cartes communes — MODE NORMAL (hors all-in)
-    // En all-in c'est revealCommunityOneByOne qui gère → on skip ce useEffect
-    // ──────────────────────────────────────────────────────────────────────────
+    // Cacher le solde quand les cartes communes apparaissent
     useEffect(() => {
-        if (isAllInRef.current) return; // all-in : révélation gérée séparément
+        if (community.length > 0) {
+            setHideStack(true);
+        }
+    }, [community.length]);
 
+    useEffect(() => {
         const diff = community.length - communityShow.length;
         setIsRevealFinished(false);
         if (diff <= 0) { setIsRevealFinished(true); return; }
-
         if (diff === 3 || diff === 1) {
             setCommunityShow(community);
             setTimeout(() => setCommunityToShow(community), 100);
             setIsRevealFinished(true);
             return;
         }
-
         const timeouts = [];
         let timeindex = 0;
         for (let i = communityShow.length; i < community.length; i++) {
@@ -372,51 +292,12 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         return () => timeouts.forEach(t => clearTimeout(t));
     }, [community]);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Appliquer le WIN après révélation complète des cartes communes
-    // ──────────────────────────────────────────────────────────────────────────
-    useEffect(() => {
-        if (!isRevealFinished || !pendingWinRef.current) return;
-
-        const data = pendingWinRef.current;
-
-        // S'assurer que toutes les cartes sont affichées
-        if (data.communityCards && data.communityCards.length > 0) {
-            setCommunity(data.communityCards);
-            setCommunityShow(data.communityCards);
-            setCommunityToShow(data.communityCards);
-        }
-
-        setWinData(data);
-        setShouldShareCards(false);
-        setShowWinnerCards(true);
-
-        const foldedPlayersArray = Array.from(foldedPlayers.current);
-        setLastMatchHistory({
-            communityCards: data.communityCards || [],
-            allCards: data.allCards || [],
-            playerNames: [],
-            foldedPlayers: foldedPlayersArray
-        });
-
-        setPlayPotAnimation(false);
-        setTimeout(() => {
-            setGameOver(true);
-            setPlayPotAnimation(true);
-            playSound('win');
-        }, 800);
-
-        pendingWinRef.current = null;
-        // hasPendingWin reste true → libéré dans onPotAnimationEnd
-    }, [isRevealFinished]);
-
-    // ── SB / BB / Dealer ──────────────────────────────────────────────────────
     useEffect(() => {
         if (!game || !tableState.activeSeats) return;
         const activeSeats = tableState.activeSeats;
-        const dealerSeat  = tableState.deal_btn;
+        const dealerSeat = tableState.deal_btn;
         const playerCount = activeSeats.length;
-        const dealerIdx   = activeSeats.indexOf(dealerSeat);
+        const dealerIdx = activeSeats.indexOf(dealerSeat);
         if (dealerIdx === -1) return;
         let sbSeat, bbSeat;
         if (playerCount === 2) {
@@ -432,40 +313,10 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game, tableState]);
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // SYNC displaySeats
-    // - Pendant all-in / win / pot animation / gameOver → soldes figés
-    // - Sinon → on suit tableState.seats en temps réel (raise partiel visible)
-    // ──────────────────────────────────────────────────────────────────────────
-    useEffect(() => {
-        // Cas verrouillé : animation en cours, on maintient le snapshot figé
-        if (hasPendingWin || playPotAnimation || gameOver) {
-            if (frozenSeatsRef.current && frozenSeatsRef.current.length > 0) {
-                setDisplaySeats(frozenSeatsRef.current);
-            }
-            return;
-        }
-        // Cas all-in détecté : on affiche le snapshot figé (stack=0 pour all-in)
-        if (isAllIn) {
-            if (frozenSeatsRef.current && frozenSeatsRef.current.length > 0) {
-                setDisplaySeats(frozenSeatsRef.current);
-            }
-            return;
-        }
-        // Cas normal : mise à jour immédiate → raise partiel visible tout de suite
-        if (!tableState.seats) return;
-        setDisplaySeats(tableState.seats);
-    }, [tableState.seats, hasPendingWin, playPotAnimation, gameOver, isAllIn]);
-
     useEffect(() => {
         setSb(-1); setBb(-1); setDealer(-1);
-        if (tableState.seats && allowDisplayUpdateRef.current && !hasPendingWin && !playPotAnimation) {
-            frozenSeatsRef.current = null;
-            setDisplaySeats(tableState.seats);
-        }
     }, [game]);
 
-    // ── Historique ────────────────────────────────────────────────────────────
     useEffect(() => {
         const fetchLastHistory = async () => {
             if (!tableId) return;
@@ -481,9 +332,9 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                             ? historyData.foldes
                             : (typeof historyData.foldes === 'string' ? JSON.parse(historyData.foldes) : []);
                     }
-                    let parsedAllCards    = historyData.allCards || historyData.main_joueurs || [];
+                    let parsedAllCards = historyData.allCards || historyData.main_joueurs || [];
                     let parsedPlayerNames = historyData.playerNames || historyData.noms_joueurs || [];
-                    if (typeof parsedAllCards === 'string')    { try { parsedAllCards    = JSON.parse(parsedAllCards); }    catch (e) {} }
+                    if (typeof parsedAllCards === 'string') { try { parsedAllCards = JSON.parse(parsedAllCards); } catch (e) {} }
                     if (typeof parsedPlayerNames === 'string') { try { parsedPlayerNames = JSON.parse(parsedPlayerNames); } catch (e) {} }
                     setLastMatchHistory({
                         communityCards: historyData.communityCards || historyData.cartes_communes || [],
@@ -500,7 +351,6 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         fetchLastHistory();
     }, [tableId]);
 
-    // ── Actions joueur ────────────────────────────────────────────────────────
     const emitPlayerAction = (action, betSizeParam = undefined) => {
         if (!isPossibleAction.current) return;
         isPossibleAction.current = false;
@@ -529,23 +379,15 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         return require(`../../image/card2/${final_id_card}.svg`);
     };
 
-    const addRange   = () => setBetSize(Math.min(betSize + 10, tableState.legalActions.chipRange.max));
-    const minusRange = () => setBetSize(Math.max(betSize - 1,  tableState.legalActions.chipRange.min));
-    const toggleOrientation = () => setTableRotation(prev => prev === 0 ? 270 : 0);
+    const addRange = () => setBetSize(Math.min(betSize + 10, tableState.legalActions.chipRange.max));
+    const minusRange = () => setBetSize(Math.max(betSize - 1, tableState.legalActions.chipRange.min));
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Fin animation pot
-    // allowDisplayUpdateRef reste FALSE → solde figé jusqu'au prochain shareCards/start
-    // ──────────────────────────────────────────────────────────────────────────
-    const onPotAnimationEnd = () => {
-        isAllInRef.current = false;
-        setIsAllIn(false);
-        setHasPendingWin(false);
-        setPlayPotAnimation(false);
-        // ✅ showWinnerCards reste true → cartes visibles jusqu'au prochain shareCards
-        // allowDisplayUpdateRef.current reste false → soldes figés jusqu'au prochain tour
+    // ✅ Toggle manuel orientation
+    const toggleOrientation = () => {
+        setTableRotation(prev => prev === 0 ? 270 : 0);
     };
 
+    // ✅ Guards : tous les champs requis sont présents
     const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
 
     return (
@@ -586,30 +428,40 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 jeton={jeton}
                 potRef={potRef}
                 playerRefs={playerRefs}
-                animatePotToWinner={playPotAnimation && winData?.winStates?.some(w => w.isWinner)}
+                animatePotToWinner={isRevealFinished && winData?.winStates?.some(w => w.isWinner)}
                 winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
                 playSound={playSound}
                 shouldShareCards={shouldShareCards}
-                onPotAnimationEnd={onPotAnimationEnd}
             />
 
             <div className="table" ref={tableRef} style={{ marginTop: 10 }}>
                 <div
                     className="table-surface"
-                    style={{ transform: `rotate(${tableRotation}deg)`, transition: 'transform 0.3s ease-in-out' }}
+                    style={{
+                        transform: `rotate(${tableRotation}deg)`,
+                        transition: 'transform 0.3s ease-in-out',
+                    }}
                 >
                     <img
-                        src={tableRotation === 270 ? tableTextureLandscape : tableTexture}
+                       src={
+                        tableRotation === 0 ? tableTexture :
+
+                        tableRotation === 270 ? tableTextureLandscape :
+                        tableTexture
+                      }
                         alt=""
                         style={{
-                            width: '408px', height: '650px',
-                            objectFit: 'contain', padding: '1rem',
-                            mixBlendMode: 'multiply', filter: 'contrast(1.1)'
+                            width: '408px',
+                            height: '650px',
+                            objectFit: 'contain',
+                            padding: '1rem',
+                            mixBlendMode: 'multiply',
+                            filter: 'contrast(1.1)'
                         }}
                     />
                 </div>
 
-                {tableReady && (displaySeats.length > 0 ? displaySeats : tableState.seats).map((chips, i) => (
+                {tableReady && tableState.seats.map((chips, i) => (
                     <Player
                         key={i}
                         i={i}
@@ -634,14 +486,11 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                         tableId={tableId}
                         tableRotation={tableRotation}
                         currentUserId={currentUserId}
-                        showWinnerCards={showWinnerCards}
-                        hasPendingWin={hasPendingWin}
-                        playPotAnimation={playPotAnimation}
-                        communityLength={community.length}
                     />
                 ))}
             </div>
 
+            {/* Bouton Quitter */}
             <div
                 className="exit"
                 onClick={() => quitter()}
@@ -651,36 +500,63 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 Quitter
             </div>
 
+            {/* ✅ Barre du haut avec bouton orientation */}
             <div style={{
-                position: 'absolute', top: '2%', right: '5%',
-                display: 'flex', gap: '8px', zIndex: 9999, alignItems: 'center',
+                position: 'absolute',
+                top: '2%',
+                right: '5%',
+                display: 'flex',
+                gap: '8px',
+                zIndex: 9999,
+                alignItems: 'center',
             }}>
                 <div style={{ display: 'flex' }}><TableTabs /></div>
+
                 <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
 
+                {/* ✅ Toggle vertical ↕ / horizontal ↔ */}
                 <button
                     onClick={toggleOrientation}
                     title={orientation === 'vertical' ? 'Passer en horizontal' : 'Passer en vertical'}
                     style={{
-                        cursor: 'pointer', borderRadius: 4, display: 'flex',
-                        alignItems: 'center', justifyContent: 'center',
-                        width: 32, height: 32, border: '2px solid #FFD700',
-                        color: '#FFD700', fontSize: 18, fontWeight: 'bold',
-                        userSelect: 'none', backgroundColor: 'rgba(0,0,0,0.7)',
-                        padding: 0, flexShrink: 0, outline: 'none',
+                        cursor: 'pointer',
+                        borderRadius: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        border: '2px solid #FFD700',
+                        color: '#FFD700',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        userSelect: 'none',
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        padding: 0,
+                        flexShrink: 0,
+                        outline: 'none',
                     }}
                 >
                     {orientation === 'vertical' ? '⇔' : '⇕'}
                 </button>
 
+                {/* Historique */}
                 <button
                     onClick={() => setIsHistoryModalOpen(true)}
                     style={{
-                        color: '#FFD700', cursor: 'pointer', borderRadius: 4,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        width: 32, height: 32, border: '2px solid #FFD700',
-                        backgroundColor: 'rgba(0,0,0,0.7)', padding: 0,
-                        outline: 'none', flexShrink: 0,
+                        color: '#FFD700',
+                        cursor: 'pointer',
+                        borderRadius: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        border: '2px solid #FFD700',
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        padding: 0,
+                        outline: 'none',
+                        flexShrink: 0,
                     }}
                 >
                     <History size={20} />
@@ -705,5 +581,4 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         </div>
     );
 };
-
 export default Game;

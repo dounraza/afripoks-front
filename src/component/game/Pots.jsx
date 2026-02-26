@@ -30,7 +30,7 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                     const startX = potRect.left + potRect.width / 2;
                     const startY = potRect.top + potRect.height / 2;
                     const endX = winnerRect.left + winnerRect.width / 2;
-                    const endY = winnerRect.top + winnerRect.height / 2;
+                    const endY = winnerRect.top - 85; // Juste au-dessus de l'avatar
                     return {
                         key: seat,
                         startX,
@@ -59,7 +59,7 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                 setAnimate(true);
             }, 20);
 
-            // Cache le pot principal après l'animation
+            // Cache le pot principal après l'animation (augmentée à 1200ms pour la nouvelle durée)
             endTimer = setTimeout(() => {
                 setPotsAnimation([]);
                 setAnimate(false);
@@ -68,7 +68,7 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                 if (onPotAnimationEnd) {
                     onPotAnimationEnd();
                 }
-            }, 1000);
+            }, 1200);
         };
 
         if (animatePotToWinner && winnerSeats.length > 0) {
@@ -98,48 +98,68 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
 
             <div className="pots-container">
                 <div className="pots">
-                    {/* Overlay pour les pots animés */}
-                    {potsAnimation.map(({ key, startX, startY, endX, endY }) => (
-                        <div
-                            key={key}
-                            style={{
-                                position: 'fixed',
-                                left: startX,
-                                top: startY,
-                                width: 56,
-                                height: 56,
-                                pointerEvents: 'none',
-                                zIndex: 9999,
-                                boxShadow: 'none',
-                                transition: 'transform .7s ease-in-out',
-                                transform: animate
-                                    ? `translate(${endX - startX}px, ${endY - startY}px) scale(0.7)`
-                                    : 'translate(0, 0) scale(1)',
-                            }}
-                        >
-                            {/* <img src={jetonMany} alt="" style={{ width: '56px', height: '56px', objectFit: 'contain' }} /> */}
-                            {[singleJeton, singleJeton1, singleJeton2].map((jeton, i) => (
-                              <div
-                                style={{
-                                  width: '24px',
-                                  height: '24px',
-                                  // backgroundColor: 'gold',
-                                  borderRadius: '50%',
-                                  // boxShadow: `0 0 8px gold`,
-                                  // border: `2px solid white`,
-                                  position: 'absolute',
-                                  top: '50%',
-                                  left: '50%',
-                                  animation: `animatedCoin 0.7s ease-in-out ${i * 0.1}s forwards`,
-                                  transition: `transform 0.2s ease-in-out ${i * 0.1}s`,
-                                }}
-                              >
-                                <img src={jeton} alt="" style={{ width: '100%', height: '100%' }} />
-                              </div>
-                            ))}
-                            <div style={{ color: 'white', fontWeight: 600 }}>{tableState?.pots?.[0]?.size / potsAnimation.length ?? 0}</div>
-                        </div>
-                    ))}
+                    {/* Overlay pour les pots animés - Jetons convergent vers le gagnant! */}
+                    {potsAnimation.map(({ key, startX, startY, endX, endY }) => {
+                        // Générer 10 jetons convergeant précisément vers le gagnant
+                        const jetonsVolants = Array.from({ length: 10 }).map((_, idx) => {
+                            // Variation MINIMALE pour effet "essaim serré"
+                            const offsetX = (Math.random() - 0.5) * 10; // ±5px déviation
+                            const offsetY = (Math.random() - 0.5) * 10; // ±5px déviation
+                            const delay = idx * 0.08; // Délai en cascade
+                            
+                            return (
+                                <div
+                                    key={`jeton-${idx}`}
+                                    style={{
+                                        position: 'fixed',
+                                        left: startX, // Position fixe au pot
+                                        top: startY, // Position fixe au pot
+                                        width: 28 + Math.random() * 12,
+                                        height: 28 + Math.random() * 12,
+                                        borderRadius: '50%',
+                                        pointerEvents: 'none',
+                                        zIndex: 10001,
+                                        boxShadow: `0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 215, 0, 0.7)`,
+                                        backgroundColor: `hsl(${45 + Math.random() * 30}, 100%, ${50 + Math.random() * 10}%)`,
+                                        transition: `all 1.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}s`,
+                                        transform: animate 
+                                            ? `translate(${endX - startX + offsetX}px, ${endY - startY + offsetY}px) scale(0.4) rotate(${360 + Math.random() * 360}deg)`
+                                            : `translate(0, 0) scale(1) rotate(0deg)`,
+                                        opacity: animate ? 0.8 : 1,
+                                        animation: animate ? `sparkle 1.3s ease-out ${delay}s forwards` : 'none',
+                                    }}
+                                >
+                                    <img src={[singleJeton, singleJeton1, singleJeton2][idx % 3]} alt="" style={{ width: '100%', height: '100%', filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.8))' }} />
+                                </div>
+                            );
+                        });
+
+                        return (
+                            <div key={key}>
+                                {jetonsVolants}
+                                {/* Explosion burst initial */}
+                                <div
+                                    style={{
+                                        position: 'fixed',
+                                        left: startX,
+                                        top: startY,
+                                        width: 100,
+                                        height: 100,
+                                        borderRadius: '50%',
+                                        pointerEvents: 'none',
+                                        zIndex: 10000,
+                                        boxShadow: animate 
+                                            ? `0 0 80px rgba(255, 215, 0, 0.8) inset, 0 0 100px rgba(255, 215, 0, 0.6)`
+                                            : 'none',
+                                        transform: animate ? 'scale(0.8)' : 'scale(1)',
+                                        transition: 'all 0.6s ease-out',
+                                        opacity: animate ? 0 : 1,
+                                    }}
+                                />
+                            </div>
+                        );
+                    })}
+
                     {!shouldShareCards && potVisible && !animate && (
                         <div
                             className="principals"
