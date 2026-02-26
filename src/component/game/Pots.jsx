@@ -3,7 +3,7 @@ import singleJeton from '../../styles/image/single-jeton.png';
 import singleJeton1 from '../../styles/image/single-jeton-1.png';
 import singleJeton2 from '../../styles/image/single-jeton-2.png';
 
-const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winnerSeats, playerRefs, playSound, shouldShareCards, onPotAnimationEnd }) => {
+const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winnerSeats, playerRefs, playSound, shouldShareCards, getVisualSeat, onPotAnimationEnd }) => {
     const [potsAnimation, setPotsAnimation] = useState([]);
     const [animate, setAnimate] = useState(false);
     const [potVisible, setPotVisible] = useState(true);
@@ -23,8 +23,11 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
 
             const potRect = potRef.current.getBoundingClientRect();
 
-            const newAnimations = winnerSeats.map((seat) => {
-                const winnerRef = playerRefs[seat];
+            const newAnimations = winnerSeats.map((realSeat) => {
+                // winnerSeats contient les SIÈGES RÉELS
+                // Convertir realSeat en visualSeat pour accéder à playerRefs correctement
+                const vs = getVisualSeat(realSeat);
+                const winnerRef = playerRefs[vs];
                 const winnerRect = winnerRef?.current?.getBoundingClientRect();
                 if (winnerRect) {
                     const startX = potRect.left + potRect.width / 2;
@@ -32,7 +35,7 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                     const endX = winnerRect.left + winnerRect.width / 2;
                     const endY = winnerRect.top - 85; // Juste au-dessus de l'avatar
                     return {
-                        key: seat,
+                        key: realSeat,
                         startX,
                         startY,
                         endX,
@@ -83,7 +86,7 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
             if (retryTimer) clearTimeout(retryTimer);
             if (endTimer) clearTimeout(endTimer);
         };
-    }, [animatePotToWinner, winnerSeats, playerRefs, potRef, playSound, onPotAnimationEnd]);
+    }, [animatePotToWinner, winnerSeats, playerRefs, potRef, playSound, onPotAnimationEnd, getVisualSeat]);
 
     useEffect(() => {
         const images = [singleJeton, singleJeton1, singleJeton2, jetonMany, jeton];

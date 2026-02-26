@@ -95,9 +95,14 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const totalSeats = tableState.seats?.length ?? 9;
 
     // visualSeat → realSeat : quel joueur réel afficher à cette position visuelle ?
-   const getRealSeat = (visualSeat) => {
-    return (mySeat + visualSeat - BOTTOM_SEAT + totalSeats) % totalSeats;
-};
+    const getRealSeat = (visualSeat) => {
+        return (mySeat + visualSeat - BOTTOM_SEAT + totalSeats) % totalSeats;
+    };
+
+    // realSeat → visualSeat : à quelle position visuelle afficher ce joueur réel ?
+    const getVisualSeat = (realSeat) => {
+        return (realSeat - mySeat + BOTTOM_SEAT + totalSeats) % totalSeats;
+    };
     const playSound = (type, muteOverride) => {
         const sounds = {
             fold: '/sounds/fold.mp3',
@@ -388,6 +393,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
 
     return (
+        <div className="game-wrapper">
         <div key={tableId} className={`game-container orientation-${orientation}`}>
             <ToastContainer />
 
@@ -429,6 +435,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
                 playSound={playSound}
                 shouldShareCards={shouldShareCards}
+                getVisualSeat={getVisualSeat}
                 onPotAnimationEnd={() => {
                     // Animation terminée - le solde s'affichera après 50ms
                     setTimeout(() => setHideStack(false), 50);
@@ -576,6 +583,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 currentUserId={currentUserId}
                 playerNames={tableState.playerNames || []}
             />
+        </div>
         </div>
     );
 };
