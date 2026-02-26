@@ -195,7 +195,7 @@ const Player = ({
                     <div className={`btn-action bb-btn ${(i > 3 && i < 7) ? '' : 'right'}`}>Bb</div>
                 )}
 
-                <div className="player-cards" style={{ zIndex: 10 }}>
+                <div className="player-cards" style={{ zIndex: 15 }}>
                     {(() => {
                         // ── Priorité d'affichage (UN SEUL bloc à la fois) ──────────────
                         // 1. Distribution en cours → animation des cartes dos depuis le centre
@@ -230,13 +230,33 @@ const Player = ({
                             );
                         }
 
-                        // 2. Showdown → cartes retournées du vainqueur
-                        if ((winData?.allCards ?? []).length > 0 && isRevealFinished && showWinnerCards) {
+                        // 2. Showdown → afficher les cartes du gagnant(s) pour TOUS les joueurs avec animation
+                        if ((winData?.allCards ?? []).length > 0 && isRevealFinished) {
+                            // Chercher les gagnants et afficher leurs cartes
+                            const winners = winData?.winStates?.filter(w => w.isWinner) || [];
+                            
+                            // Afficher les cartes de ce joueur s'il en a
+                            const hasOwnCards = (winData.allCards[i] ?? []).length > 0;
+                            
+                            // Ou afficher les cartes du gagnant si c'est pas ce joueur
+                            const winnersSeat = winners.map(w => w.seat).filter(seat => seat !== i);
+                            const cardsSeat = hasOwnCards ? i : winnersSeat[0];
+                            
+                            const cardsToDisplay = winData.allCards[cardsSeat] ?? [];
+                            
                             return (
-                                <div className="card-containers">
-                                    {(winData.allCards[i] ?? []).length > 0 && !foldedPlayers.current.has(i) && (
-                                        (winData.allCards[i] ?? []).map((card, idx) => (
-                                            <div className="card" key={idx}>
+                                <div className="card-containers" style={{ transform: 'translateY(50%)', zIndex: 15 }}>
+                                    {cardsToDisplay.length > 0 && (
+                                        cardsToDisplay.map((card, idx) => (
+                                            <div 
+                                                className="card" 
+                                                key={idx}
+                                                style={{
+                                                    transition: 'all 0.4s ease-out',
+                                                    transitionDelay: idx * 0.15 + 's',
+                                                    transform: 'translate(0, 0) scale(1)',
+                                                }}
+                                            >
                                                 <img src={getSrcCard(card)} alt="" />
                                             </div>
                                         ))
@@ -361,13 +381,15 @@ const Player = ({
                  *  - Masqué si hideStack ou handName visible ou 5 cartes communes
                  *  - Masqué si stack=0 ou null pendant une animation (all-in/win)
                  *    → affiche rien au lieu de "0"
-                 *  - Sinon affiche le solde normalement
+                 *  - Toujours au-dessus des cartes (zIndex: 20)
                  */}
                 <div
                     className="stacks"
                     style={{
                         opacity: shouldHideStack ? 0 : 1,
-                        transition: 'opacity 0.3s ease-in-out'
+                        transition: 'opacity 0.3s ease-in-out',
+                        position: 'relative',
+                        zIndex: 20,
                     }}
                 >
                     {shouldHideZeroStack
@@ -378,10 +400,34 @@ const Player = ({
                     }
                 </div>
 
-                {isRevealFinished && winData?.winStates?.find(w => w.seat === i)?.handName ? (
-                    <div className="chips" style={{ position: 'absolute', bottom: '0.5rem', color: '#00FF99', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                        {winData.winStates.find(w => w.seat === i)?.handName}
-                    </div>
+                {isRevealFinished && winData?.winStates?.find(w => w.seat === i) ? (
+                    (() => {
+                        const playerResult = winData.winStates.find(w => w.seat === i);
+                        const isWinner = playerResult?.isWinner;
+                        const resultColor = isWinner ? '#00FF99' : '#FF4444'; // Vert pour gagnant, rouge pour perdant
+                        const textShadow = isWinner 
+                            ? '0 0 10px rgba(0, 255, 153, 0.8), 0 0 20px rgba(0, 255, 153, 0.5)' 
+                            : '0 0 10px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.5)';
+                        
+                        return (
+                            <div className="chips" style={{ 
+                                position: 'absolute', 
+                                bottom: '0.5rem', 
+                                color: resultColor, 
+                                fontWeight: 'bold', 
+                                fontSize: '0.75rem',
+                                textAlign: 'center',
+                                width: '100%',
+                                zIndex: 25,
+                                maxWidth: '4.5rem',
+                                wordWrap: 'break-word',
+                                lineHeight: '1.2',
+                                textShadow: textShadow,
+                            }}>
+                                {playerResult?.handName}
+                            </div>
+                        );
+                    })()
                 ) : null}
                 
                 <div
