@@ -429,6 +429,10 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
                 playSound={playSound}
                 shouldShareCards={shouldShareCards}
+                onPotAnimationEnd={() => {
+                    // Animation terminée - le solde s'affichera après 50ms
+                    setTimeout(() => setHideStack(false), 50);
+                }}
             />
 
             <div className="table" ref={tableRef} style={{ marginTop: 10 }}>
