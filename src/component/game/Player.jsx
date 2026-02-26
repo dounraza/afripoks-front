@@ -24,12 +24,6 @@ const Player = ({
     isRevealFinished,
     hideStack,
     tableId,
-    tableRotation,
-    currentUserId,
-    showWinnerCards,
-    hasPendingWin,
-    playPotAnimation,
-    communityLength,
 }) => {
     const [smileysOpen, setSmileysOpen] = useState(false);
     const [smiley, setSmiley] = useState(null);
@@ -77,11 +71,6 @@ const Player = ({
     const avatar = avatarJson?.avatar;
     const avatarSrc = `/avatars/${avatar}`;
 
-    const isCurrentPlayer = i === tableState.seat;
-    const currentSeat = tableState.seat ?? 0;
-    const totalSeats = (tableState.seats && tableState.seats.length) ? tableState.seats.length : 9;
-    const visualSeat = ((i - currentSeat + totalSeats) % totalSeats);
-
     const playerRef = playerRefs[i];
     const playerRect = playerRef.current?.getBoundingClientRect();
 
@@ -103,59 +92,19 @@ const Player = ({
     if (window.innerWidth <= 399 && window.innerWidth > 350) zoom = 0.8;
     if (window.innerWidth <= 350) zoom = 0.7;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Déterminer si ce joueur est all-in
-    const isPlayerAllIn = allInArr && allInArr.some(a => a && a.playerId === i);
-
-    // Cartes visibles si : actif OU all-in OU la main est en cours (hasPendingWin)
-    // Une fois les cartes distribuées, elles restent visibles jusqu'à la fin
-    const hasCards = (i === tableState.seat && tableState.playerCards != null)
-        || tableState.activeSeats.includes(i)
-        || isPlayerAllIn
-        || hasPendingWin
-        || playPotAnimation
-        || gameOver;
-
-    const isActiveOrAllIn = hasCards;
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Affichage du solde :
-    // - null  → rien (joueur all-in pendant l'animation)
-    // - 0     → rien également (on masque le 0 pendant animation)
-    // - valeur normale → afficher
-    const stackValue = chips?.stack;
-    const isAnimationOngoing = hasPendingWin || playPotAnimation || gameOver;
-    const shouldHideStack =
-        hideStack ||
-        (isRevealFinished && winData?.winStates?.find(w => w.seat === i)?.handName) ||
-        communityLength === 5;
-    const shouldHideZeroStack = false; // on affiche toujours le 0
-
     return (
         <>
             <div
                 ref={playerRefs[i]}
                 className={`
                     player 
-                    seat${visualSeat} 
-                    ${(winData?.winStates ?? []).length > 0 && winData.winStates.find(w => w.seat === i)?.isWinner && isRevealFinished ? 'win' : ''}
-                    ${tableState.toAct === i ? 'active' : ''}`
+                    seat${i} 
+                    ${(winData?.winStates ?? []).length > 0 && winData.winStates.find(w => w.seat === i)?.isWinner && isRevealFinished ?'win': '' }
+                    ${tableState.toAct === i ?'active': '' }`
                 }
-                style={{ 
-                    borderRadius: 6,
-                    opacity: (() => {
-                        // SEUL les joueurs fold doivent être grisés
-                        const isFolded = foldedPlayers && foldedPlayers.current && foldedPlayers.current.has(i);
-                        if (!isFolded) return 1; // Pas fold → normal
-                        // Si fold, vérifier s'il y a des cartes à montrer pendant showdown
-                        const hasShownCards = (winData?.allCards && (winData.allCards[i] ?? []).length > 0 && showWinnerCards) || shouldShareCards || sharingCards;
-                        return hasShownCards ? 1 : 0.5; // Si cartes montrées, normal, sinon grisé
-                    })(),
-                    border: isCurrentPlayer ? '3px solid #00FF00' : '1px solid transparent'
-                }}
+                style={{ borderRadius: 6 }}
                 key={i}
             >
-                
                 <div
                     style={{
                         position: 'absolute',
@@ -184,7 +133,6 @@ const Player = ({
                         }}
                     />
                 </div>
-
                 {sb === i && (
                     <div className={`btn-action sb-btn ${(i > 3 && i < 7) ? '' : 'right'}`}>Sb</div>
                 )}
@@ -195,21 +143,65 @@ const Player = ({
                     <div className={`btn-action bb-btn ${(i > 3 && i < 7) ? '' : 'right'}`}>Bb</div>
                 )}
 
-                <div className="player-cards" style={{ zIndex: 15 }}>
-                    {(() => {
-                        // ── Priorité d'affichage (UN SEUL bloc à la fois) ──────────────
-                        // 1. Distribution en cours → animation des cartes dos depuis le centre
-                        if (shouldShareCards) {
-                            return (
-                                <div className="card-containers" style={{ transform: 'translateY(50%)', zIndex: 10 }}>
+                <div className="player-cards">
+                    {(winData?.allCards ?? []).length > 0 ? (
+                        <div className="card-containers">
+                            {(winData.allCards[i] ?? []).length > 0 && !foldedPlayers.current.has(i) && (
+                                <>
+                                    <div className="card">
+                                        <img src={getSrcCard(winData.allCards[i][0])} alt="" />
+                                    </div>
+                                    <div className="card">
+                                        <img src={getSrcCard(winData.allCards[i][1])} alt="" />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            {tableState.activeSeats.includes(i) && (
+                                i === tableState.seat && tableState.playerCards != null ? (
+                                    <div className="card-containers"
+                                        style={{
+                                            transform: 'translateY(50%)',
+                                            zIndex: -1,
+                                        }}
+                                    >
+                                        <div className="card">
+                                            <img src={getSrcCard(tableState.playerCards[0])} alt="" />
+                                        </div>
+                                        <div className="card">
+                                            <img src={getSrcCard(tableState.playerCards[1])} alt="" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div
+                                        className="card-containers"
+                                        style={{
+                                            transform: 'translateY(50%)',
+                                            zIndex: -1,
+                                        }}
+                                    >
+                                        <div className="card"><img src={rever} alt="" /></div>
+                                        <div className="card"><img src={rever} alt="" /></div>
+                                    </div>
+                                )
+                            )}
+
+                            {shouldShareCards && (
+                                <div
+                                    className="card-containers"
+                                    style={{
+                                        transform: 'translateY(50%)',
+                                        zIndex: -1,
+                                    }}
+                                >
                                     <div
                                         className="card"
                                         style={{
                                             transition: 'all 0.3s ease-in',
                                             transitionDelay: i * (0.5 / tableState.playerIds.length) + 's',
-                                            transform: sharingCards
-                                                ? 'translate(0, 0) scale(1)'
-                                                : `translate(calc(${(tableCenterX - pdx) / zoom}px + 50%), ${(tableCenterY - pdy) / zoom}px)`,
+                                            transform: sharingCards ? 'translate(0, 0) scale(1)' : `translate(calc(${(tableCenterX - pdx) / zoom}px + 50%), ${(tableCenterY - pdy) / zoom}px)`,
                                         }}
                                     >
                                         <img src={rever} alt="" />
@@ -219,74 +211,15 @@ const Player = ({
                                         style={{
                                             transition: 'all 0.3s ease-in',
                                             transitionDelay: (tableState.playerIds.length * (0.5 / tableState.playerIds.length)) + i * (0.5 / tableState.playerIds.length) + 's',
-                                            transform: sharingCards
-                                                ? 'translate(0, 0) scale(1)'
-                                                : `translate(calc(${(tableCenterX - pdx) / zoom}px - 50%), ${(tableCenterY - pdy) / zoom}px)`,
+                                            transform: sharingCards ? 'translate(0, 0) scale(1)' : `translate(calc(${(tableCenterX - pdx) / zoom}px - 50%), ${(tableCenterY - pdy) / zoom}px)`,
                                         }}
                                     >
                                         <img src={rever} alt="" />
                                     </div>
                                 </div>
-                            );
-                        }
-
-                        // 2. Showdown → afficher les cartes du gagnant(s) pour TOUS les joueurs avec animation
-                        if ((winData?.allCards ?? []).length > 0 && isRevealFinished) {
-                            // Chercher les gagnants et afficher leurs cartes
-                            const winners = winData?.winStates?.filter(w => w.isWinner) || [];
-                            
-                            // Afficher les cartes de ce joueur s'il en a
-                            const hasOwnCards = (winData.allCards[i] ?? []).length > 0;
-                            
-                            // Ou afficher les cartes du gagnant si c'est pas ce joueur
-                            const winnersSeat = winners.map(w => w.seat).filter(seat => seat !== i);
-                            const cardsSeat = hasOwnCards ? i : winnersSeat[0];
-                            
-                            const cardsToDisplay = winData.allCards[cardsSeat] ?? [];
-                            
-                            return (
-                                <div className="card-containers" style={{ transform: 'translateY(50%)', zIndex: 15 }}>
-                                    {cardsToDisplay.length > 0 && (
-                                        cardsToDisplay.map((card, idx) => (
-                                            <div 
-                                                className="card" 
-                                                key={idx}
-                                                style={{
-                                                    transition: 'all 0.4s ease-out',
-                                                    transitionDelay: idx * 0.15 + 's',
-                                                    transform: 'translate(0, 0) scale(1)',
-                                                }}
-                                            >
-                                                <img src={getSrcCard(card)} alt="" />
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            );
-                        }
-
-                        // 3. Pendant la main → cartes normales (face ou dos)
-                        if (isActiveOrAllIn) {
-                            return (
-                                <div className="card-containers" style={{ transform: 'translateY(50%)', zIndex: 10 }}>
-                                    {(i === tableState.seat) && tableState.playerCards != null
-                                        ? tableState.playerCards.map((card, idx) => (
-                                            <div className="card" key={idx}>
-                                                <img src={getSrcCard(card)} alt="" />
-                                            </div>
-                                        ))
-                                        : (tableState.playerCards ?? ['', '']).map((_, idx) => (
-                                            <div className="card" key={idx}>
-                                                <img src={rever} alt="" />
-                                            </div>
-                                        ))
-                                    }
-                                </div>
-                            );
-                        }
-
-                        return null;
-                    })()}
+                            )}
+                        </>
+                    )}
                 </div>
 
                 <div
@@ -317,31 +250,28 @@ const Player = ({
                 </div>
 
                 <div className="player-name">
-                    {(() => {
-                        const playerAction = tableState.actions.find(item => item.playerId === i);
-                        const playerNameDisplay = tableState.playerNames[i];
-                        if (playerAction) {
-                            return (
-                                <div className="action" style={{ color: '#00FF99' }} key={i}>
-                                    {playerAction.action === 'check' || playerAction.action === 'fold'
-                                        ? playerAction.action
-                                        : `${playerAction.action}`
-                                    }
-                                </div>
-                            );
-                        } else {
-                            return (
-                                <div style={{ fontWeight: isCurrentPlayer ? 'bold' : 'normal', color: isCurrentPlayer ? '#00FF00' : '#FFF' }}>
-                                    {(playerNameDisplay ?? '').length > 10
-                                        ? playerNameDisplay.slice(0, 10) + '...'
-                                        : playerNameDisplay}
-                                    {isCurrentPlayer}
-                                </div>
-                            );
-                        }
-                    })()}
+                    {
+                        (() => {
+                            const playerAction = tableState.actions.find(item => item.playerId === i);
+                            if (playerAction) {
+                                return (
+                                    <div className={`action`} style={{ color: '#00FF99' }} key={i}>
+                                        {playerAction.action === 'check' || playerAction.action === 'fold'
+                                            ? playerAction.action
+                                            : `${playerAction.action}`
+                                        }
+                                    </div>
+                                );
+                            } else {
+                                return <div>
+                                    {(tableState.playerNames[i] ?? '').length > 10
+                                        ? tableState.playerNames[i].slice(0, 10) + '...'
+                                        : tableState.playerNames[i]}
+                                </div>;
+                            }
+                        })()
+                    }
                 </div>
-
                 <div
                     style={{
                         height: 2,
@@ -353,88 +283,57 @@ const Player = ({
                         boxShadow: tableState.toAct === i ? '0px 0px 12px 4px #00FF99' : 'none',
                     }}
                 ></div>
-
                 <div className={`amount p_${i}`}>
-                    {(() => {
-                        const playerAction = tableState.actions.find(item => item.playerId === i);
-                        if (playerAction) {
-                            return (
-                                <>
-                                    <div key={i} style={{ color: 'white', fontWeight: 600 }}>
-                                        {playerAction.action === 'check' || playerAction.action === 'fold'
-                                            ? ''
-                                            : `${playerAction.amount}`
-                                        }
-                                    </div>
-                                    {playerAction.amount > 0 && (
-                                        <div className="jeton">
-                                            <img src={require("../../styles/image/jeton.png")} alt="" />
+                    {
+                        (() => {
+                            const playerAction = tableState.actions.find(item => item.playerId === i);
+                            if (playerAction) {
+                                return (
+                                    <>
+                                        <div key={i}
+                                            style={{
+                                                color: 'white',
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            {playerAction.action === 'check' || playerAction.action === 'fold'
+                                                ? ''
+                                                : `${playerAction.amount}`
+                                            }
                                         </div>
-                                    )}
-                                </>
-                            );
-                        }
-                    })()}
-                </div>
-
-                {/* ── Solde du joueur ─────────────────────────────────────────────
-                 *  - Masqué si hideStack ou handName visible ou 5 cartes communes
-                 *  - Masqué si stack=0 ou null pendant une animation (all-in/win)
-                 *    → affiche rien au lieu de "0"
-                 *  - Toujours au-dessus des cartes (zIndex: 20)
-                 */}
-                <div
-                    className="stacks"
-                    style={{
-                        opacity: shouldHideStack ? 0 : 1,
-                        transition: 'opacity 0.3s ease-in-out',
-                        position: 'relative',
-                        zIndex: 20,
-                    }}
-                >
-                    {shouldHideZeroStack
-                        ? null
-                        : chips != null
-                            ? `${chips.stack}`
-                            : <div className="no-chips" style={{ opacity: 0.7 }}>0</div>
+                                        {playerAction.amount > 0 && (
+                                            <div className="jeton">
+                                                <img src={require("../../styles/image/jeton.png")} alt="" />
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            }
+                        })()
                     }
                 </div>
-
-                {isRevealFinished && winData?.winStates?.find(w => w.seat === i) ? (
-                    (() => {
-                        const playerResult = winData.winStates.find(w => w.seat === i);
-                        const isWinner = playerResult?.isWinner;
-                        const resultColor = isWinner ? '#00FF99' : '#FF4444'; // Vert pour gagnant, rouge pour perdant
-                        const textShadow = isWinner 
-                            ? '0 0 10px rgba(0, 255, 153, 0.8), 0 0 20px rgba(0, 255, 153, 0.5)' 
-                            : '0 0 10px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.5)';
-                        
-                        return (
-                            <div className="chips" style={{ 
-                                position: 'absolute', 
-                                bottom: '0.5rem', 
-                                color: resultColor, 
-                                fontWeight: 'bold', 
-                                fontSize: '0.75rem',
-                                textAlign: 'center',
-                                width: '100%',
-                                zIndex: 25,
-                                maxWidth: '4.5rem',
-                                wordWrap: 'break-word',
-                                lineHeight: '1.2',
-                                textShadow: textShadow,
-                            }}>
-                                {playerResult?.handName}
-                            </div>
-                        );
-                    })()
-                ) : null}
+                <div className="stacks">
+                    {/* {hideStack ? '...' : ( */}
+                        <>
+                            {isRevealFinished && winData?.winStates?.find(w => w.seat === i)?.handName ? (
+                                <div className="chips">
+                                    {winData.winStates.find(w => w.seat === i)?.handName}
+                                </div>
+                            ) : (
+                                chips != null ? `${chips.stack}` :
+                                <div className="no-chips" style={{ opacity: 0.7 }}>0</div>
+                            )}
+                        </>
+                    {/* )} */}
+                </div>
                 
                 <div
                     style={{
                         zIndex: 9999,
                         position: 'absolute',
                         top: '100%',
+                        // right: i <= 3 ? '-25%' : 'auto',
+                        // left: i > 3 ? '-25%' : 'auto',
                         color: 'white',
                         cursor: 'pointer',
                         borderRadius: 4,
@@ -442,6 +341,8 @@ const Player = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         width: 40,
+                        // paddingTop: 4,
+                        // paddingBottom: 4,
                     }}
                     onClick={() => tableState.seat === i && setSmileysOpen(!smileysOpen)}
                 >
@@ -453,6 +354,7 @@ const Player = ({
                                 </div>
                             ) : (
                                 <div>
+                                    {/* <img src={"/smileys/Tired 3D Sticker by Emoji.gif"} alt="Smiley" style={{ width: '100%', borderRadius: '4pt' }} /> */}
                                     <Smile size={32} fill='#ff9100ff' />
                                 </div>
                             )}
