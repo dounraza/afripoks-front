@@ -144,13 +144,12 @@ const Player = ({
                 style={{ 
                     borderRadius: 6,
                     opacity: (() => {
+                        // SEUL les joueurs fold doivent être grisés
                         const isFolded = foldedPlayers && foldedPlayers.current && foldedPlayers.current.has(i);
-                        if (!isFolded) return 1;
-                        const playerAction = tableState.actions?.find(item => item.playerId === i);
-                        const actionKeepsActive = playerAction && ['call', 'allin', 'raise'].includes(playerAction.action);
-                        const isActiveSeat = tableState.activeSeats?.includes(i);
+                        if (!isFolded) return 1; // Pas fold → normal
+                        // Si fold, vérifier s'il y a des cartes à montrer pendant showdown
                         const hasShownCards = (winData?.allCards && (winData.allCards[i] ?? []).length > 0 && showWinnerCards) || shouldShareCards || sharingCards;
-                        return (actionKeepsActive || isActiveSeat || hasShownCards) ? 1 : 0.5;
+                        return hasShownCards ? 1 : 0.5; // Si cartes montrées, normal, sinon grisé
                     })(),
                     border: isCurrentPlayer ? '3px solid #00FF00' : '1px solid transparent'
                 }}
@@ -316,7 +315,7 @@ const Player = ({
                                     {(playerNameDisplay ?? '').length > 10
                                         ? playerNameDisplay.slice(0, 10) + '...'
                                         : playerNameDisplay}
-                                    {isCurrentPlayer && ' (Vous)'}
+                                    {isCurrentPlayer}
                                 </div>
                             );
                         }
