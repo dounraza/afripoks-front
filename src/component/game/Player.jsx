@@ -320,10 +320,27 @@ const Player = ({
                 {/* ── Stack / Hand name (seat réel = i) ─────────────────── */}
                 <div className="stacks">
                     <>
-                        {isRevealFinished && winData?.winStates?.find(w => w.seat === i)?.handName ? (
-                            <div className="chips">
-                                {winData.winStates.find(w => w.seat === i)?.handName}
-                            </div>
+                        {isRevealFinished && winData?.winStates?.find(w => w.seat === i) ? (
+                            (() => {
+                                const playerResult = winData.winStates.find(w => w.seat === i);
+                                const isWinner = playerResult?.isWinner;
+                                const displayText = isWinner ? playerResult?.handName : 'LOSE';
+                                const textColor = isWinner ? '#00FF99' : '#FF4444';
+                                const textShadow = isWinner 
+                                    ? '0 0 10px rgba(0, 255, 153, 0.8), 0 0 20px rgba(0, 255, 153, 0.5)' 
+                                    : '0 0 10px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.5)';
+                                
+                                return (
+                                    <div className="chips" style={{ 
+                                        color: textColor,
+                                        textShadow: textShadow,
+                                        fontWeight: 'bold',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        {displayText}
+                                    </div>
+                                );
+                            })()
                         ) : (
                             chips != null
                                 ? `${chips.stack}`
