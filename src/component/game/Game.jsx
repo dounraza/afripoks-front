@@ -10,12 +10,8 @@ import "./Game.scss";
 import rever from "../../styles/image/rever.png";
 import jeton from "../../styles/image/jeton.png";
 import jetonMany from "../../styles/image/jetonMany.png";
-// import tableTexture from "../../styles/image/vert_table.png";
-// import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
 import tableTexture from "../../styles/image/table_vert_p.png";
-//vert_table_rot
 import tableTextureLandscape from "../../styles/image/vert_led.png";
-// import tableTextureLandscape from "../../styles/image/vert_table_rot.png";
 import PlayerActions from './PlayerActions';
 import Player from './Player';
 import CommunityCards from './CommunityCards';
@@ -38,6 +34,9 @@ const SEAT_ROTATIONS = {
     7: 270,
     8: 90,
 };
+
+// ✅ Seat CSS affiché en bas de l'écran
+const BOTTOM_SEAT = 0;
 
 const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
     const [tableState, setTableState] = useState({});
@@ -80,22 +79,25 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const [lastMatchHistory, setLastMatchHistory] = useState(null);
 
     const currentUserId = sessionStorage.getItem('userId');
-    const [isLandscape, setIsLandscape] = useState(
-    window.innerWidth > window.innerHeight
-        );
+    const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
 
-        useEffect(() => {
-            const handleResize = () => {
-                setIsLandscape(window.innerWidth > window.innerHeight);
-            };
-            window.addEventListener('resize', handleResize);
-            return () => window.removeEventListener('resize', handleResize);
-        }, []);
-    // ✅ orientation-vertical ou orientation-horizontal selon rotation
-    const orientation = (tableRotation === 90 || tableRotation === 270)
-        ? 'horizontal'
-        : 'vertical';
+    useEffect(() => {
+        const handleResize = () => setIsLandscape(window.innerWidth > window.innerHeight);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
+    const orientation = (tableRotation === 90 || tableRotation === 270) ? 'horizontal' : 'vertical';
+
+    // ✅ Calcul de la rotation visuelle des seats
+    // Le joueur connecté (mySeat) doit toujours apparaître à BOTTOM_SEAT
+    const mySeat = tableState.seat;
+    const totalSeats = tableState.seats?.length ?? 9;
+
+    // visualSeat → realSeat : quel joueur réel afficher à cette position visuelle ?
+   const getRealSeat = (visualSeat) => {
+    return (mySeat + visualSeat - BOTTOM_SEAT + totalSeats) % totalSeats;
+};
     const playSound = (type, muteOverride) => {
         const sounds = {
             fold: '/sounds/fold.mp3',
@@ -179,8 +181,8 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
-            setHideStack(false); // Afficher le solde à nouveau
-            foldedPlayers.current = new Set(); // Réinitialiser les joueurs fold
+            setHideStack(false);
+            foldedPlayers.current = new Set();
             setShouldShareCards(true);
             setTimeout(() => {
                 setSharingCards(true);
@@ -194,7 +196,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             setCommunity([]);
             setCommunityShow([]);
             setAllInArr([]);
-            setHideStack(false); // Afficher le solde à nouveau
+            setHideStack(false);
             foldedPlayers.current = new Set();
             setShouldShareCards(false);
             setSharingCards(false);
@@ -231,7 +233,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 const seatInfo = data?.seats[lastAction?.playerId];
                 if (lastAction.action === 'raise' && seatInfo?.stack === 0) {
                     playSound('allin');
-                    setHideStack(true); // Cacher immédiatement le solde après all-in
+                    setHideStack(true);
                     setAllInArr(prev => [...prev, seatInfo]);
                     return;
                 }
@@ -258,11 +260,8 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tableId]);
 
-    // Cacher le solde quand les cartes communes apparaissent
     useEffect(() => {
-        if (community.length > 0) {
-            setHideStack(true);
-        }
+        if (community.length > 0) setHideStack(true);
     }, [community.length]);
 
     useEffect(() => {
@@ -382,12 +381,10 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const addRange = () => setBetSize(Math.min(betSize + 10, tableState.legalActions.chipRange.max));
     const minusRange = () => setBetSize(Math.max(betSize - 1, tableState.legalActions.chipRange.min));
 
-    // ✅ Toggle manuel orientation
     const toggleOrientation = () => {
         setTableRotation(prev => prev === 0 ? 270 : 0);
     };
 
-    // ✅ Guards : tous les champs requis sont présents
     const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
 
     return (
@@ -443,12 +440,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                     }}
                 >
                     <img
-                       src={
-                        tableRotation === 0 ? tableTexture :
-
-                        tableRotation === 270 ? tableTextureLandscape :
-                        tableTexture
-                      }
+                        src={tableRotation === 0 ? tableTexture : tableRotation === 270 ? tableTextureLandscape : tableTexture}
                         alt=""
                         style={{
                             width: '408px',
@@ -461,33 +453,40 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                     />
                 </div>
 
-                {tableReady && tableState.seats.map((chips, i) => (
-                    <Player
-                        key={i}
-                        i={i}
-                        chips={chips}
-                        tableState={tableState}
-                        winData={winData}
-                        sb={sb}
-                        bb={bb}
-                        dealer={dealer}
-                        avatars={avatars}
-                        playerRefs={playerRefs}
-                        tableRef={tableRef}
-                        getSrcCard={getSrcCard}
-                        rever={rever}
-                        foldedPlayers={foldedPlayers}
-                        shouldShareCards={shouldShareCards}
-                        sharingCards={sharingCards}
-                        allInArr={allInArr}
-                        isRevealFinished={isRevealFinished}
-                        gameOver={gameOver}
-                        hideStack={hideStack}
-                        tableId={tableId}
-                        tableRotation={tableRotation}
-                        currentUserId={currentUserId}
-                    />
-                ))}
+                {/* ✅ ROTATION : on boucle sur les seats VISUELS et on passe le seat RÉEL comme "i" */}
+                {tableReady && Array.from({ length: totalSeats }).map((_, visualSeat) => {
+                    const realSeat = getRealSeat(visualSeat);
+                    const chips = tableState.seats[realSeat]; // ← chips du joueur réel
+
+                    return (
+                        <Player
+                            key={visualSeat}
+                            i={realSeat}            // ← données jeu (seat réel)
+                            visualSeat={visualSeat} // ← position CSS (seat visuel)
+                            chips={chips}
+                            tableState={tableState}
+                            winData={winData}
+                            sb={sb}
+                            bb={bb}
+                            dealer={dealer}
+                            avatars={avatars}
+                            playerRefs={playerRefs}
+                            tableRef={tableRef}
+                            getSrcCard={getSrcCard}
+                            rever={rever}
+                            foldedPlayers={foldedPlayers}
+                            shouldShareCards={shouldShareCards}
+                            sharingCards={sharingCards}
+                            allInArr={allInArr}
+                            isRevealFinished={isRevealFinished}
+                            gameOver={gameOver}
+                            hideStack={hideStack}
+                            tableId={tableId}
+                            tableRotation={tableRotation}
+                            currentUserId={currentUserId}
+                        />
+                    );
+                })}
             </div>
 
             {/* Bouton Quitter */}
@@ -500,7 +499,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 Quitter
             </div>
 
-            {/* ✅ Barre du haut avec bouton orientation */}
+            {/* Barre du haut */}
             <div style={{
                 position: 'absolute',
                 top: '2%',
@@ -511,10 +510,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 alignItems: 'center',
             }}>
                 <div style={{ display: 'flex' }}><TableTabs /></div>
-
                 <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
-
-                {/* ✅ Toggle vertical ↕ / horizontal ↔ */}
                 <button
                     onClick={toggleOrientation}
                     title={orientation === 'vertical' ? 'Passer en horizontal' : 'Passer en vertical'}
@@ -539,8 +535,6 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 >
                     {orientation === 'vertical' ? '⇔' : '⇕'}
                 </button>
-
-                {/* Historique */}
                 <button
                     onClick={() => setIsHistoryModalOpen(true)}
                     style={{
@@ -581,4 +575,5 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         </div>
     );
 };
+
 export default Game;
