@@ -362,16 +362,16 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
     const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
   //modification
-  
+
     return (
         <div
             className="game-wrapper"
             style={{
-                width: '100vw',
+                width: '100',
                 minHeight: '100vh',
                 height: 'auto',
                 backgroundColor: '#000',
-                backgroundImage: 'url(/table-bg.jpg)',
+                backgroundImage: `url(${!isLandscape ? '/table-bg-mobile.jpg' : '/table-bg.jpg'})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
