@@ -1,71 +1,9 @@
 @use "../../styles/variable.scss" as *;
 @import "GameOrientation.scss";
-
 @keyframes animatedCoin {
   0%   { transform: translate(-50%, -50%) translateY(0); }
   50%  { transform: translate(-50%, -50%) translateY(-200%); }
   100% { transform: translate(-50%, -50%) translateY(0); }
-}
-
-@keyframes sparkle {
-  0% {
-    opacity: 1;
-    filter: brightness(1.5) drop-shadow(0 0 15px rgba(255, 215, 0, 1));
-  }
-  50% {
-    opacity: 1;
-    filter: brightness(1.2) drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
-  }
-  100% {
-    opacity: 0.6;
-    filter: brightness(0.8) drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
-  }
-}
-
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-// ← CLEF : html/body/root ne bloquent JAMAIS le scroll
-html, body {
-    width: 100%;
-    min-height: 100%;
-    height: auto;
-    background-color: #000;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 0;
-    padding: 0;
-  
-}
-
-#root {
-    width: 100%;
-    min-height: 100%;
-    height: auto;
-    background-color: #000;
-    overflow-x: hidden;
-    overflow-y: auto;
-    
-}
-
-.game-wrapper {
-    height: auto;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    margin: 0;
-    padding: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-      width: 100% !important;
-    min-height: 100vh !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
 }
 
 .game-container {
@@ -73,20 +11,17 @@ html, body {
     justify-content: center;
     align-items: center;
     position: relative;
-    width: 100% !important;
-    max-width: 100vw !important;
-    overflow: hidden !important;
-    transform-origin: top center !important;
-    height: 65rem;
+    width: 25rem;
+    height: 45rem;
+    
     zoom: 1;
-    box-sizing: border-box;
-   
-    // jamais position: fixed ici
 
     .exit {
         position: absolute;
         top: 2%;
         left: 0%;
+       // width: 4rem;
+      //  height: 2rem;
         @include flex-center;
         border-radius: 3px;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
@@ -117,6 +52,7 @@ html, body {
                 border: none;
                 box-shadow: none;
             }
+
         }
     }
 
@@ -126,12 +62,14 @@ html, body {
         padding-top: 2pt;
         padding-bottom: 2pt;
         background-color: #2d1c0c;
+     //   border: 1px solid $gold;
         @include flex-center;
         color: $background;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        // gap: .5rem;
         font-size: 12px;
         z-index: 10;
 
@@ -155,13 +93,39 @@ html, body {
                 box-shadow: none;
             }
 
-            &.p_1 { top: .7rem; left: 100px; }
-            &.p_2, &.p_0 { top: 1.7rem; }
-            &.p_3 { left: 1.5rem; top: 3.5rem; }
-            &.p_5 { top: .7rem; left: -80px; }
-            &.p_6, &.p_4 { left: -70px; top: 1.7rem; }
-            &.p_7 { left: -1.5rem; top: -3rem; }
-            &.p_8 { left: 4.5rem; top: -3rem; }
+            &.p_1{
+                top: .7rem;
+                left: 110px;
+            } 
+
+            &.p_2, &.p_0 {
+                top: 1.7rem;
+            }
+
+            &.p_3 {
+                left: 1.5rem;
+                top: 3.5rem;
+            }
+
+            &.p_5 {
+                top: .7rem;
+                left: -80px;
+            }
+
+            &.p_6, &.p_4 {
+                left: -70px;
+                top: 1.7rem;
+            }
+
+            &.p_7 {
+                left: -1.5rem;
+                top: -3rem;
+            }
+
+            &.p_8 {
+                left: 4.5rem;
+                top: -3rem;
+            }
         }
 
         .player-cards {
@@ -179,7 +143,9 @@ html, body {
             }
         }
 
-        .action { color: $gold; }
+        .action {
+            color: $gold
+        }
 
         .btn-action {
             @include flex-center;
@@ -196,41 +162,101 @@ html, body {
             font-weight: bold;
             cursor: pointer;
 
-            &.right { left: 95%; }
-            &.deal-btn { background-color: #e63946; }
-            &.sb-btn { background: radial-gradient(ellipse at center, #1B3B6F 0%, #0F1E33 100%); }
-            &.bb-btn { background: radial-gradient(ellipse at center, #a47148 0%, #4b2e1e 100%); }
+            &.right {
+                left: 95%;    
+            }
+
+            &.deal-btn {
+                background-color: #e63946;
+            }
+
+            &.sb-btn {
+                background: radial-gradient(ellipse at center, #1B3B6F 0%, #0F1E33 100%);    
+            }
+
+            &.bb-btn {
+                background: radial-gradient(ellipse at center, #a47148 0%, #4b2e1e 100%);
+            }
+
         }
 
-        &.win { background-color: #065a2e; }
-        .stacks { font-weight: 900; }
+        &.win {
+             background-color: #065a2e;  
+        }
+
+        .stacks {
+            font-weight: 900;
+        }
 
         &.active {
             &::before {
                 content: "";
                 position: absolute;
-                top: 0; left: 0;
-                height: 100%; width: 100%;
-                background-color: #579;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                background-color: #579;  
+             //   background: radial-gradient(circle,rgba(36, 145, 102, 1) 20%, rgba(15, 94, 57, 1) 88%);
                 z-index: -1;
                 animation: shrinkToLeft 12s linear forwards;
             }
+            }
+            @keyframes shrinkToLeft {
+                0% {
+                    left: 0;
+                    width: 100%;
+                }
+                100% {
+                    left: 0;
+                    width: 0%;
+                }
+            }
+        
+        &.seat0 {
+            top: 94%;
+            left: 5%;
         }
 
-        @keyframes shrinkToLeft {
-            0%   { left: 0; width: 100%; }
-            100% { left: 0; width: 0%; }
+        &.seat1 {
+            top: 70%;
+            left: -15%;
         }
 
-        &.seat0 { top: 94%; left: 5%; }
-        &.seat1 { top: 70%; left: -15%; }
-        &.seat2 { top: 31%; left: -14%; }
-        &.seat3 { top: 9%;  left: 1%; }
-        &.seat4 { top: 0%;  left: 40%; }
-        &.seat5 { top: 12%; left: 87%; }
-        &.seat6 { top: 28%; left: 87%; }
-        &.seat7 { top: 64%; left: 87%; }
-        &.seat8 { top: 95%; left: 64%; }
+        &.seat2 {
+            top: 9%;
+            left: -13%;
+        }
+
+        &.seat3 {
+            top: 0%;
+            left: 40%;
+        }
+
+        &.seat4 {
+            top: 9%;
+            left: 89%;
+        }
+
+        &.seat5 {
+            top: 33.5%;
+            left: 91%;
+        }
+
+        &.seat6 {
+            top: 70%;
+            left: 91%;
+        }
+
+        &.seat7 {
+            top: 94%;
+            left: 72%;
+        }
+
+        &.seat8 {
+            top: 33.5%;
+            left: -15%;
+        }
     }
 
     .pots-container {
@@ -240,7 +266,7 @@ html, body {
         justify-content: center;
         width: 21rem;
         z-index: 3;
-        height: fit-content;
+        height: fit-content;  
         top: 13rem;
         gap: .5rem;
         color: white;
@@ -276,11 +302,10 @@ html, body {
             }
         }
 
-        .jetons {
+        .jetons { 
             display: flex;
             justify-content: center;
             align-items: center;
-
             img {
                 height: 3rem;
                 object-fit: contain;
@@ -293,6 +318,26 @@ html, body {
             }
         }
     }
+
+    // .pots {
+    //     position: absolute;
+    //     display: flex;
+    //     align-items: center;
+    //     flex-direction: column;
+    //     row-gap: 1rem;
+    //     left: 45%;
+    //     top: 30%;
+    //     color: $background;
+    //     font-size: 1.7rem;
+    //     z-index: 1;
+    //     div{
+    //         display: flex;
+    //         column-gap: 1rem;
+    //         p{
+    //             font-size: 1rem;
+    //         }
+    //     }
+    // }
 
     .community-cards {
         display: flex;
@@ -307,10 +352,13 @@ html, body {
         left: 8%;
         z-index: 3;
 
-        .card-community { width: 18%; }
+        .card-community {
+            width: 18%;
+        }
     }
 
     .player-action-container {
+             
         padding: 20px;
         position: absolute;
         top: 54rem;
@@ -327,10 +375,9 @@ html, body {
         .action-container {
             @include flex-center;
             gap: 1rem;
-            display: flex;
+               display: flex;
             gap: 12px;
             justify-content: center;
-
             .player-action {
                 width: 8rem;
                 height: 2.6rem;
@@ -342,9 +389,8 @@ html, body {
                 color: $background;
             }
         }
-
         .poker-button {
-            padding: 14px 32px;
+        padding: 14px 32px;
             border-radius: 25px;
             font-weight: 700;
             font-size: 14px;
@@ -352,25 +398,45 @@ html, body {
             cursor: pointer;
             text-align: center;
             border: 5px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 3px 6px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.3);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
             transition: all 0.2s ease;
-            text-transform: none;
+            text-transform: none; 
             min-width: 120px;
             position: relative;
-
-            &:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 12px rgba(0,0,0,0.4), inset 0 3px 6px rgba(255,255,255,0.6), inset 0 -3px 6px rgba(0,0,0,0.3);
-            }
-            &:active {
-                transform: translateY(0);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.4);
-            }
+    }
+   .poker-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 12px rgba(0, 0, 0, 0.4),
+                inset 0 3px 6px rgba(255, 255, 255, 0.6),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
         }
 
-        .button-green { background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%); color: white; }
-        .button-teal  { background: linear-gradient(180deg, #00BFA5 0%, #00897B 100%); color: white; }
-        .button-red   { background: linear-gradient(180deg, #FF5252 0%, #D32F2F 100%); color: white; }
+        .poker-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .button-green {
+            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
+            color: white;
+        }
+
+        .button-teal {
+            background: linear-gradient(180deg, #00BFA5 0%, #00897B 100%);
+            color: white;
+        }
+
+        .button-red {
+            background: linear-gradient(180deg, #FF5252 0%, #D32F2F 100%);
+            color: white;
+        }
 
         .input-group {
             display: flex;
@@ -386,208 +452,363 @@ html, body {
             background: linear-gradient(180deg, #FFC107 0%, #FFA000 100%);
             border-radius: 25px;
             padding: 8px 16px;
-            border: 5px solid rgba(255,255,255,0.4);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 3px 6px rgba(255,255,255,0.5), inset 0 -3px 6px rgba(0,0,0,0.3);
+            border: 5px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 3px 6px rgba(255, 255, 255, 0.5),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
             min-width: 180px;
             justify-content: space-between;
         }
 
         .bet-control {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
-            width: 32px; height: 32px;
-            display: flex; align-items: center; justify-content: center;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            color: white; font-weight: 700; font-size: 20px;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
             user-select: none;
-            border: 3px solid rgba(255,255,255,0.5);
-            box-shadow: inset 0 3px 4px rgba(255,255,255,0.6), inset 0 -3px 4px rgba(0,0,0,0.3);
-
-            svg { width: 18px; height: 18px; stroke: white; stroke-width: 3; }
-            &:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
-            &:active { transform: scale(0.95); }
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 
+                inset 0 3px 4px rgba(255, 255, 255, 0.6),
+                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
         }
 
-        .bet-amount { font-size: 20px; font-weight: 700; color: #000; min-width: 80px; text-align: center; }
-
-        .btn-fold {
-            background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%);
-            border: none; border-radius: 50px; padding: 15px 40px;
-            color: white; font-weight: bold; font-size: 16px; text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #16a34a, 0 12px 20px rgba(0,0,0,0.4);
-            transition: all 0.1s ease;
-            &:active { transform: translateY(4px); box-shadow: 0 4px 0 #16a34a, 0 6px 10px rgba(0,0,0,0.4); }
+        .bet-control:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+            box-shadow: 
+                inset 0 3px 4px rgba(255, 255, 255, 0.7),
+                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
         }
 
-        .btn-call {
-            background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
-            border: none; border-radius: 50px; padding: 15px 40px;
-            color: white; font-weight: bold; font-size: 16px; text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #059669, 0 12px 20px rgba(0,0,0,0.4);
-            transition: all 0.1s ease;
-            &:active { transform: translateY(4px); box-shadow: 0 4px 0 #059669, 0 6px 10px rgba(0,0,0,0.4); }
+        .bet-control:active {
+            transform: scale(0.95);
+            box-shadow: 
+                inset 0 2px 3px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 3px rgba(0, 0, 0, 0.5);
         }
 
-        .btn-allin {
-            background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
-            border: none; border-radius: 50px; padding: 15px 40px;
-            color: white; font-weight: bold; font-size: 16px; text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #dc2626, 0 12px 20px rgba(0,0,0,0.4);
-            transition: all 0.1s ease;
-            &:active { transform: translateY(4px); box-shadow: 0 4px 0 #dc2626, 0 6px 10px rgba(0,0,0,0.4); }
+        .bet-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #000000;
+            min-width: 80px;
+            text-align: center;
         }
+.bet-control svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+    stroke-width: 3;
+}
 
-        .btn-bet {
-            background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
-            border: none; border-radius: 50px; padding: 15px 30px;
-            color: white; font-weight: bold; font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #d97706, 0 12px 20px rgba(0,0,0,0.4);
-            transition: all 0.1s ease;
-            display: flex; align-items: center; gap: 20px;
 
-            button { background: none; border: none; color: white; font-size: 24px; font-weight: bold; cursor: pointer; padding: 0 10px; }
-            &:active { transform: translateY(4px); box-shadow: 0 4px 0 #d97706, 0 6px 10px rgba(0,0,0,0.4); }
-        }
+/* Bouton SE COUCHER (vert) */
+.btn-fold {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #16a34a,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  transition: all 0.1s ease;
+}
 
-        .btn-raise {
-            background: linear-gradient(180deg, #2dd4bf 0%, #14b8a6 100%);
-            border: none; border-radius: 50px; padding: 15px 40px;
-            color: white; font-weight: bold; font-size: 16px; text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #0d9488, 0 12px 20px rgba(0,0,0,0.4);
-            transition: all 0.1s ease;
-            &:active { transform: translateY(4px); box-shadow: 0 4px 0 #0d9488, 0 6px 10px rgba(0,0,0,0.4); }
-        }
+.btn-fold:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #16a34a,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
 
+/* Bouton SUIVRE/PAROLE (vert clair) */
+.btn-call {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #059669,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+}
+
+.btn-call:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #059669,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton TAPIS (rouge) */
+.btn-allin {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #dc2626,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+}
+
+.btn-allin:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #dc2626,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton de mise (jaune/orange) */
+.btn-bet {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 30px;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #d97706,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.btn-bet:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #d97706,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Boutons +/- */
+.btn-bet button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+/* Bouton MISER/RELANCER (turquoise) */
+.btn-raise {
+  background: linear-gradient(180deg, #2dd4bf 0%, #14b8a6 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 8px 0 #0d9488,
+    0 12px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+}
+
+.btn-raise:active {
+  transform: translateY(4px);
+  box-shadow: 
+    0 4px 0 #0d9488,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+}
+.bet-control svg {
+    width: 18px;
+    height: 18px;
+    stroke: white;
+    stroke-width: 3;
+}
         .input-group {
             @include flex-center;
             gap: 1rem;
+            color: $primary-text-color;
             color: $background;
+            
 
             .input {
-                display: flex; justify-content: center; align-items: center; gap: .5rem;
-                input { font-size: 1.2rem; font-weight: bold; border: none; text-align: center; outline: none; background-color: transparent; }
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: .5rem;
+
+                input {
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    border: none;
+                    text-align: center;
+                    outline: none;
+                    background-color: transparent;
+                }
             }
 
             .submit {
-                width: 8rem; height: 2.6rem; border-radius: 1rem;
+                width: 8rem;
+                height: 2.6rem;
+                border-radius: 1rem;
                 @include flex-center;
+                background-color: $solid-background;
                 cursor: pointer;
+                @include flex-center;
                 border: 2px solid #00FF99;
-                background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(20,20,20,0.95));
+                background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
             }
         }
     }
 
     img {
-        width: 100%; height: 100%;
+        width: 100%;
+        height: 100%;
         object-fit: contain;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 }
 
 .action-button {
-    padding: 8px 24px; font-size: 16px; font-weight: bold;
-    font-family: Arial, sans-serif; border-radius: 50px;
-    cursor: pointer; text-transform: uppercase; color: #3d3416;
+  /* Dimensions et forme */
+  padding: 8px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+  border-radius: 50px;
+  cursor: pointer;
+  text-transform: uppercase;
+  
+  /* Couleurs du texte */
+  color: #3d3416;
+  
+  
+  &.green {
+      /* Le dégradé de fond principal */
+      background: linear-gradient(to bottom, #91f97c 0%, #0cc53a 50%, #0bb853 100%);
+      /* Bordure extérieure dorée */
+      border: 4px solid #40b85e;
+      color: white;
+  }
 
-    &.green { background: linear-gradient(to bottom, #91f97c 0%, #0cc53a 50%, #0bb853 100%); border: 4px solid #40b85e; color: white; }
-    &.red   { background: linear-gradient(to bottom, #f98b7c 0%, #eb3131 50%, #b80b28 100%); border: 4px solid #b84440; color: white; }
-    &.gold  { background: linear-gradient(to bottom, #dbb50b 0%, #d6af00 50%, #ff9409 100%); border: 4px solid #f39912; color: white; }
+  &.red {
+      /* Le dégradé de fond principal */
+      background: linear-gradient(to bottom, #f98b7c 0%, #eb3131 50%, #b80b28 100%);
+      /* Bordure extérieure dorée */
+      border: 4px solid #b84440;
+      color: white;
+  }
 
-    box-shadow: inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -4px 6px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.5);
-    transition: transform 0.1s, brightness 0.2s;
+  &.gold {
+      /* Le dégradé de fond principal */
+      background: linear-gradient(to bottom, #dbb50b 0%, #d6af00 50%, #ff9409 100%);
+      /* Bordure extérieure dorée */
+      border: 4px solid #f39912;
+      color: white;
+  }
+  
+  /* Les ombres pour l'effet 3D */
+  box-shadow: 
+    /* Lueur claire en haut (interne) */
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    /* Ombre sombre en bas (interne) */
+    inset 0 -4px 6px rgba(0, 0, 0, 0.3),
+    /* Ombre portée sous le bouton (externe) */
+    0 4px 10px rgba(0, 0, 0, 0.5);
+    
+  transition: transform 0.1s, brightness 0.2s;
 }
 
 .gold-button {
-    background-color: gold; color: black; border: none;
-    padding: 10px 20px; cursor: pointer; transition: all 0.2s ease;
-    &:hover  { filter: brightness(3.1); }
-    &:active { transform: scale(0.98); box-shadow: inset 0 4px 8px rgba(176,168,3,0.5); }
+  background-color: gold; /* couleur gold */
+  color: black; /* couleur du texte (ajuste si besoin) */
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+/* Effet au survol */
+.gold-button:hover {
+  filter: brightness(3.1);
 }
 
-// ============================================================
-// RESPONSIVE — PORTRAIT
-// ============================================================
-@media (max-width: 480px) and (orientation: portrait) {
+/* Effet quand on clique */
+.gold-button:active {
+  transform: scale(0.98);
+  box-shadow: inset 0 4px 8px rgba(176, 168, 3, 0.5);
+}
+
+@media (max-width: 451px) {
     .game-container {
-        position: relative;
-        left: 50%;
-        transform: translateX(-50%) scale(0.85);
-        transform-origin: top center;
-        margin-bottom: -6rem;
+        zoom: .9;
     }
 }
 
-@media (max-width: 400px) and (orientation: portrait) {
+@media (max-width: 399px) {
     .game-container {
-        transform: translateX(-50%) scale(0.78);
-        margin-bottom: -8rem;
+        zoom: .8;    
     }
 }
 
-@media (max-width: 360px) and (orientation: portrait) {
+@media (max-width: 350px) {
     .game-container {
-        transform: translateX(-50%) scale(0.70);
-        margin-bottom: -10rem;
+        zoom: .7;    
     }
 }
 
 // ============================================================
-// RESPONSIVE — LANDSCAPE
-// position: relative partout → scroll natif activé
+// RESPONSIVE — mode horizontal
+// La table tournée à 90° est ~36rem de large
+// Il faut réduire le zoom pour qu'elle rentre dans l'écran
 // ============================================================
-@media (orientation: landscape) and (max-width: 800px) {
+@media (max-width: 600px) {
     .game-container.orientation-horizontal {
-        position: relative;
-        top: auto;
-        left: auto;
-        transform: scale(0.55);
-        transform-origin: top center;
-        margin: 0 auto;
-        margin-bottom: -18rem;
-        margin-top: -2rem;
+        zoom: 0.8;
+        width: 100vw;
+        overflow: visible;
     }
 }
 
-@media (orientation: landscape) and (max-width: 700px) {
+@media (max-width: 480px) {
     .game-container.orientation-horizontal {
-        position: relative;
-        top: auto; left: auto;
-        transform: scale(0.50);
-        transform-origin: top center;
-        margin: 0 auto;
-        margin-bottom: -20rem;
-        margin-top: -2rem;
+        zoom: 0.7;
     }
 }
 
-@media (orientation: landscape) and (max-width: 600px) {
+@media (max-width: 400px) {
     .game-container.orientation-horizontal {
-        position: relative;
-        top: auto; left: auto;
-        transform: scale(0.45);
-        transform-origin: top center;
-        margin: 0 auto;
-        margin-bottom: -22rem;
-        margin-top: -2rem;
+        zoom: 0.6;
     }
 }
 
-@media (orientation: landscape) and (max-width: 500px) {
+@media (max-width: 350px) {
     .game-container.orientation-horizontal {
-        position: relative;
-        top: auto; left: auto;
-        transform: scale(0.40);
-        transform-origin: top center;
-        margin: 0 auto;
-        margin-bottom: -24rem;
-        margin-top: -2rem;
+        zoom: 0.4;
     }
 }
-
