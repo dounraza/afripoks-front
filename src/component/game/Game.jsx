@@ -361,7 +361,8 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const toggleOrientation = () => setTableRotation(prev => prev === 0 ? 270 : 0);
 
     const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
-
+  //modification
+  
     return (
         <div
             className="game-wrapper"
