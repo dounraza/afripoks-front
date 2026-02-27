@@ -367,23 +367,17 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         <div
             className="game-wrapper"
             style={{
-                width: '100',
-                minHeight: '100vh',
-                height: 'auto',
+                width: '100%',
+                minHeight: '100dvh', // important pour mobile moderne
                 backgroundColor: '#000',
                 backgroundImage: `url(${!isLandscape ? '/table-bg-mobile.jpg' : '/table-bg.jpg'})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                backgroundAttachment: 'fixed',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'flex-start',
                 overflowX: 'hidden',
-                overflowY: 'auto',
-                WebkitOverflowScrolling: 'touch',
-                margin: 0,
-                padding: 0,
             }}
         >
             {/* ✅ BARRE DU HAUT — directement dans game-wrapper, PAS dans game-container
