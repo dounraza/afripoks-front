@@ -431,7 +431,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ display: 'flex' }}><TableTabs /></div>
                     <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
-                    <button
+                    {/* <button
                         onClick={toggleOrientation}
                         title={orientation === 'vertical' ? 'Passer en horizontal' : 'Passer en vertical'}
                         style={{
@@ -454,7 +454,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                         }}
                     >
                         {orientation === 'vertical' ? '⇔' : '⇕'}
-                    </button>
+                    </button> */}
                     <button
                         onClick={() => setIsHistoryModalOpen(true)}
                         style={{
