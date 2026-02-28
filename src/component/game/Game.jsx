@@ -78,7 +78,9 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const orientation = (tableRotation === 90 || tableRotation === 270) ? 'horizontal' : 'vertical';
+    // orientation now reflects the device/screen orientation rather than just seat rotation
+// we already maintain `isLandscape` state via a resize listener above.
+const orientation = isLandscape ? 'horizontal' : 'vertical';
 
     const mySeat = tableState.seat;
     const totalSeats = tableState.seats?.length ?? 9;
@@ -108,10 +110,14 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
     useEffect(() => {
         if (tableState.seat !== undefined && tableState.seat !== null) {
-            const rotation = SEAT_ROTATIONS[tableState.seat] ?? 0;
+            let rotation = SEAT_ROTATIONS[tableState.seat] ?? 0;
+            // if device is in landscape, add the 270° offset so the table
+            // itself turns with the phone. we include isLandscape in deps
+            // so this effect runs on orientation changes as well.
+            if (isLandscape) rotation = (rotation + 270) % 360;
             setTableRotation(rotation);
         }
-    }, [tableState.seat]);
+    }, [tableState.seat, isLandscape]);
 
     useEffect(() => { soundMuteRef.current = soundMute; }, [soundMute]);
 
@@ -474,6 +480,8 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
             {/* game-container avec paddingTop pour ne pas être caché sous la barre fixe */}
             <div key={tableId} className={`game-container orientation-${orientation}`} style={{ paddingTop: '50px' }}>
+                    {/* container class toggles between orientation-vertical / orientation-horizontal based on
+                        `isLandscape` so that GameOrientation.scss rules apply */}
                 <ToastContainer />
 
                 {tableState.handInProgress && tableState.toAct === tableState.seat && (
@@ -527,7 +535,7 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
                         }}
                     >
                         <img
-                            src={tableRotation === 0 ? tableTexture : tableRotation === 270 ? tableTextureLandscape : tableTexture}
+                            src={isLandscape || tableRotation === 270 ? tableTextureLandscape : tableTexture}
                             alt=""
                             style={{
                                 width: '408px',
