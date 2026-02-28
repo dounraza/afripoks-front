@@ -23,8 +23,8 @@ import TableTabs from './TableTabs';
 import TableChat from './TableChat';
 
 const SEAT_ROTATIONS = {
-    0: 0, 1: 0, 2: 90, 3: 90, 4: 180,
-    5: 180, 6: 270, 7: 270, 8: 90,
+    0: 0, 1: 0, 2: 0, 3: 0, 4: 0,
+    5: 0, 6: 0, 7: 0, 8: 0,
 };
 
 const BOTTOM_SEAT = 0;
