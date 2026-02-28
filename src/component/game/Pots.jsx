@@ -174,32 +174,25 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                                 position: 'relative',
                             }}
                         >
-                            {tableState?.pots?.[0]?.size ? (
-                                <img src={jetonMany} alt=""
-                                    style={{
-                                        zIndex: -1,
-                                        width: '56px',
-                                        height: '56px',
-                                        objectFit: 'contain',
-                                    }} />
-                                // <>
-                                //   {[1, 2, 3, 4].map((color, i) => (
-                                //     <div
-                                //       style={{
-                                //         width: '24px',
-                                //         height: '24px',
-                                //         borderRadius: '50%',
-                                //         position: 'absolute',
-                                //         top: '50%',
-                                //         left: '50%',
-                                //       }}
-                                //     >
-                                //       <img src={singleJeton} alt="" style={{ width: '100%', height: '100%' }} />
-                                //     </div>
-                                //   ))}
-                                // </>
-                            ) : null}
-                            {tableState?.pots?.[0]?.size ?? 0}
+                            {(() => {
+                                const principalSize = tableState?.pots?.[0]?.size ?? 0;
+                                return (
+                                    <>
+                                        {principalSize > 0 && (
+                                            <img src={jetonMany} alt=""
+                                                style={{
+                                                    zIndex: -1,
+                                                    width: '56px',
+                                                    height: '56px',
+                                                    objectFit: 'contain',
+                                                }} />
+                                        )}
+                                        <span className="amount-overlay">
+                                            {principalSize}
+                                        </span>
+                                    </>
+                                );
+                            })()}
                         </div>
                     )}
                     <div className="seondaires">

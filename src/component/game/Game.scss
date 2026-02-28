@@ -282,6 +282,19 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                position: relative; /* enable overlay positioning */
+            }
+
+            .principals .amount-overlay {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-weight: 700;
+                font-size: 1.2rem;
+                color: white;
+                pointer-events: none;
+                z-index: 1;
             }
 
             img {
