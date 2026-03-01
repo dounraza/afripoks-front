@@ -38,6 +38,11 @@
         align-items: center;
         justify-content: center;
 
+        /* small vertical shift on phones so table isn't glued to top bar */
+        @media (max-width: 600px) {
+            margin-top: 1.5rem;
+        }
+
         .table-surface {
             z-index: 2;
 
@@ -287,9 +292,10 @@
 
             .principals .amount-overlay {
                 position: absolute;
-                top: 50%;
+                /* sit above the chip instead of centered inside */
+                bottom: 100%;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translate(-50%, -10%);
                 font-weight: 700;
                 font-size: 1.2rem;
                 color: white;
@@ -824,4 +830,54 @@
     .game-container.orientation-horizontal {
         zoom: 0.4;
     }
+}
+
+/* move top-bar to bottom on small phones */
+@media (max-width: 600px) {
+    /* maintain inline layout even on phones, just reduce spacing */
+    .top-bar {
+        gap: 8px;
+        padding: 6px 8px !important;
+    }
+    .top-bar .quit-button {
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* move toast messages below the fixed top-bar */
+.Toastify__toast-container--top-center {
+    /* sit below the top-bar (quit section); bump down further so it is
+       clearly outside the bar even if its height grows). also make sure
+       it’s above everything else with a large z-index. */
+    top: 70px !important;
+    z-index: 100000 !important;
+}
+
+/* mobile adjustments – bar is taller when stacked, so nudge toasts further */
+@media (max-width: 600px) {
+    .Toastify__toast-container--top-center {
+        top: 120px !important;
+    }
+}
+
+/* alternative: show toasts at bottom on very narrow screens */
+@media (max-width: 400px) {
+    .Toastify__toast-container--top-center {
+        top: auto !important;
+        bottom: 16px !important;
+    }
+}
+
+/* bet amount input styling */
+.bet-amount input {
+    width: 60px;
+    text-align: center;
+    background-color: #FFE066; /* yellowish background */
+    border: none;
+    font-weight: 700;
+    color: #000;
+}
+.bet-amount input:focus {
+    outline: none;
 }

@@ -43,7 +43,9 @@ const PlayerActions = ({
                     <Minus />
                 </div>
                 <div className="bet-amount">
-                    {betSize}
+                    <input type="number" value={betSize} min={tableState?.legalActions?.chipRange?.min || 0}
+                        max={tableState?.legalActions?.chipRange?.max || 999999}
+                        onChange={e => setBetSize(Number(e.target.value))} />
                 </div>
                 <div className="bet-control button-plus" onClick={addRange}>
                     <Plus />
