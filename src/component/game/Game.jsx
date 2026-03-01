@@ -71,17 +71,23 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
     const currentUserId = sessionStorage.getItem('userId');
     const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
+    const [rotationDetected, setRotationDetected] = useState(false);
 
     useEffect(() => {
-        const handleResize = () => setIsLandscape(window.innerWidth > window.innerHeight);
+        const handleResize = () => {
+            const newLand = window.innerWidth > window.innerHeight;
+            if (newLand !== isLandscape) {
+                setRotationDetected(true);
+            }
+            setIsLandscape(newLand);
+        };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [isLandscape]);
 
-    // orientation now reflects the device/screen orientation rather than just seat rotation
-// we already maintain `isLandscape` state via a resize listener above.
-const orientation = isLandscape ? 'horizontal' : 'vertical';
-
+    // default to vertical orientation until the user actually rotates the device;
+    // once a rotation event is detected we follow the screen aspect ratio.
+    const orientation = rotationDetected ? (isLandscape ? 'horizontal' : 'vertical') : 'vertical';
     const mySeat = tableState.seat;
     const totalSeats = tableState.seats?.length ?? 9;
 
@@ -111,13 +117,14 @@ const orientation = isLandscape ? 'horizontal' : 'vertical';
     useEffect(() => {
         if (tableState.seat !== undefined && tableState.seat !== null) {
             let rotation = SEAT_ROTATIONS[tableState.seat] ?? 0;
-            // if device is in landscape, add the 270° offset so the table
-            // itself turns with the phone. we include isLandscape in deps
-            // so this effect runs on orientation changes as well.
-            if (isLandscape) rotation = (rotation + 270) % 360;
+            // apply extra 270° only when orientation has switched to horizontal
+            // (i.e. user rotated the device after initial load).
+            if (orientation === 'horizontal') {
+                rotation = (rotation + 270) % 360;
+            }
             setTableRotation(rotation);
         }
-    }, [tableState.seat, isLandscape]);
+    }, [tableState.seat, orientation]);
 
     useEffect(() => { soundMuteRef.current = soundMute; }, [soundMute]);
 
@@ -388,7 +395,7 @@ const orientation = isLandscape ? 'horizontal' : 'vertical';
         >
             {/* ✅ BARRE DU HAUT — directement dans game-wrapper, PAS dans game-container
                 Ainsi overflow:hidden du game-container ne la coupe plus jamais */}
-            <div style={{
+            <div className="top-bar" style={{
                 position: 'fixed',
                 top: 0,
                 left: 0,
@@ -404,7 +411,7 @@ const orientation = isLandscape ? 'horizontal' : 'vertical';
                 minHeight: '46px',
             }}>
                 {/* Bouton Quitter */}
-                <button
+                <button className="quit-button"
                     onClick={() => quitter()}
                     style={{
                         display: 'flex',
@@ -482,7 +489,7 @@ const orientation = isLandscape ? 'horizontal' : 'vertical';
             <div key={tableId} className={`game-container orientation-${orientation}`} style={{ paddingTop: '50px' }}>
                     {/* container class toggles between orientation-vertical / orientation-horizontal based on
                         `isLandscape` so that GameOrientation.scss rules apply */}
-                <ToastContainer />
+                <ToastContainer position="top-center" />
 
                 {tableState.handInProgress && tableState.toAct === tableState.seat && (
                     <PlayerActions
@@ -535,7 +542,7 @@ const orientation = isLandscape ? 'horizontal' : 'vertical';
                         }}
                     >
                         <img
-                            src={isLandscape || tableRotation === 270 ? tableTextureLandscape : tableTexture}
+                            src={orientation === 'horizontal' ? tableTextureLandscape : tableTexture}
                             alt=""
                             style={{
                                 width: '408px',
