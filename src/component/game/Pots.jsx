@@ -7,7 +7,8 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
     const [potsAnimation, setPotsAnimation] = useState([]);
     const [animate, setAnimate] = useState(false);
     const [potVisible, setPotVisible] = useState(true);
-    
+    const [completedCount, setCompletedCount] = useState(0);
+    const [totalCoins, setTotalCoins] = useState(0);
 
     useEffect(() => {
         // Try to run the pot->winner animation but wait/retry if player refs are not mounted yet.
@@ -33,7 +34,8 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                     const startX = potRect.left + potRect.width / 2;
                     const startY = potRect.top + potRect.height / 2;
                     const endX = winnerRect.left + winnerRect.width / 2;
-                    const endY = winnerRect.top - 85; // Juste au-dessus de l'avatar
+                    // land roughly over the avatar's head/centre: use top plus half height
+                    const endY = winnerRect.top + winnerRect.height / 2 - 20; // ajustable offset
                     return {
                         key: realSeat,
                         startX,
@@ -54,24 +56,17 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
             setPotsAnimation(newAnimations);
             setAnimate(false);
             setPotVisible(true);
+            setCompletedCount(0);
+            // calculate total coins (10 per winner)
+            setTotalCoins(newAnimations.length * 10);
 
             playSound('coinWin', false);
 
-            // Déclenche l'animation dans la frame suivante
+            // trigger animation in next frame
             setTimeout(() => {
                 setAnimate(true);
             }, 20);
-
-            // Cache le pot principal après l'animation (augmentée à 1200ms pour la nouvelle durée)
-            endTimer = setTimeout(() => {
-                setPotsAnimation([]);
-                setAnimate(false);
-                setPotVisible(false); // <-- le pot principal reste caché
-                // Callback: update stacks after animation completes
-                if (onPotAnimationEnd) {
-                    onPotAnimationEnd();
-                }
-            }, 1200);
+            // removal and callback will happen in the completedCount effect below
         };
 
         if (animatePotToWinner && winnerSeats.length > 0) {
@@ -88,6 +83,16 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
         };
     }, [animatePotToWinner, winnerSeats, playerRefs, potRef, playSound, onPotAnimationEnd, getVisualSeat]);
 
+    // when all flying coins have finished transitioning we can hide and notify
+    useEffect(() => {
+        if (animate && completedCount >= totalCoins && totalCoins > 0) {
+            // cleanup same as previous timeout
+            setPotsAnimation([]);
+            setAnimate(false);
+            setPotVisible(false);
+            if (onPotAnimationEnd) onPotAnimationEnd();
+        }
+    }, [completedCount, totalCoins, animate, onPotAnimationEnd]);
     useEffect(() => {
         const images = [singleJeton, singleJeton1, singleJeton2, jetonMany, jeton];
         images.forEach(src => {
@@ -113,6 +118,7 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                             return (
                                 <div
                                     key={`jeton-${idx}`}
+                                    onTransitionEnd={() => setCompletedCount(c => c + 1)}
                                     style={{
                                         position: 'fixed',
                                         left: startX, // Position fixe au pot
