@@ -192,7 +192,9 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         const userId = sessionStorage.getItem('userId');
         if(!tableId) return;
 
-        socketRef.current = io(process.env.REACT_APP_BASE_URL, {
+        const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+
+        socketRef.current = io(BASE_URL, {
             auth: {
                 token: sessionStorage.getItem("accessToken"),
             },

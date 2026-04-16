@@ -137,10 +137,26 @@
             z-index: -1;
             width: 100%;
 
+            &.omaha {
+                top: -4.2rem; // Légèrement plus haut car les cartes sont plus grandes
+            }
+
             .card-containers {
                 display: flex;
                 justify-content: center;
                 align-items: center;
+
+                &.omaha {
+                    .card {
+                        width: 2.6rem; // Plus grand que 1.8rem (initialement 2.4rem)
+                        margin: 0 -0.6rem; // Plus d'overlap pour compenser la largeur
+                        
+                        img {
+                            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                        }
+                    }
+                }
 
                 .card {
                     width: 1.8rem;
@@ -387,7 +403,7 @@
         height: 4rem;
         gap: .5rem;
         position: absolute;
-        top: 50%;
+        top: 46%;
         left: 8%;
         z-index: 3;
 

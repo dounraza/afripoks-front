@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = `${process.env.REACT_APP_BASE_URL}/api/auth/admin/login`; 
+const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+const API_URL = `${BASE_URL}/api/auth/admin/login`; 
 
 export const loginAdmin = async (email, password) => {
   try {

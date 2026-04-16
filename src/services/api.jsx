@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_BASE_URL,
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -31,7 +33,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
+        const response = await axios.post(`${BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
         const newAccessToken = response.data.accessToken;
         sessionStorage.setItem("accessToken", newAccessToken);
 
@@ -62,7 +64,7 @@ export const notifyUserConnected = async (userId, username) => {
   try {
     const token = sessionStorage.getItem('accessToken');
     console.log('📡 [API] Notification de connexion au backend');
-    console.log('📡 [API] URL:', process.env.REACT_APP_BASE_URL + '/api/user-connected');
+    console.log('📡 [API] URL:', BASE_URL + '/api/user-connected');
     console.log('📡 [API] Données:', { userId, username });
     console.log('📡 [API] Token:', token ? 'OUI (longueur: ' + token.length + ')' : 'NON');
     

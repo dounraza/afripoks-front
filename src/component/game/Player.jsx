@@ -117,6 +117,8 @@ const Player = ({
                     setDisplayStack(actualStack);
                     lastSafeStack.current = actualStack;
                 }, 1000);
+                // Ensure showResult is true for "All Fold"
+                setShowResult(true);
                 return () => clearTimeout(timer);
             }
 
@@ -124,19 +126,22 @@ const Player = ({
             if (!isRevealFinished) {
                 // Toujours bloqué sur l'ancien montant pendant l'ouverture des cartes
                 setDisplayStack(lastSafeStack.current);
+                // Ensure showResult is true during card reveal
+                setShowResult(true);
             } else {
                 // Séquence de suspense (les cartes sont ouvertes)
+                // Only trigger the result display if it hasn't been shown yet
                 if (!isStackHidden && !showResult) {
                     setIsStackHidden(true);
-                    
+
                     const timerResult = setTimeout(() => {
-                        setShowResult(true);
+                        setShowResult(true); // Set showResult to true to display the badge
                     }, 1200);
 
                     const timerStack = setTimeout(() => {
                         setDisplayStack(actualStack); // Libération finale du nouveau solde
                         setIsStackHidden(false);
-                        setShowResult(false);
+                        setShowResult(false); // Reset showResult after the full animation
                         lastSafeStack.current = actualStack;
                     }, 4500);
 
@@ -144,16 +149,25 @@ const Player = ({
                         clearTimeout(timerResult);
                         clearTimeout(timerStack);
                     };
+                } else if (isStackHidden && showResult) {
+                    // If stack is hidden and results are already shown (e.g., after animation)
+                    // ensure stack is updated and showResult is reset for the next hand
+                    setDisplayStack(actualStack);
+                    setIsStackHidden(false);
+                    setShowResult(false);
+                    lastSafeStack.current = actualStack;
                 }
             }
         } else {
-            // Perdants foldés ou spectateurs
+            // Perdants foldés ou spectateurs (pas de victoire ni de défaite affichée directement)
             setDisplayStack(actualStack);
             lastSafeStack.current = actualStack;
+            // Ensure showResult is false if not in a win/loss phase
+            setShowResult(false);
         }
-    }, [chips?.stack, gameOver, isRevealFinished, winData, i]);
+        }, [chips?.stack, gameOver, isRevealFinished, winData, i]);
 
-    if (!tableState.playerNames[i]) return null;
+        if (!tableState.playerNames[i]) return null;
 
     const avatarJson = avatars?.find(avt => avt.userId === tableState.playerIds[i]);
     const avatar = avatarJson?.avatar;
@@ -216,7 +230,7 @@ const Player = ({
                     }}
                 >
                     {isRevealFinished && winData?.winStates?.find(w => w.seat === i)?.handName && (
-                        <div className="hand-name-badge">
+                        <div className="hand-name-badge" style={{ display: 'none' }}>
                             {winData.winStates.find(w => w.seat === i).handName}
                         </div>
                     )}
@@ -256,9 +270,9 @@ const Player = ({
                     <div className={`btn-action bb-btn ${(i > 3 && i < 7) ? '' : 'right'}`}>Bb</div>
                 )}
 
-                <div className="player-cards">
+                <div className={`player-cards ${cardCount > 2 ? 'omaha' : ''}`}>
                     {(winData?.allCards ?? []).length > 0 ? (
-                        <div className="card-containers">
+                        <div className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}>
                             {(winData.allCards[i] ?? []).length > 0 && !foldedPlayers.current.has(i) && (
                                 <>
                                     {(winData.allCards[i]).map((card, idx) => (
@@ -273,7 +287,7 @@ const Player = ({
                         <>
                             {tableState.activeSeats.includes(i) && (
                                 i === tableState.seat && tableState.playerCards != null ? (
-                                    <div className="card-containers"
+                                    <div className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}
                                         style={{
                                             transform: 'translateY(50%)',
                                             zIndex: -1,
@@ -287,7 +301,7 @@ const Player = ({
                                     </div>
                                 ) : (
                                     <div
-                                        className="card-containers"
+                                        className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}
                                         style={{
                                             transform: 'translateY(50%)',
                                             zIndex: -1,
@@ -302,7 +316,7 @@ const Player = ({
 
                             {shouldShareCards && (
                                 <div
-                                    className="card-containers"
+                                    className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}
                                     style={{
                                         transform: 'translateY(50%)',
                                         zIndex: -1,
@@ -362,23 +376,27 @@ const Player = ({
                 <div className="player-name">
                     {
                         (() => {
-                            const playerAction = tableState.actions.find(item => item.playerId === i);
-                            if (playerAction) {
+                            // Priorité au statut Fold persistant via le set foldedPlayers
+                            if (foldedPlayers.current.has(i)) {
+                                return <div className="action" style={{ color: '#ff4444' }}>Fold</div>;
+                            }
+                            
+                            // Sinon, affichage des actions en cours (ex: raise, call)
+                            const playerAction = tableState.actions?.find(item => item.playerId === i);
+                            if (playerAction && playerAction.action !== 'fold') {
                                 return (
                                     <div className={`action`} style={{ color: '#00FF99' }} key={i}>
-                                        {playerAction.action === 'check' || playerAction.action === 'fold'
-                                            ? playerAction.action
-                                            : `${playerAction.action}`
-                                        }
+                                        {playerAction.action}
                                     </div>
                                 );
-                            } else {
-                                return <div>
-                                    {(tableState.playerNames[i] ?? '').length > 10
-                                        ? tableState.playerNames[i].slice(0, 10) + '...'
-                                        : tableState.playerNames[i]}
-                                </div>;
                             }
+                            
+                            // Sinon, affichage du nom
+                            return <div>
+                                {(tableState.playerNames?.[i] ?? '').length > 10
+                                    ? tableState.playerNames[i].slice(0, 10) + '...'
+                                    : (tableState.playerNames?.[i] || '')}
+                            </div>;
                         })()
                     }
                 </div>
@@ -430,8 +448,16 @@ const Player = ({
                                     {winData.winStates.find(w => w.seat === i).handName}
                                 </div>
                             ) : (
-                                <div className="hand-name-result" style={{ color: '#ff4444', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                    Lose
+                                <div className="hand-name-result lose-badge" style={{ 
+                                    backgroundColor: '#888888', 
+                                    color: 'white', 
+                                    fontSize: '0.7rem', 
+                                    fontWeight: 'bold',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    textTransform: 'uppercase'
+                                }}>
+                                    {foldedPlayers.current.has(i) ? 'Fold' : 'Lose'}
                                 </div>
                             )
                         ) : null // Zone vide pour le suspense

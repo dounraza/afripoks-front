@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+
 const apiAdmin = axios.create({
-  baseURL: process.env.REACT_APP_BASE_URL,
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -31,7 +33,7 @@ apiAdmin.interceptors.response.use(
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
+        const response = await axios.post(`${BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
         const newAccessToken = response.data.accessToken;
         sessionStorage.setItem("accessTokenAdmin", newAccessToken);
 

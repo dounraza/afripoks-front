@@ -54,7 +54,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const [shouldShareCards, setShouldShareCards] = useState(false);
     const [sharingCards, setSharingCards] = useState(false);
     const [communityReversNb, setCommunityReversNb] = useState(0);
-    let latestCommCard = null;
+    const latestCommCardRef = useRef(null);
     const [moveCommCards, setMoveCommCards] = useState(false);
     const [communityToShow, setCommunityToShow] = useState([]);
     const [allInArr, setAllInArr] = useState([]);
@@ -178,11 +178,13 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         };
     }, [community]);
 
+    const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+
     useEffect(() => {
         const userId = sessionStorage.getItem('userId');
         if(!tableId) return;
 
-        socketRef.current = io(process.env.REACT_APP_BASE_URL, {
+        socketRef.current = io(BASE_URL, {
             auth: {
                 token: sessionStorage.getItem("accessToken"),
             },
@@ -213,8 +215,26 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setGameOver(true);
             
             setGame(false);
-            setCommunity(data.communityCards);
             
+            // --- Check for "All Fold" scenario ---
+            // An "all fold" scenario occurs when all players except one have folded.
+            // If this is the case and no community cards are present, ensure community is empty.
+            const numPlayers = tableState.seats?.filter(s => s !== null).length || 0;
+            // Check if the number of folded players is one less than the total number of players.
+            // This check is relevant if the win event is triggered due to all folds.
+            const isAllFoldScenario = numPlayers > 1 && foldedPlayers.current.size === numPlayers - 1;
+            
+            if (isAllFoldScenario && data.communityCards.length === 0) {
+                // If it's an all-fold scenario and no community cards are provided,
+                // ensure the community state is empty to trigger the "All Fold" message.
+                setCommunity([]); 
+            } else {
+                // Otherwise, use the community cards provided by the server.
+                // This handles cases where cards might be shown due to all-in scenarios.
+                setCommunity(data.communityCards || []);
+            }
+            // --- End Check ---
+
             setShouldShareCards(false);
             
             setWinData(data);
@@ -224,7 +244,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             const foldedPlayersArray = Array.from(foldedPlayers.current);
             
             setLastMatchHistory({
-                communityCards: data.communityCards || [],
+                communityCards: data.communityCards || [], // Use original data for history
                 allCards: data.allCards || [],
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
@@ -244,6 +264,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
+            latestCommCardRef.current = null;
             
             setShouldShareCards(true);
             setTimeout(async () => {
@@ -261,6 +282,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow([]);
             setAllInArr([]);
             foldedPlayers.current = new Set();
+            latestCommCardRef.current = null;
 
             console.log("Start");
             setShouldShareCards(false);
@@ -275,10 +297,11 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             
             setAvatars(data.avatars);
 
-            if(data.communityCards.length > 0) {
+            const hasRealAction = data?.actions?.some(a => !['smallBlind', 'bigBlind', 'ante'].includes(a.action));
+
+            if(data.communityCards.length > 0 && hasRealAction) {
                 console.log(data.communityCards);
-                console.log('latest comm card', latestCommCard);
-                if (latestCommCard !== data.communityCards[data.communityCards.length -1]) {
+                if (latestCommCardRef.current !== data.communityCards[data.communityCards.length -1]) {
                     if (data.communityCards.length === 3) {
                         setCommunityReversNb(3);
                     } else {
@@ -292,7 +315,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     setMoveCommCards(false);
                     setCommunity(data.communityCards);
                     setCommunityReversNb(0);
-                    latestCommCard = data.communityCards[data.communityCards.length -1];
+                    latestCommCardRef.current = data.communityCards[data.communityCards.length -1];
                 }, 500);
             }
 

@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { onlineUsersSocket } from '../engine/socket';
 
-const API_URL = `${process.env.REACT_APP_BASE_URL}/api/auth/login`; 
+const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+const API_URL = `${BASE_URL}/api/auth/login`; 
 
 export const login = async (email, password) => {
   try {

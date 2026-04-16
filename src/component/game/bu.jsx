@@ -160,7 +160,8 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
         const username = sessionStorage.getItem('userName');
         if (!tableId) return;
 
-        const socket = io(process.env.REACT_APP_BASE_URL, {
+        const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+        const socket = io(BASE_URL, {
             auth: { token: sessionStorage.getItem("accessToken") },
         });
         socketRef.current = socket;
