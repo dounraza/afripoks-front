@@ -1,17 +1,16 @@
-import React, { useEffect, useRef, useState, useContext } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { toast, ToastContainer } from "react-toastify";
 import {useNavigate} from 'react-router-dom';
-import { ArrowBigLeft, History } from 'lucide-react';
+import { ArrowBigLeft, History, Smile } from 'lucide-react';
 import { getLastHistory } from '../../services/tableServices';
-import { OnlineUserContext } from '../../contexts/OnlineUserContext';
 
 import "./Game.scss";
 import rever from "../../styles/image/rever.png";
 import jeton from "../../styles/image/jeton.png";
 import jetonMany from "../../styles/image/jetonMany.png";
-import tableTexture from "../../styles/image/table_vert_p.png";
-import tableTextureLandscape from "../../styles/image/vert_led.png";
+import tableTexture from "../../styles/image/vert_table.png";
+
 import PlayerActions from './PlayerActions';
 import Player from './Player';
 import CommunityCards from './CommunityCards';
@@ -19,17 +18,10 @@ import Pots from './Pots';
 import SoundButton from './SoundButton';
 import GameHistoryModal from './GameHistoryModal';
 import { onlineUsersSocket } from '../../engine/socket';
+
 import TableTabs from './TableTabs';
 import TableChat from './TableChat';
-
-const SEAT_ROTATIONS = {
-    0: 0, 1: 0, 2: 0, 3: 0, 4: 0,
-    5: 0, 6: 0, 7: 0, 8: 0,
-};
-
-const BOTTOM_SEAT = 0;
-
-const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
+const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) => {
     const [tableState, setTableState] = useState({});
     const [betSize, setBetSize] = useState(0);
     const [winData, setWinData] = useState({});
@@ -46,15 +38,18 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const foldedPlayers = useRef(new Set());
     const isPossibleAction = useRef(true);
     const [soundMute, setSoundMute] = useState(false);
-    const soundMuteRef = useRef(false);
     const [avatars, setAvatars] = useState([]);
     const tableRef = useRef(null);
-    const { onlineUsers } = useContext(OnlineUserContext);
-    const [tableRotation, setTableRotation] = useState(0);
     const playerRefs = [
-        useRef(null), useRef(null), useRef(null),
-        useRef(null), useRef(null), useRef(null),
-        useRef(null), useRef(null), useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
+        useRef(null),
     ];
     const [shouldShareCards, setShouldShareCards] = useState(false);
     const [sharingCards, setSharingCards] = useState(false);
@@ -65,231 +60,300 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
     const [allInArr, setAllInArr] = useState([]);
     const [gameOver, setGameOver] = useState(false);
     const potRef = useRef(null);
-    const [hideStack, setHideStack] = useState(false);
-    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-    const [lastMatchHistory, setLastMatchHistory] = useState(null);
+    const [hideStack, setHideStack] = useState(false)
+    const [winAllIn, setWinAllIn] = useState(false)
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+    const [lastMatchHistory, setLastMatchHistory] = useState(null)
 
+    
+    useEffect(() => {
+        const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
+        socketRef.current = socket;
+
+        const userId = sessionStorage.getItem('userId');
+        const username = sessionStorage.getItem('userName'); // ✅ FIX: 'userName' pas 'username'
+
+        // Rejoindre la table
+        socket.emit('join_table', { tableId, userId, username });
+
+        // ✅ CLEANUP CORRECT
+        return () => {
+            // Émettre que l'utilisateur quitte la table (événement custom)
+            socket.emit('leave_table', { tableId, userId });
+            
+            // Déconnexion propre
+            socket.disconnect(); // ✅ Pas socket.emit('disconnect')
+        };
+    }, [tableId]);
+    /**
+     * Plays sound
+     * 
+     * @param {string} type 
+     * @param {bool} soundMute 
+     */
+    const playSound = (type, soundMute) => {
+      const sounds = {
+        fold: '/sounds/fold.mp3',
+        raise: '/sounds/raise.mp3',
+        check: '/sounds/check.mp3',
+        call: '/sounds/call.wav',
+        join: '/sounds/join.mp3',
+        allin: '/sounds/allin.mp3',
+        win: '/sounds/win.wav',
+        shareCards: '/sounds/share-cards.mp3',
+        showCard: '/sounds/show-card.wav',
+        coinWin: '/sounds/coin-win.wav',
+      };
+      
+      if (!soundMute) {
+        const audio = new Audio(sounds[type]);
+        audio.play().catch(() => {});
+      }
+    }
+    // Dans le composant Game, ajoutez avant le return :
     const currentUserId = sessionStorage.getItem('userId');
-    const [isLandscape, setIsLandscape] = useState(window.innerWidth > window.innerHeight);
-    const [rotationDetected, setRotationDetected] = useState(false);
-
+    
+    /**
+     * rand just utils function to get random number
+     */
+    function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    
     useEffect(() => {
-        const handleResize = () => {
-            const newLand = window.innerWidth > window.innerHeight;
-            if (newLand !== isLandscape) {
-                setRotationDetected(true);
-            }
-            setIsLandscape(newLand);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [isLandscape]);
+        const diff = community.length - communityShow.length;
+        setIsRevealFinished(false);   
 
-    // default to vertical orientation until the user actually rotates the device;
-    // once a rotation event is detected we follow the screen aspect ratio.
-    const orientation = rotationDetected ? (isLandscape ? 'horizontal' : 'vertical') : 'vertical';
-    const mySeat = tableState.seat;
-    const totalSeats = tableState.seats?.length ?? 9;
-
-    const getRealSeat = (visualSeat) => (mySeat + visualSeat - BOTTOM_SEAT + totalSeats) % totalSeats;
-    const getVisualSeat = (realSeat) => (realSeat - mySeat + BOTTOM_SEAT + totalSeats) % totalSeats;
-
-    const playSound = (type, muteOverride) => {
-        const sounds = {
-            fold: '/sounds/fold.mp3',
-            raise: '/sounds/raise.mp3',
-            check: '/sounds/check.mp3',
-            call: '/sounds/call.wav',
-            join: '/sounds/join.mp3',
-            allin: '/sounds/allin.mp3',
-            win: '/sounds/win.wav',
-            shareCards: '/sounds/share-cards.mp3',
-            showCard: '/sounds/show-card.wav',
-            coinWin: '/sounds/coin-win.wav',
-        };
-        const muted = muteOverride !== undefined ? muteOverride : soundMuteRef.current;
-        if (!muted) {
-            const audio = new Audio(sounds[type]);
-            audio.play().catch(() => {});
+        if (diff <= 0){
+            setIsRevealFinished(true); 
+            return;
         }
-    };
 
-    useEffect(() => {
-        if (tableState.seat !== undefined && tableState.seat !== null) {
-            let rotation = SEAT_ROTATIONS[tableState.seat] ?? 0;
-            // apply extra 270° only when orientation has switched to horizontal
-            // (i.e. user rotated the device after initial load).
-            if (orientation === 'horizontal') {
-                rotation = (rotation + 270) % 360;
-            }
-            setTableRotation(rotation);
+        if (diff === 3){
+            setCommunityShow(community);
+            setTimeout(() => {
+                setCommunityToShow(community);
+            }, 100);
+            setIsRevealFinished(true);
+            return;
         }
-    }, [tableState.seat, orientation]);
 
-    useEffect(() => { soundMuteRef.current = soundMute; }, [soundMute]);
+        setIsRevealFinished(false);
+
+        if (diff === 1) {
+            setCommunityShow(community);
+            setTimeout(() => {
+                setCommunityToShow(community);
+            }, 100);
+            setIsRevealFinished(true);
+            return;
+        }
+
+        const timeouts = [];
+        if (diff > 1) {
+            let timeindex = 0;
+            for(let i = communityShow.length; i < community.length; i++) {
+                const newShowCards = community.slice(0, i + 1);
+                
+                const timeout = setTimeout(() => {
+                    console.log('Community show', newShowCards);
+                    console.log(i);
+                    setTimeout(() => {
+                        setCommunityShow(newShowCards);
+                        setTimeout(() => {
+                            setCommunityToShow(prev => [...prev, newShowCards[i]]);
+                        }, 100);
+                    }, 500);
+                    if (i + 1 === community.length) {
+                        setIsRevealFinished(true);
+                    }
+                }, (timeindex * 1000));
+
+                timeouts.push(timeout);
+                timeindex ++;
+            }
+        }
+        return () => {
+            timeouts.forEach(t => clearTimeout(t));
+        };
+    }, [community]);
 
     useEffect(() => {
         const userId = sessionStorage.getItem('userId');
-        const username = sessionStorage.getItem('userName');
-        if (!tableId) return;
+        if(!tableId) return;
 
-        const socket = io(process.env.REACT_APP_BASE_URL, {
-            auth: { token: sessionStorage.getItem("accessToken") },
+        socketRef.current = io(process.env.REACT_APP_BASE_URL, {
+            auth: {
+                token: sessionStorage.getItem("accessToken"),
+            },
         });
-        socketRef.current = socket;
 
-        socket.on('connect', () => {
-            socket.emit('join_table', { tableId, userId, username });
-            if (!tableSessionIdShared) {
-                playSound('join');
-                socket.emit('joinAnyTable', { tableId, userId, playerCave });
+        socketRef.current.on('connect', () => {
+            if(!tableSessionIdShared) {
+                playSound('join', soundMute);
+                socketRef.current.emit('joinAnyTable', { tableId, userId, playerCave });
+
                 onlineUsersSocket.emit('joined-tables:join', { uid: parseInt(userId), tid: parseInt(tableId) });
-            } else {
-                socket.emit('joinTableSession', { tableId, tableSessionId: tableSessionIdShared, userId, playerCave });
+            }else {           
+                socketRef.current.emit('joinTableSession',{ tableId, tableSessionId: tableSessionIdShared, userId, playerCave });
             }
         });
 
-        socket.on('playerActionError', (data) => toast.error(data.message || "Une erreur est survenue."));
-        socket.on('joinError', (data) => {
+        socketRef.current.on('playerActionError', (data) => {
+            toast.error(data.message || "Une erreur est survenue.");
+        });
+
+
+        socketRef.current.on('joinError', (data) => {
             toast.error(data.message);
             onlineUsersSocket.emit('joined-tables:leave', { uid: userId, tid: tableId });
         });
 
-        socket.on('win', (data) => {
+        socketRef.current.on('win', (data) => {
             setGameOver(true);
+            
             setGame(false);
             setCommunity(data.communityCards);
+            
             setShouldShareCards(false);
+            
             setWinData(data);
+            
+            // Sauvegarder l'historique du dernier match
+            // Convertir le Set en Array pour la sérialisation
             const foldedPlayersArray = Array.from(foldedPlayers.current);
+            
             setLastMatchHistory({
                 communityCards: data.communityCards || [],
                 allCards: data.allCards || [],
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
             });
-            playSound('win');
+            
+            playSound('win', soundMute);
         });
 
-        socket.on('shareCards', async () => {
+        async function shareCardsHandler() {
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            console.log('Share cards')
             setGameOver(false);
             setWinData({});
             setCommunity([]);
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
-            setHideStack(false);
-            foldedPlayers.current = new Set();
+            
             setShouldShareCards(true);
-            setTimeout(() => { setSharingCards(true); playSound('shareCards'); }, 300);
-        });
+            setTimeout(async () => {
+                setSharingCards(true);
+                const playerIds = tableState.playerIds?.filter(id => id !== null);
+                playSound('shareCards');
+            }, 300);
+        }
+        socketRef.current.on('shareCards', shareCardsHandler);
 
-        socket.on('start', () => {
+        socketRef.current.on('start', () => {
             setWinData({});
             setGame(true);
             setCommunity([]);
             setCommunityShow([]);
             setAllInArr([]);
-            setHideStack(false);
             foldedPlayers.current = new Set();
+
+            console.log("Start");
             setShouldShareCards(false);
             setSharingCards(false);
         });
 
-        socket.on('tableState', (data) => {
+        socketRef.current.on('tableState', (data) => {
             const minBet = data?.legalActions?.chipRange?.min ?? 0;
             setBetSize(minBet);
             setTableState(data);
             setTableSessionId(data.tableId);
+            
             setAvatars(data.avatars);
 
-            if (data.communityCards.length > 0) {
-                if (latestCommCard !== data.communityCards[data.communityCards.length - 1]) {
-                    setCommunityReversNb(data.communityCards.length === 3 ? 3 : 1);
-                    setTimeout(() => setMoveCommCards(true), 100);
+            if(data.communityCards.length > 0) {
+                console.log(data.communityCards);
+                console.log('latest comm card', latestCommCard);
+                if (latestCommCard !== data.communityCards[data.communityCards.length -1]) {
+                    if (data.communityCards.length === 3) {
+                        setCommunityReversNb(3);
+                    } else {
+                        setCommunityReversNb(1);
+                    }
+                    setTimeout(() => {
+                        setMoveCommCards(true);
+                    }, 100);
                 }
                 setTimeout(() => {
                     setMoveCommCards(false);
                     setCommunity(data.communityCards);
                     setCommunityReversNb(0);
-                    latestCommCard = data.communityCards[data.communityCards.length - 1];
+                    latestCommCard = data.communityCards[data.communityCards.length -1];
                 }, 500);
             }
 
-            if (data.toAct == data.seat) isPossibleAction.current = true;
-
-            for (const item of (data?.actions ?? [])) {
-                if (item.action === 'fold') foldedPlayers.current.add(item.playerId);
+            if(data.toAct == data.seat) {
+                isPossibleAction.current=true;
             }
 
-            const lastAction = data?.actions[data?.actions.length - 1];
-            if (lastAction) {
-                const seatInfo = data?.seats[lastAction?.playerId];
-                if (lastAction.action === 'raise' && seatInfo?.stack === 0) {
-                    playSound('allin');
-                    setHideStack(true);
-                    setAllInArr(prev => [...prev, seatInfo]);
-                    return;
+            for(const item of (data?.actions ?? [])) {
+                if(item.action === 'fold') {
+                    foldedPlayers.current.add(item.playerId)
                 }
-                playSound(lastAction.action);
+            }
+            
+            const lastAction = data?.actions[data?.actions.length - 1];
+            
+            if (lastAction) {
+                const playerId = lastAction?.playerId;
+                const seatInfo = data?.seats[playerId];
+                
+                if (lastAction.action === 'raise' && seatInfo.stack === 0) {
+                  playSound('allin', soundMute);
+                  setAllInArr(prev => [...prev, seatInfo]);
+                  return;
+                }
+                playSound(lastAction.action, soundMute);
             }
         });
 
-        socket.on('quitsuccess', () => {
+        socketRef.current.on('quitsuccess', () => {
             onlineUsersSocket.emit('joined-tables:leave', { uid: parseInt(userId), tid: parseInt(tableId) });
             navigate('/table');
         });
-        socket.on('quiterror', () => quitter());
-        socket.on('timeerror', (data) => {
-            toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, { autoClose: 10000 });
+
+        socketRef.current.on('quiterror', () => {
+            quitter();
         });
 
+        socketRef.current.on('timeerror', (data) => {
+            toast.info(`Vous ne pouvez pas quitter. Temps restant : ${data.formatted}`, {
+                autoClose: 10000
+            });
+        });
+
+
         return () => {
-            socket.emit('leave_table', { tableId, userId });
-            socket.disconnect();
+            socketRef.current?.disconnect();
             socketRef.current = null;
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tableId]);
-
-    useEffect(() => {
-        if (community.length > 0) setHideStack(true);
-    }, [community.length]);
-
-    useEffect(() => {
-        const diff = community.length - communityShow.length;
-        setIsRevealFinished(false);
-        if (diff <= 0) { setIsRevealFinished(true); return; }
-        if (diff === 3 || diff === 1) {
-            setCommunityShow(community);
-            setTimeout(() => setCommunityToShow(community), 100);
-            setIsRevealFinished(true);
-            return;
-        }
-        const timeouts = [];
-        let timeindex = 0;
-        for (let i = communityShow.length; i < community.length; i++) {
-            const newShowCards = community.slice(0, i + 1);
-            const timeout = setTimeout(() => {
-                setTimeout(() => {
-                    setCommunityShow(newShowCards);
-                    setTimeout(() => setCommunityToShow(prev => [...prev, newShowCards[i]]), 100);
-                }, 500);
-                if (i + 1 === community.length) setIsRevealFinished(true);
-            }, timeindex * 1000);
-            timeouts.push(timeout);
-            timeindex++;
-        }
-        return () => timeouts.forEach(t => clearTimeout(t));
-    }, [community]);
+    }, [tableId, soundMute, winAllIn]);
 
     useEffect(() => {
         if (!game || !tableState.activeSeats) return;
+
         const activeSeats = tableState.activeSeats;
         const dealerSeat = tableState.deal_btn;
         const playerCount = activeSeats.length;
+
         const dealerIdx = activeSeats.indexOf(dealerSeat);
         if (dealerIdx === -1) return;
+
         let sbSeat, bbSeat;
         if (playerCount === 2) {
             sbSeat = dealerSeat;
@@ -298,66 +362,107 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
             sbSeat = activeSeats[(dealerIdx + 1) % playerCount];
             bbSeat = activeSeats[(dealerIdx + 2) % playerCount];
         }
+
+        // Ne set que si pas déjà définis
         if (sb === -1) setSb(sbSeat);
         if (bb === -1) setBb(bbSeat);
         if (dealer === -1) setDealer(dealerSeat);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game, tableState]);
 
-    useEffect(() => { setSb(-1); setBb(-1); setDealer(-1); }, [game]);
+    useEffect(() => {
+        setSb(-1);
+        setBb(-1);
+        setDealer(-1);    
+    }, [game]);
 
+    // Récupérer le dernier historique depuis l'API
     useEffect(() => {
         const fetchLastHistory = async () => {
             if (!tableId) return;
+            
             try {
                 const historyData = await getLastHistory(tableId);
+                
+                // Adapter les données de l'API au format attendu
                 if (historyData) {
+                    // Convertir les joueurs qui ont foldé en Array si nécessaire
                     let foldedPlayersArray = [];
                     if (historyData.foldedPlayers) {
-                        foldedPlayersArray = Array.isArray(historyData.foldedPlayers)
-                            ? historyData.foldedPlayers : Array.from(historyData.foldedPlayers);
+                        foldedPlayersArray = Array.isArray(historyData.foldedPlayers) 
+                            ? historyData.foldedPlayers 
+                            : Array.from(historyData.foldedPlayers);
                     } else if (historyData.foldes) {
-                        foldedPlayersArray = Array.isArray(historyData.foldes)
-                            ? historyData.foldes
-                            : (typeof historyData.foldes === 'string' ? JSON.parse(historyData.foldes) : []);
+                        // Si l'API retourne 'foldes' au lieu de 'foldedPlayers'
+                        foldedPlayersArray = Array.isArray(historyData.foldes) 
+                            ? historyData.foldes 
+                            : (typeof historyData.foldes === 'string' 
+                                ? JSON.parse(historyData.foldes) 
+                                : []);
                     }
+                    
+                    // Parser les données si elles sont en string JSON
                     let parsedAllCards = historyData.allCards || historyData.main_joueurs || [];
                     let parsedPlayerNames = historyData.playerNames || historyData.noms_joueurs || [];
-                    if (typeof parsedAllCards === 'string') { try { parsedAllCards = JSON.parse(parsedAllCards); } catch (e) {} }
-                    if (typeof parsedPlayerNames === 'string') { try { parsedPlayerNames = JSON.parse(parsedPlayerNames); } catch (e) {} }
+                    
+                    // Si les données sont en string JSON, les parser
+                    if (typeof parsedAllCards === 'string') {
+                        try {
+                            parsedAllCards = JSON.parse(parsedAllCards);
+                        } catch (e) {
+                            console.error('Error parsing allCards:', e);
+                        }
+                    }
+                    
+                    if (typeof parsedPlayerNames === 'string') {
+                        try {
+                            parsedPlayerNames = JSON.parse(parsedPlayerNames);
+                        } catch (e) {
+                            console.error('Error parsing playerNames:', e);
+                        }
+                    }
+                    
                     setLastMatchHistory({
                         communityCards: historyData.communityCards || historyData.cartes_communes || [],
                         allCards: parsedAllCards,
                         playerNames: parsedPlayerNames,
                         foldedPlayers: foldedPlayersArray,
+                        // Garder aussi les données brutes au cas où le format serait différent
                         playerNamesMap: historyData.playerNamesMap || historyData.noms_joueurs_map || null
                     });
                 }
             } catch (error) {
                 console.error('Error fetching last history:', error);
+                // En cas d'erreur, on ne fait rien (pas de données fictives)
             }
         };
+
         fetchLastHistory();
     }, [tableId]);
 
     const emitPlayerAction = (action, betSizeParam = undefined) => {
         if (!isPossibleAction.current) return;
+
         isPossibleAction.current = false;
-        const betSizeSend = betSizeParam ?? betSize;
+
+        const betSizeSend = betSizeParam ? betSizeParam : betSize;
         const { min, max } = tableState.legalActions.chipRange;
         const clampedBet = Math.max(min, Math.min(betSizeSend, max));
+        
+        let actionTrue = action;
         socketRef.current.emit('playerAction', {
-            tableId,
-            tableSessionId: tableState.tableId,
-            playerSeats: tableState.seat,
-            action,
+            tableId: tableId,
+            tableSessionId: tableState.tableId, 
+            playerSeats: tableState.seat, 
+            action: actionTrue, 
             bet: clampedBet
         });
-    };
+    }
 
     const quitter = () => {
         socketRef.current.emit("quit", {
-            tableId,
+            tableId: tableId,
             tableSessionId: tableState.tableId,
             playerSeats: tableState.seat,
         });
@@ -365,246 +470,196 @@ const Game = ({ tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) 
 
     const getSrcCard = (card_id) => {
         const final_id_card = card_id.replace('T', 0).toUpperCase();
-        return require(`../../image/card2/${final_id_card}.svg`);
+        return require(`../../image/card2/${final_id_card}.svg`);  
     };
 
-    const addRange = () => setBetSize(Math.min(betSize + 10, tableState.legalActions.chipRange.max));
-    const minusRange = () => setBetSize(Math.max(betSize - 1, tableState.legalActions.chipRange.min));
+    const actionLabels = {
+        fold: 'Se coucher',
+        check: 'Parole',
+        call: 'Suivre',
+    };
 
-    const toggleOrientation = () => setTableRotation(prev => prev === 0 ? 270 : 0);
+    const addRange = () => {
+        setBetSize(Math.min((betSize + 10 ), tableState.legalActions.chipRange.max));
+    }
 
-    const tableReady = tableState?.seats && tableState?.playerNames && tableState?.activeSeats && tableState?.actions && tableState?.playerIds;
-  //modification
+    const minusRange = () => {
+        setBetSize(Math.max((betSize - 1 ), tableState.legalActions.chipRange.min));
+    }
 
     return (
-        <div
-            className="game-wrapper"
-            style={{
-                width: '100%',
-                minHeight: '100dvh', // important pour mobile moderne
-                backgroundColor: '#000',
-                backgroundImage: `url(${!isLandscape ? '/table-bg-mobile.jpg' : '/table-bg.jpg'})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                overflowX: 'hidden',
-            }}
-        >
-            {/* ✅ BARRE DU HAUT — directement dans game-wrapper, PAS dans game-container
-                Ainsi overflow:hidden du game-container ne la coupe plus jamais */}
-            <div className="top-bar" style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                zIndex: 99999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-                padding: '6px 10px',
-                background: 'rgba(0,0,0,0.85)',
-                boxSizing: 'border-box',
-                minHeight: '46px',
-            }}>
-                {/* Bouton Quitter */}
-                <button className="quit-button"
-                    onClick={() => quitter()}
+        <div key={tableId} className="game-container">
+            <ToastContainer />
+          
+            {tableState.handInProgress && tableState.toAct === tableState.seat && ( 
+                <PlayerActions
+                    tableState={tableState}
+                    betSize={betSize}
+                    setBetSize={setBetSize}
+                    emitPlayerAction={emitPlayerAction}
+                    addRange={addRange}
+                    minusRange={minusRange}
+                />
+            )}
+
+            <CommunityCards
+                key={tableId}
+                community={community}
+                communityShow={communityShow}
+                communityToShow={communityToShow}
+                communityReversNb={communityReversNb}
+                moveCommCards={moveCommCards}
+                gameOver={gameOver}
+                allInArr={allInArr}
+                winData={winData}
+                getSrcCard={getSrcCard}
+                playSound={playSound}
+                soundMute={soundMute}
+                isRevealFinished={isRevealFinished}
+                tableId={tableId}
+            />
+            
+            <Pots
+                tableState={tableState}
+                jetonMany={jetonMany}
+                jeton={jeton}
+                potRef={potRef}
+                playerRefs={playerRefs}
+                animatePotToWinner={isRevealFinished && winData?.winStates?.some(w => w.isWinner)}
+                winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
+                playSound={playSound}
+                shouldShareCards={shouldShareCards}
+            />
+
+            <div 
+                className="table"
+                ref={tableRef}
+                style={{
+                  marginTop: 10,
+                }}
+            >
+                <div 
+                    className="table-surface"
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '5px',
-                        padding: '6px 12px',
-                        background: 'linear-gradient(135deg, #cc0000, #ff4444)',
-                        color: '#FFF',
-                        border: '2px solid #ff6666',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '13px',
-                        fontWeight: 'bold',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.6)',
-                        outline: 'none',
-                        flexShrink: 0,
+                        justifyContent: 'center',
                     }}
                 >
-                    <ArrowBigLeft size={16} />
-                    Quitter
-                </button>
+                    <img 
+                        src={tableTexture} 
+                        alt=""
+                        style={{
+                            width: 'calc(408px)',
+                            height: 'calc(650px)',
+                            objectFit: 'contain',
+                            padding: '1rem',
+                            mixBlendMode: 'multiply', // Retire le blanc
+                            filter: 'contrast(1.1)' // Améliore le contraste
+                        
+                        }}
+                    />
+                    
+                    
+                </div>
+                {tableState.seats && (tableState.seats).map((chips, i) => {
+                    return (
+                        <Player
+                            key={i}
+                            i={i}
+                            chips={chips}
+                            tableState={tableState}
+                            winData={winData}
+                            sb={sb}
+                            bb={bb}
+                            dealer={dealer}
+                            avatars={avatars}
+                            playerRefs={playerRefs}
+                            tableRef={tableRef}
+                            getSrcCard={getSrcCard}
+                            rever={rever}
+                            foldedPlayers={foldedPlayers}
+                            shouldShareCards={shouldShareCards}
+                            sharingCards={sharingCards}
+                            allInArr={allInArr}
+                            isRevealFinished={isRevealFinished}
+                            gameOver={gameOver}
+                            hideStack={hideStack}
+                            tableId={tableId}
+                        />
+                    );
+                })}
+            </div>
 
-                {/* Boutons droite */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ display: 'flex' }}><TableTabs /></div>
-                    <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
-                    {/* <button
-                        onClick={toggleOrientation}
-                        title={orientation === 'vertical' ? 'Passer en horizontal' : 'Passer en vertical'}
-                        style={{
-                            cursor: 'pointer',
-                            borderRadius: 4,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 32,
-                            height: 32,
-                            border: '2px solid #FFD700',
-                            color: '#FFD700',
-                            fontSize: 18,
-                            fontWeight: 'bold',
-                            userSelect: 'none',
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            padding: 0,
-                            flexShrink: 0,
-                            outline: 'none',
-                        }}
-                    >
-                        {orientation === 'vertical' ? '⇔' : '⇕'}
-                    </button> */}
-                    <button
-                        onClick={() => setIsHistoryModalOpen(true)}
-                        style={{
-                            color: '#FFD700',
-                            cursor: 'pointer',
-                            borderRadius: 4,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 32,
-                            height: 32,
-                            border: '2px solid #FFD700',
-                            backgroundColor: 'rgba(0,0,0,0.7)',
-                            padding: 0,
-                            outline: 'none',
-                            flexShrink: 0,
-                        }}
-                    >
-                        <History size={20} />
-                    </button>
+            {!tableState.handInProgress && (
+                <div 
+                    className="exit" 
+                    onClick={() => quitter()}
+                    style={{
+                      padding: '4px 8px 4px 8px', 
+                      background: '#ff3030ff',
+                      color: '#FFF',
+                    }}
+                >
+                    <ArrowBigLeft size={24} style={{ marginRight: 0 }} />
+                    Quitter
+                </div>
+            )}
+
+            <div
+                style={{
+                    position: 'absolute',
+                    top: '2%',
+                    right: '5%',
+                    display: 'flex',
+                    gap: '12px',
+                    zIndex: 999,
+                }}
+            >
+                <div style={{
+                    display: 'flex'
+                }}>
+                    <TableTabs />
+                </div>
+
+                <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
+                
+                <div 
+                    className="" 
+                    onClick={() => setIsHistoryModalOpen(true)}
+                    style={{
+                        color: '#FFD700',
+                        cursor: 'pointer',
+                        borderRadius: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        paddingTop: 4,
+                        paddingBottom: 4,
+                        border: '2px solid #FFD700',
+                    }}
+                >
+                    <History size={20} />
+                    {/* <span>Historique</span> */}
                 </div>
             </div>
 
-            {/* game-container avec paddingTop pour ne pas être caché sous la barre fixe */}
-            <div key={tableId} className={`game-container orientation-${orientation}`} style={{ paddingTop: '50px' }}>
-                    {/* container class toggles between orientation-vertical / orientation-horizontal based on
-                        `isLandscape` so that GameOrientation.scss rules apply */}
-                <ToastContainer position="top-center" />
-
-                {tableState.handInProgress && tableState.toAct === tableState.seat && (
-                    <PlayerActions
-                        tableState={tableState}
-                        betSize={betSize}
-                        setBetSize={setBetSize}
-                        emitPlayerAction={emitPlayerAction}
-                        addRange={addRange}
-                        minusRange={minusRange}
-                    />
-                )}
-
-                <CommunityCards
-                    key={tableId}
-                    community={community}
-                    communityShow={communityShow}
-                    communityToShow={communityToShow}
-                    communityReversNb={communityReversNb}
-                    moveCommCards={moveCommCards}
-                    gameOver={gameOver}
-                    allInArr={allInArr}
-                    winData={winData}
-                    getSrcCard={getSrcCard}
-                    playSound={playSound}
-                    soundMute={soundMute}
-                    isRevealFinished={isRevealFinished}
-                    tableId={tableId}
-                />
-
-                <Pots
-                    tableState={tableState}
-                    jetonMany={jetonMany}
-                    jeton={jeton}
-                    potRef={potRef}
-                    playerRefs={playerRefs}
-                    animatePotToWinner={isRevealFinished && winData?.winStates?.some(w => w.isWinner)}
-                    winnerSeats={winData?.winStates?.filter(w => w.isWinner).map(w => w.seat) || []}
-                    playSound={playSound}
-                    shouldShareCards={shouldShareCards}
-                    getVisualSeat={getVisualSeat}
-                    onPotAnimationEnd={() => { setTimeout(() => setHideStack(false), 50); }}
-                />
-
-                <div className="table" ref={tableRef} style={{ marginTop: 10 }}>
-                    <div
-                        className="table-surface"
-                        style={{
-                            transform: `rotate(${tableRotation}deg)`,
-                            transition: 'transform 0.3s ease-in-out',
-                        }}
-                    >
-                        <img
-                            src={orientation === 'horizontal' ? tableTextureLandscape : tableTexture}
-                            alt=""
-                            style={{
-                                width: '408px',
-                                height: '650px',
-                                objectFit: 'contain',
-                                padding: '1rem',
-                                mixBlendMode: 'multiply',
-                                filter: 'contrast(1.1)'
-                            }}
-                        />
-                    </div>
-
-                    {tableReady && Array.from({ length: totalSeats }).map((_, visualSeat) => {
-                        const realSeat = getRealSeat(visualSeat);
-                        const chips = tableState.seats[realSeat];
-                        return (
-                            <Player
-                                key={visualSeat}
-                                i={realSeat}
-                                visualSeat={visualSeat}
-                                chips={chips}
-                                tableState={tableState}
-                                winData={winData}
-                                sb={sb}
-                                bb={bb}
-                                dealer={dealer}
-                                avatars={avatars}
-                                playerRefs={playerRefs}
-                                tableRef={tableRef}
-                                getSrcCard={getSrcCard}
-                                rever={rever}
-                                foldedPlayers={foldedPlayers}
-                                shouldShareCards={shouldShareCards}
-                                sharingCards={sharingCards}
-                                allInArr={allInArr}
-                                isRevealFinished={isRevealFinished}
-                                gameOver={gameOver}
-                                hideStack={hideStack}
-                                tableId={tableId}
-                                tableRotation={tableRotation}
-                                currentUserId={currentUserId}
-                            />
-                        );
-                    })}
-                </div>
-
-                <GameHistoryModal
-                    isOpen={isHistoryModalOpen}
-                    onClose={() => setIsHistoryModalOpen(false)}
-                    lastMatchData={lastMatchHistory}
-                    getSrcCard={getSrcCard}
-                    playerNames={tableState.playerNames || []}
-                />
-
-                <TableChat
+            <GameHistoryModal 
+                isOpen={isHistoryModalOpen}
+                onClose={() => setIsHistoryModalOpen(false)}
+                lastMatchData={lastMatchHistory}
+                getSrcCard={getSrcCard}
+                playerNames={tableState.playerNames || []}
+            />
+            {/* Ajoutez le chat ici */}
+                <TableChat 
                     socketRef={socketRef}
                     tableId={tableId}
-                    tableState={tableState}
+                    tableState={tableState} // Ajoutez ceci
                     currentUserId={currentUserId}
                     playerNames={tableState.playerNames || []}
                 />
-            </div>
         </div>
     );
 };

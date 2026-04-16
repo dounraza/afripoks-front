@@ -42,11 +42,18 @@ const PlayerActions = ({
                 <div className="bet-control button-minus" onClick={minusRange}>
                     <Minus />
                 </div>
-                <div className="bet-amount">
-                    <input type="number" value={betSize} min={tableState?.legalActions?.chipRange?.min || 0}
-                        max={tableState?.legalActions?.chipRange?.max || 999999}
-                        onChange={e => setBetSize(Number(e.target.value))} />
-                </div>
+                <input
+                    className='bet-amount'
+                    style={{
+                        backgroundColor: 'transparent',
+                        border: '1px solid transparent'
+                    }}
+                    type="number"
+                    min={tableState.legalActions.chipRange.min}
+                    max={tableState.legalActions.chipRange.max}
+                    value={betSize}
+                    onChange={(e) => setBetSize(Number(e.target.value))}
+                />
                 <div className="bet-control button-plus" onClick={addRange}>
                     <Plus />
                 </div>

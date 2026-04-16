@@ -1,5 +1,5 @@
 @use "../../styles/variable.scss" as *;
-@import "GameOrientation.scss";
+
 @keyframes animatedCoin {
   0%   { transform: translate(-50%, -50%) translateY(0); }
   50%  { transform: translate(-50%, -50%) translateY(-200%); }
@@ -37,11 +37,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-
-        /* small vertical shift on phones so table isn't glued to top bar */
-        @media (max-width: 600px) {
-            margin-top: 1.5rem;
-        }
 
         .table-surface {
             z-index: 2;
@@ -104,7 +99,7 @@
             } 
 
             &.p_2, &.p_0 {
-                top: -2.1rem;
+                top: 1.7rem;
             }
 
             &.p_3 {
@@ -140,11 +135,31 @@
             align-items: center;
             top: -3.5rem;
             z-index: -1;
+            width: 100%;
 
             .card-containers {
                 display: flex;
                 justify-content: center;
                 align-items: center;
+
+                .card {
+                    width: 1.8rem;
+                    margin: 0 -0.3rem;
+                    transition: transform 0.2s;
+                    position: relative;
+
+                    &:hover {
+                        transform: translateY(-5px);
+                        z-index: 5;
+                    }
+
+                    img {
+                        width: 100%;
+                        height: auto;
+                        border-radius: 3px;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+                    }
+                }
             }
         }
 
@@ -193,6 +208,25 @@
             font-weight: 900;
         }
 
+        .hand-name-badge {
+            background-color: rgba(0, 0, 0, 0.85);
+            color: $gold;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            border: 1px solid $gold;
+            animation: fadeIn 0.5s ease-out;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         &.active {
             &::before {
                 content: "";
@@ -218,39 +252,9 @@
                 }
             }
         
-        &.seat0 {
+        &.seat8 {
             top: 94%;
             left: 5%;
-        }
-
-        &.seat1 {
-            top: 70%;
-            left: -15%;
-        }
-
-        &.seat2 {
-            top: 9%;
-            left: -13%;
-        }
-
-        &.seat3 {
-            top: 0%;
-            left: 40%;
-        }
-
-        &.seat4 {
-            top: 9%;
-            left: 89%;
-        }
-
-        &.seat5 {
-            top: 33.5%;
-            left: 91%;
-        }
-
-        &.seat6 {
-            top: 70%;
-            left: 91%;
         }
 
         &.seat7 {
@@ -258,8 +262,38 @@
             left: 72%;
         }
 
-        &.seat8 {
+        &.seat6 {
+            top: 70%;
+            left: 91%;
+        }
+
+        &.seat5 {
             top: 33.5%;
+            left: 91%;
+        }
+
+        &.seat4 {
+            top: 9%;
+            left: 89%;
+        }
+
+        &.seat3 {
+            top: 0%;
+            left: 40%;
+        }
+
+        &.seat2 {
+            top: 9%;
+            left: -13%;
+        }
+
+        &.seat1 {
+            top: 33.5%;
+            left: -15%;
+        }
+
+        &.seat0 {
+            top: 70%;
             left: -15%;
         }
     }
@@ -287,20 +321,6 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                position: relative; /* enable overlay positioning */
-            }
-
-            .principals .amount-overlay {
-                position: absolute;
-                /* sit above the chip instead of centered inside */
-                bottom: 100%;
-                left: 50%;
-                transform: translate(-50%, -10%);
-                font-weight: 700;
-                font-size: 1.2rem;
-                color: white;
-                pointer-events: none;
-                z-index: 1;
             }
 
             img {
@@ -799,85 +819,4 @@
     .game-container {
         zoom: .7;    
     }
-}
-
-// ============================================================
-// RESPONSIVE — mode horizontal
-// La table tournée à 90° est ~36rem de large
-// Il faut réduire le zoom pour qu'elle rentre dans l'écran
-// ============================================================
-@media (max-width: 600px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.8;
-        width: 100vw;
-        overflow: visible;
-    }
-}
-
-@media (max-width: 480px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.7;
-    }
-}
-
-@media (max-width: 400px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.6;
-    }
-}
-
-@media (max-width: 350px) {
-    .game-container.orientation-horizontal {
-        zoom: 0.4;
-    }
-}
-
-/* move top-bar to bottom on small phones */
-@media (max-width: 600px) {
-    /* maintain inline layout even on phones, just reduce spacing */
-    .top-bar {
-        gap: 8px;
-        padding: 6px 8px !important;
-    }
-    .top-bar .quit-button {
-        padding: 4px 8px !important;
-        font-size: 12px !important;
-    }
-}
-
-/* move toast messages below the fixed top-bar */
-.Toastify__toast-container--top-center {
-    /* sit below the top-bar (quit section); bump down further so it is
-       clearly outside the bar even if its height grows). also make sure
-       it’s above everything else with a large z-index. */
-    top: 70px !important;
-    z-index: 100000 !important;
-}
-
-/* mobile adjustments – bar is taller when stacked, so nudge toasts further */
-@media (max-width: 600px) {
-    .Toastify__toast-container--top-center {
-        top: 120px !important;
-    }
-}
-
-/* alternative: show toasts at bottom on very narrow screens */
-@media (max-width: 400px) {
-    .Toastify__toast-container--top-center {
-        top: auto !important;
-        bottom: 16px !important;
-    }
-}
-
-/* bet amount input styling */
-.bet-amount input {
-    width: 60px;
-    text-align: center;
-    background-color: #FFE066; /* yellowish background */
-    border: none;
-    font-weight: 700;
-    color: #000;
-}
-.bet-amount input:focus {
-    outline: none;
 }
