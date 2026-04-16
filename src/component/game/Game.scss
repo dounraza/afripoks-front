@@ -148,25 +148,26 @@
 
                 &.omaha {
                     .card {
-                        width: 2.6rem; // Plus grand que 1.8rem (initialement 2.4rem)
-                        margin: 0 -0.6rem; // Plus d'overlap pour compenser la largeur
-                        
+                        width: 3.5rem; // Increased from 2.6rem
+                        margin: 0 -0.9rem; // Adjusted margin for larger width
+
                         img {
                             box-shadow: 0 4px 10px rgba(0,0,0,0.7);
                             border: 1px solid rgba(255, 255, 255, 0.2);
                         }
-                    }
-                }
+                        }
 
-                .card {
-                    width: 1.8rem;
-                    margin: 0 -0.3rem;
-                    transition: transform 0.2s;
-                    position: relative;
+                        .card {
+                        width: 2.5rem; // Increased from 1.8rem
+                        margin: 0 -0.6rem; // Adjusted margin for larger width
+                        transition: transform 0.2s;
+                        position: relative;
 
-                    &:hover {
-                        transform: translateY(-5px);
-                        z-index: 5;
+                        &:hover {
+                            transform: translateY(-5px);
+                            z-index: 5;
+                        }
+
                     }
 
                     img {

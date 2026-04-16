@@ -76,11 +76,7 @@ const CommunityCards = ({
                 </>
             )}
             
-            {(gameOver && community.length === 0) && (
-                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1.2rem', textAlign: 'center', width: '100%' }}>
-                    All Fold
-                </div>
-            )}
+            {/* All Fold message removed - now displayed in Player component */}
 
             {(gameOver && allInArr.length > 0 && community.length > 0) && (
                 <div

@@ -9,7 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 import pokerBackground from '../../image/bg.jpg';
 import "./Tables.scss";
 import { OnlineUserContext } from "../../contexts/OnlineUserContext";
-import { Users, Wallet, Dices, Clock, RotateCcw, RefreshCw } from "lucide-react";
+import { Users, Wallet, Dices, Clock, RotateCcw, RefreshCw, Trophy, Coins, Timer } from "lucide-react";
 import { JoinedTableContext } from "../../contexts/JoinedTableContext";
 import PokerCardImage from '../../component/PockerCardImage';
 
@@ -121,11 +121,51 @@ const Tables = () => {
 
     const playGame = () => verifyCave(selectedTableId);
 
+    const [selectedGameType, setSelectedGameType] = useState("Holdem");
+    const gameTypes = ["Holdem", "Omaha"];
+
+    // ✅ Filtre les tables selon le type sélectionné
+    const filteredTables = tables.filter(table => {
+        const tableType = table.gameType || table.type || table.game_type;
+        
+        // Debugging : Affiche les types reçus du backend dans la console du navigateur
+        if (tables.indexOf(table) === 0) {
+            console.log("--- DEBUG BACKEND TABLES ---");
+            console.log("Type reçu du premier élément :", tableType);
+            console.log("Structure complète de la table :", table);
+        }
+
+        if (tableType) {
+            const normalizedTableType = String(tableType).trim().toLowerCase();
+            const normalizedSelected = selectedGameType.toLowerCase();
+
+            if (normalizedSelected === "holdem") {
+                // Accepte Holdem, Cash Game, ou rien (par défaut)
+                return normalizedTableType === "holdem" || 
+                       normalizedTableType === "cash game" || 
+                       normalizedTableType === "cash games" ||
+                       normalizedTableType === "texas holdem";
+            }
+            if (normalizedSelected === "omaha") {
+                // Accepte Omaha, Sit & Go, ou PLO
+                return normalizedTableType === "omaha" || 
+                       normalizedTableType === "sit & go" || 
+                       normalizedTableType === "sit&go" ||
+                       normalizedTableType === "plo";
+            }
+            
+            return normalizedTableType === normalizedSelected;
+        }
+
+        // Par défaut, si pas de type spécifié par le backend, on met la table dans Holdem
+        return selectedGameType === "Holdem";
+    });
+
     const lastTable = lastTableId
-        ? tables.find(t => Number(t.id) === Number(lastTableId))
+        ? filteredTables.find(t => Number(t.id) === Number(lastTableId))
         : null;
 
-    const waitingTables = tables.filter(t => Number(t.id) !== Number(lastTableId));
+    const waitingTables = filteredTables.filter(t => Number(t.id) !== Number(lastTableId));
 
     const pokerImages = [
         "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400&h=300&fit=crop&q=80",
@@ -175,6 +215,21 @@ const Tables = () => {
                         <Wallet size={18} />
                         <span className="stat-value">{Number(solde).toLocaleString('fr-FR')} Ar</span>
                     </div>
+                </div>
+
+                {/* ✅ Sélecteur de Type de Jeu */}
+                <div className="game-type-selector">
+                    {gameTypes.map((type) => (
+                        <button
+                            key={type}
+                            className={`game-type-btn ${selectedGameType === type ? 'active' : ''}`}
+                            onClick={() => setSelectedGameType(type)}
+                        >
+                            {type === "Holdem" && <Coins size={16} style={{ marginRight: '8px' }} />}
+                            {type === "Omaha" && <Timer size={16} style={{ marginRight: '8px' }} />}
+                            {type}
+                        </button>
+                    ))}
                 </div>
 
                 {loading ? (
@@ -233,7 +288,7 @@ const Tables = () => {
                             </div>
                         </div>
 
-                        {tables.length > 0 && (
+                        {filteredTables.length > 0 && (
                             <div className="featured-section">
                                 <div
                                     className="featured-card"
@@ -243,17 +298,17 @@ const Tables = () => {
                                         backgroundPosition: 'center'
                                     }}
                                 >
-                                    <h2 className="featured-title">{tables[0].name}</h2>
+                                    <h2 className="featured-title">{filteredTables[0].name}</h2>
                                     <div className="featured-info">
-                                        {(tables[0]?.cave ?? 0).toLocaleString()} Ar{" "}
+                                        {(filteredTables[0]?.cave ?? 0).toLocaleString()} Ar{" "}
                                         <span className="range-text">
-                                            (SB: {(tables[0]?.smallBlind ?? 0).toLocaleString()} - BB: {(tables[0]?.bigBlind ?? 0).toLocaleString()})
+                                            (SB: {(filteredTables[0]?.smallBlind ?? 0).toLocaleString()} - BB: {(filteredTables[0]?.bigBlind ?? 0).toLocaleString()})
                                         </span>
                                     </div>
                                     <button
                                         className="featured-play-btn"
                                         onClick={() => {
-                                            setSelectedTableId(tables[0].id);
+                                            setSelectedTableId(filteredTables[0].id);
                                             setShowModalCave(true);
                                         }}
                                     >
@@ -264,54 +319,60 @@ const Tables = () => {
                         )}
 
                         <div className="section-container">
-                            <div className="lobby-grid">
-                                {waitingTables.map((table, i) => (
-                                    <div key={i} className="lobby-card">
-                                        <div className="lobby-card-image">
-                                            <PokerCardImage
-                                                index={i}
-                                                src={pokerImages[i % pokerImages.length]}
-                                            />
-                                            <div className="image-overlay"></div>
-                                        </div>
+                            {waitingTables.length > 0 ? (
+                                <div className="lobby-grid">
+                                    {waitingTables.map((table, i) => (
+                                        <div key={i} className="lobby-card">
+                                            <div className="lobby-card-image">
+                                                <PokerCardImage
+                                                    index={i}
+                                                    src={pokerImages[i % pokerImages.length]}
+                                                />
+                                                <div className="image-overlay"></div>
+                                            </div>
 
-                                        <div className="lobby-card-content">
-                                            <h4 className="lobby-card-title">{table.name}</h4>
-                                            <div className="lobby-card-details">
-                                                <div className="detail-item">
-                                                    <span className="detail-label">Petite Blinde</span>
-                                                    <span className="detail-value">{(table?.smallBlind ?? 0).toLocaleString()} Ar</span>
+                                            <div className="lobby-card-content">
+                                                <h4 className="lobby-card-title">{table.name}</h4>
+                                                <div className="lobby-card-details">
+                                                    <div className="detail-item">
+                                                        <span className="detail-label">Petite Blinde</span>
+                                                        <span className="detail-value">{(table?.smallBlind ?? 0).toLocaleString()} Ar</span>
+                                                    </div>
+                                                    <div className="detail-item">
+                                                        <span className="detail-label">Grosse Blinde</span>
+                                                        <span className="detail-value">{(table?.bigBlind ?? 0).toLocaleString()} Ar</span>
+                                                    </div>
                                                 </div>
-                                                <div className="detail-item">
-                                                    <span className="detail-label">Grosse Blinde</span>
-                                                    <span className="detail-value">{(table?.bigBlind ?? 0).toLocaleString()} Ar</span>
+                                                <div className="lobby-card-info">
+                                                    <div className="info-chip">
+                                                        <Wallet size={12} />
+                                                        <span>{(table?.cave ?? 0).toLocaleString()} Ar</span>
+                                                    </div>
+                                                    <div className="info-chip">
+                                                        <Users size={12} />
+                                                        <span>
+                                                            {tableUsersCount[table.id] || sitCounts.get(String(table?.id)) || 0}/9
+                                                        </span>
+                                                    </div>
                                                 </div>
+                                                <button
+                                                    className="lobby-play-btn"
+                                                    onClick={() => {
+                                                        setSelectedTableId(table.id);
+                                                        setShowModalCave(true);
+                                                    }}
+                                                >
+                                                    Jouer
+                                                </button>
                                             </div>
-                                            <div className="lobby-card-info">
-                                                <div className="info-chip">
-                                                    <Wallet size={12} />
-                                                    <span>{(table?.cave ?? 0).toLocaleString()} Ar</span>
-                                                </div>
-                                                <div className="info-chip">
-                                                    <Users size={12} />
-                                                    <span>
-                                                        {tableUsersCount[table.id] || sitCounts.get(String(table?.id)) || 0}/9
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <button
-                                                className="lobby-play-btn"
-                                                onClick={() => {
-                                                    setSelectedTableId(table.id);
-                                                    setShowModalCave(true);
-                                                }}
-                                            >
-                                                Jouer
-                                            </button>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="no-tables-message" style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.5)' }}>
+                                    <p>Aucune table disponible pour ce type de jeu.</p>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}

@@ -213,38 +213,34 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
         socketRef.current.on('win', (data) => {
             setGameOver(true);
-            
             setGame(false);
             
-            // --- Check for "All Fold" scenario ---
-            // An "all fold" scenario occurs when all players except one have folded.
-            // If this is the case and no community cards are present, ensure community is empty.
+            // On enrichit foldedPlayers avec les infos du winData
+            // Si un joueur n'a pas de cartes à la fin, c'est qu'il a foldé ou n'était pas dans le coup
+            if (data.winStates) {
+                data.winStates.forEach(w => {
+                    const hasCards = data.allCards && data.allCards[w.seat] && Array.isArray(data.allCards[w.seat]) && data.allCards[w.seat].length > 0;
+                    if (!w.isWinner && !hasCards) {
+                        foldedPlayers.current.add(Number(w.seat));
+                    }
+                });
+            }
+
             const numPlayers = tableState.seats?.filter(s => s !== null).length || 0;
-            // Check if the number of folded players is one less than the total number of players.
-            // This check is relevant if the win event is triggered due to all folds.
-            const isAllFoldScenario = numPlayers > 1 && foldedPlayers.current.size === numPlayers - 1;
+            const isAllFoldScenario = numPlayers > 1 && foldedPlayers.current.size >= numPlayers - 1;
             
-            if (isAllFoldScenario && data.communityCards.length === 0) {
-                // If it's an all-fold scenario and no community cards are provided,
-                // ensure the community state is empty to trigger the "All Fold" message.
+            if (isAllFoldScenario && (!data.communityCards || data.communityCards.length === 0)) {
                 setCommunity([]); 
             } else {
-                // Otherwise, use the community cards provided by the server.
-                // This handles cases where cards might be shown due to all-in scenarios.
                 setCommunity(data.communityCards || []);
             }
-            // --- End Check ---
 
             setShouldShareCards(false);
-            
             setWinData(data);
             
-            // Sauvegarder l'historique du dernier match
-            // Convertir le Set en Array pour la sérialisation
             const foldedPlayersArray = Array.from(foldedPlayers.current);
-            
             setLastMatchHistory({
-                communityCards: data.communityCards || [], // Use original data for history
+                communityCards: data.communityCards || [],
                 allCards: data.allCards || [],
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
@@ -264,6 +260,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
+            foldedPlayers.current = new Set(); // ✅ Réinitialisation immédiate ici aussi
             latestCommCardRef.current = null;
             
             setShouldShareCards(true);
@@ -325,7 +322,12 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
             for(const item of (data?.actions ?? [])) {
                 if(item.action === 'fold') {
-                    foldedPlayers.current.add(item.playerId)
+                    // On ajoute l'ID et l'index du siège pour être sûr
+                    foldedPlayers.current.add(item.playerId);
+                    const seatIndex = data.playerIds?.indexOf(item.playerId);
+                    if (seatIndex !== -1) {
+                        foldedPlayers.current.add(seatIndex);
+                    }
                 }
             }
             
@@ -609,6 +611,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                             gameOver={gameOver}
                             hideStack={hideStack}
                             tableId={tableId}
+                            community={community}
                         />
                     );
                 })}

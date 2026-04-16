@@ -24,6 +24,7 @@ const Player = ({
     isRevealFinished,
     hideStack,
     tableId,
+    community,
 }) => {
     const [smileysOpen, setSmileysOpen] = useState(false);
     const [smiley, setSmiley] = useState(null);
@@ -83,9 +84,17 @@ const Player = ({
         // c'est une victoire certaine (ou un gain de pot).
         const isIncreasing = actualStack > lastSafeStack.current;
 
-        // CAS 1 : Phase de jeu normale (Mises, Suivis, Blinds)
-        // On n'autorise la mise à jour que si le solde baisse ou reste identique.
-        if (!isWinPhase && !isIncreasing) {
+        // CAS 1 : Phase de jeu normale ou Nouvelle Main (isWinPhase est false)
+        if (!isWinPhase) {
+            // Si on détecte une augmentation de jetons alors qu'on n'est pas encore en phase de victoire,
+            // on verrouille temporairement pour créer le suspense de la future victoire.
+            if (isIncreasing && !isLocked.current) {
+                isLocked.current = true;
+                return;
+            }
+
+            // Si le jeu continue normalement ou qu'une nouvelle main commence,
+            // on libère tout et on affiche le solde réel immédiatement.
             isLocked.current = false;
             lastSafeStack.current = actualStack;
             setDisplayStack(actualStack);
@@ -94,36 +103,44 @@ const Player = ({
             return;
         }
 
-        // CAS 2 : ANTICIPATION (Augmentation détectée avant même le gameOver)
-        // On bloque l'affichage sur la valeur d'avant pour préserver la surprise.
-        if (!isWinPhase && isIncreasing) {
-            isLocked.current = true;
-            // On ne touche pas à displayStack, il reste sur lastSafeStack.current
-            return;
-        }
-
-        // CAS 3 : Phase de victoire confirmée (gameOver ou winData présent)
-        const winner = winData?.winStates?.find(w => w.seat === i);
+        // CAS 2 : Phase de victoire confirmée (isWinPhase est true)
+        const winner = winData?.winStates?.find(w => Number(w.seat) === Number(i));
         const isWinner = winner?.isWinner;
-        const isLoser = winner && !winner.isWinner && !foldedPlayers.current.has(i);
+        
+        // Un joueur a foldé s'il est dans foldedPlayers OU s'il n'a pas de cartes à l'abattage alors que le jeu est fini
+        const hasFinalCards = winData?.allCards && winData.allCards[i] && winData.allCards[i].length > 0;
+        const isFoldedAtEnd = (gameOver || winData?.winStates) && (
+            foldedPlayers.current.has(i) || 
+            foldedPlayers.current.has(String(i)) ||
+            (winData?.winStates && !hasFinalCards)
+        );
+        
+        const isLoser = winner && !winner.isWinner && !isFoldedAtEnd;
 
-        if (isWinner || isLoser) {
+        if (isWinner || isLoser || isFoldedAtEnd) {
             isLocked.current = true;
-            const hasShowdown = winData?.allCards && Object.values(winData.allCards).some(hand => hand && hand.length > 0);
+            const hasShowdown = winData?.allCards && Object.values(winData.allCards).some(hand => Array.isArray(hand) && hand.length > 0);
 
-            // SI PAS DE SHOWDOWN (All Fold)
+            // SI PAS DE SHOWDOWN (All Fold / No showdown win)
             if (!hasShowdown) {
-                const timer = setTimeout(() => {
-                    setDisplayStack(actualStack);
-                    lastSafeStack.current = actualStack;
-                }, 1000);
-                // Ensure showResult is true for "All Fold"
-                setShowResult(true);
-                return () => clearTimeout(timer);
+                if (!isStackHidden) {
+                    setIsStackHidden(true);
+                    setShowResult(true);
+
+                    const timer = setTimeout(() => {
+                        setDisplayStack(actualStack);
+                        lastSafeStack.current = actualStack;
+                        setIsStackHidden(false);
+                        setShowResult(false);
+                        isLocked.current = false;
+                    }, 4000); // 4 secondes d'affichage
+                    
+                    return () => clearTimeout(timer);
+                }
             }
 
             // SI SHOWDOWN (Suspense complet)
-            if (!isRevealFinished) {
+            else if (!isRevealFinished) {
                 // Toujours bloqué sur l'ancien montant pendant l'ouverture des cartes
                 setDisplayStack(lastSafeStack.current);
                 // Ensure showResult is true during card reveal
@@ -205,6 +222,24 @@ const Player = ({
 
     const cardCount = getCardCount();
 
+    // Détection de l'abattage (si quelqu'un a montré ses cartes)
+    // On vérifie si winData.allCards contient des mains non vides
+    const hasShowdown = winData?.allCards && Object.values(winData.allCards).some(hand => Array.isArray(hand) && hand.length > 0);
+
+    // Variables de statut du joueur pour le rendu
+    const winner = winData?.winStates?.find(w => Number(w.seat) === Number(i));
+    const isWinner = winner?.isWinner;
+
+    // Un joueur a foldé s'il est dans foldedPlayers OU s'il n'a pas de cartes à l'abattage alors que le jeu est fini
+    const hasFinalCards = winData?.allCards && winData.allCards[i] && winData.allCards[i].length > 0;
+    const isFoldedAtEnd = (gameOver || winData?.winStates) && (
+        foldedPlayers.current.has(i) || 
+        foldedPlayers.current.has(String(i)) ||
+        (winData?.winStates && !hasFinalCards)
+    );
+
+    const isLoser = winner && !winner.isWinner && !isFoldedAtEnd;
+
     return (
         <>
             <div
@@ -229,11 +264,6 @@ const Player = ({
                         zIndex: -1,
                     }}
                 >
-                    {isRevealFinished && winData?.winStates?.find(w => w.seat === i)?.handName && (
-                        <div className="hand-name-badge" style={{ display: 'none' }}>
-                            {winData.winStates.find(w => w.seat === i).handName}
-                        </div>
-                    )}
                     <div
                         style={{
                             width: '40pt',
@@ -376,9 +406,19 @@ const Player = ({
                 <div className="player-name">
                     {
                         (() => {
+                            // Si la main est terminée (gameOver est false et aucune main en cours), on affiche le nom
+                            // Cela permet de nettoyer l'affichage dès que winData est réinitialisé ou gameOver passe à false
+                            if (!gameOver && !tableState.handInProgress) {
+                                return <div>
+                                    {(tableState.playerNames?.[i] ?? '').length > 10
+                                        ? tableState.playerNames[i].slice(0, 10) + '...'
+                                        : (tableState.playerNames?.[i] || '')}
+                                </div>;
+                            }
+
                             // Priorité au statut Fold persistant via le set foldedPlayers
-                            if (foldedPlayers.current.has(i)) {
-                                return <div className="action" style={{ color: '#ff4444' }}>Fold</div>;
+                            if (foldedPlayers.current.has(i) || foldedPlayers.current.has(String(i))) {
+                                return <div className="action" style={{ color: '#00FF99' }}>Fold</div>;
                             }
                             
                             // Sinon, affichage des actions en cours (ex: raise, call)
@@ -443,29 +483,30 @@ const Player = ({
                 <div className="stacks">
                     {isStackHidden ? (
                         showResult ? (
-                            winData?.winStates?.find(w => w.seat === i)?.isWinner ? (
+                            winData?.winStates?.find(w => Number(w.seat) === Number(i))?.isWinner ? (
+                                // Winner logic: Show hand name or "All Fold"
                                 <div className="hand-name-result" style={{ color: '#00FF99', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                    {winData.winStates.find(w => w.seat === i).handName}
+                                    {!hasShowdown ? 'All Fold' : winData.winStates.find(w => Number(w.seat) === Number(i)).handName}
                                 </div>
-                            ) : (
+                            ) : isLoser ? ( // Player lost by showdown, not folded
                                 <div className="hand-name-result lose-badge" style={{ 
-                                    backgroundColor: '#888888', 
-                                    color: 'white', 
+                                    color: '#00FF99', // Green color for Lose
                                     fontSize: '0.7rem', 
                                     fontWeight: 'bold',
                                     padding: '2px 6px',
                                     borderRadius: '4px',
                                     textTransform: 'uppercase'
                                 }}>
-                                    {foldedPlayers.current.has(i) ? 'Fold' : 'Lose'}
+                                    Lose
                                 </div>
+                            ) : (
+                                // Not winner and not loser (e.g., folded, or other cases): Show balance
+                                chips != null ? `${displayStack}` : <div className="no-chips" style={{ opacity: 0.7 }}>0</div>
                             )
-                        ) : null // Zone vide pour le suspense
+                        ) : null // Suspense phase: show nothing in stacks if stack is hidden and result is not yet shown
                     ) : (
-                        <>
-                            {chips != null ? `${displayStack}` :
-                            <div className="no-chips" style={{ opacity: 0.7 }}>0</div>}
-                        </>
+                        // Stack not hidden: Show balance
+                        chips != null ? `${displayStack}` : <div className="no-chips" style={{ opacity: 0.7 }}>0</div>
                     )}
                 </div>
                 
