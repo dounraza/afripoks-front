@@ -34,7 +34,7 @@ const CommunityCards = ({
                                 <div key={i}
                                     style={{
                                         opacity: (communityShow[i] || (communityReversNb === 3 && i < 3) || (communityReversNb === 1 && community[i-1] === community[community.length-1])) ? opacity : 0,
-                                        transition: 'transform 0.15s ease-in',
+                                        transition: 'transform 0.25s ease-in',
                                         transform: moveCommCards ? 'translate(0, 0) rotateY(0deg)' : `translate(${translateX}%, -200%) rotateY(90deg)`,
                                         padding: 4,
                                         visibility: communityShow[i] ? 'hidden' : 'visible'
@@ -76,7 +76,11 @@ const CommunityCards = ({
                 </>
             )}
             
-            {/* All Fold message removed - now displayed in Player component */}
+            {(gameOver && community.length === 0) && (
+                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1.2rem', textAlign: 'center', width: '100%' }}>
+                    All Fold
+                </div>
+            )}
 
             {(gameOver && allInArr.length > 0 && community.length > 0) && (
                 <div

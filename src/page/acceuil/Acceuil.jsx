@@ -43,7 +43,7 @@ const Acceuil = () => {
                             <div className="icon-container">
                                 <img src={cashGame} alt="Poker chips" className="feature-icon" />
                             </div>
-                            <h3>Holdem</h3>
+                            <h3>Cash Game</h3>
                         </div>
                         <div className="feature-item">
                             <div className="icon-container">

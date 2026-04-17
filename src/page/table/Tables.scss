@@ -69,46 +69,6 @@
     }
 }
 
-// Game Type Selection
-.game-type-selector {
-    display: flex;
-    gap: 10px;
-    padding: 0 15px 20px;
-    overflow-x: auto;
-    scrollbar-width: none; // Firefox
-    &::-webkit-scrollbar {
-        display: none; // Chrome, Safari, Opera
-    }
-
-    .game-type-btn {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.7);
-        padding: 10px 20px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        &:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: white;
-        }
-
-        &.active {
-            background: #ff8c00;
-            border-color: #ff8c00;
-            color: white;
-            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
-        }
-    }
-}
-
 // Featured Table
 .featured-section {
     padding: 0 15px 15px;
@@ -985,5 +945,38 @@
     .chat-container {
         width: calc(100vw - 40px);
         max-width: 350px;
+    }
+}
+
+// Game Type Selector
+.game-type-selector {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    .filter-btn {
+        padding: 6px 16px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        &.active {
+            background: #ff4500;
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4);
+        }
     }
 }

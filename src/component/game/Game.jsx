@@ -133,7 +133,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow(community);
             setTimeout(() => {
                 setCommunityToShow(community);
-            }, 50);
+            }, 100);
             setIsRevealFinished(true);
             return;
         }
@@ -144,7 +144,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow(community);
             setTimeout(() => {
                 setCommunityToShow(community);
-            }, 50);
+            }, 100);
             setIsRevealFinished(true);
             return;
         }
@@ -162,12 +162,12 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         setCommunityShow(newShowCards);
                         setTimeout(() => {
                             setCommunityToShow(prev => [...prev, newShowCards[i]]);
-                        }, 50);
-                    }, 250);
+                        }, 100);
+                    }, 500);
                     if (i + 1 === community.length) {
                         setIsRevealFinished(true);
                     }
-                }, (timeindex * 500));
+                }, (timeindex * 1000));
 
                 timeouts.push(timeout);
                 timeindex ++;
@@ -213,34 +213,38 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
         socketRef.current.on('win', (data) => {
             setGameOver(true);
+            
             setGame(false);
             
-            // On enrichit foldedPlayers avec les infos du winData
-            // Si un joueur n'a pas de cartes à la fin, c'est qu'il a foldé ou n'était pas dans le coup
-            if (data.winStates) {
-                data.winStates.forEach(w => {
-                    const hasCards = data.allCards && data.allCards[w.seat] && Array.isArray(data.allCards[w.seat]) && data.allCards[w.seat].length > 0;
-                    if (!w.isWinner && !hasCards) {
-                        foldedPlayers.current.add(Number(w.seat));
-                    }
-                });
-            }
-
+            // --- Check for "All Fold" scenario ---
+            // An "all fold" scenario occurs when all players except one have folded.
+            // If this is the case and no community cards are present, ensure community is empty.
             const numPlayers = tableState.seats?.filter(s => s !== null).length || 0;
-            const isAllFoldScenario = numPlayers > 1 && foldedPlayers.current.size >= numPlayers - 1;
+            // Check if the number of folded players is one less than the total number of players.
+            // This check is relevant if the win event is triggered due to all folds.
+            const isAllFoldScenario = numPlayers > 1 && foldedPlayers.current.size === numPlayers - 1;
             
-            if (isAllFoldScenario && (!data.communityCards || data.communityCards.length === 0)) {
+            if (isAllFoldScenario && data.communityCards.length === 0) {
+                // If it's an all-fold scenario and no community cards are provided,
+                // ensure the community state is empty to trigger the "All Fold" message.
                 setCommunity([]); 
             } else {
+                // Otherwise, use the community cards provided by the server.
+                // This handles cases where cards might be shown due to all-in scenarios.
                 setCommunity(data.communityCards || []);
             }
+            // --- End Check ---
 
             setShouldShareCards(false);
+            
             setWinData(data);
             
+            // Sauvegarder l'historique du dernier match
+            // Convertir le Set en Array pour la sérialisation
             const foldedPlayersArray = Array.from(foldedPlayers.current);
+            
             setLastMatchHistory({
-                communityCards: data.communityCards || [],
+                communityCards: data.communityCards || [], // Use original data for history
                 allCards: data.allCards || [],
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
@@ -260,7 +264,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
-            foldedPlayers.current = new Set(); // ✅ Réinitialisation immédiate ici aussi
             latestCommCardRef.current = null;
             
             setShouldShareCards(true);
@@ -304,14 +307,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     } else {
                         setCommunityReversNb(1);
                     }
-                    setMoveCommCards(true);
+                    setTimeout(() => {
+                        setMoveCommCards(true);
+                    }, 100);
                 }
                 setTimeout(() => {
                     setMoveCommCards(false);
                     setCommunity(data.communityCards);
                     setCommunityReversNb(0);
                     latestCommCardRef.current = data.communityCards[data.communityCards.length -1];
-                }, 300);
+                }, 500);
             }
 
             if(data.toAct == data.seat) {
@@ -320,12 +325,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
             for(const item of (data?.actions ?? [])) {
                 if(item.action === 'fold') {
-                    // On ajoute l'ID et l'index du siège pour être sûr
-                    foldedPlayers.current.add(item.playerId);
-                    const seatIndex = data.playerIds?.indexOf(item.playerId);
-                    if (seatIndex !== -1) {
-                        foldedPlayers.current.add(seatIndex);
-                    }
+                    foldedPlayers.current.add(item.playerId)
                 }
             }
             
@@ -609,7 +609,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                             gameOver={gameOver}
                             hideStack={hideStack}
                             tableId={tableId}
-                            community={community}
                         />
                     );
                 })}

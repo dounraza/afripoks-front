@@ -138,7 +138,7 @@
             width: 100%;
 
             &.omaha {
-                top: -4.2rem; // Légèrement plus haut car les cartes sont plus grandes
+                top: -4.8rem; // Ajusté pour des cartes plus grandes
             }
 
             .card-containers {
@@ -148,26 +148,25 @@
 
                 &.omaha {
                     .card {
-                        width: 3.5rem; // Increased from 2.6rem
-                        margin: 0 -0.9rem; // Adjusted margin for larger width
-
+                        width: 3.0rem; // Augmenté de 2.6rem à 3.0rem pour plus de visibilité
+                        margin: 0 -0.8rem; // Ajusté pour maintenir les 4 cartes groupées
+                        
                         img {
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
-                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+                            border: 1.5px solid rgba(255, 255, 255, 0.3); // Bordure un peu plus épaisse
                         }
-                        }
+                    }
+                }
 
-                        .card {
-                        width: 2.5rem; // Increased from 1.8rem
-                        margin: 0 -0.6rem; // Adjusted margin for larger width
-                        transition: transform 0.2s;
-                        position: relative;
+                .card {
+                    width: 1.8rem;
+                    margin: 0 -0.3rem;
+                    transition: transform 0.2s;
+                    position: relative;
 
-                        &:hover {
-                            transform: translateY(-5px);
-                            z-index: 5;
-                        }
-
+                    &:hover {
+                        transform: translateY(-5px);
+                        z-index: 5;
                     }
 
                     img {
