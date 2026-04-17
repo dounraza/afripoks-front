@@ -259,7 +259,7 @@ const Tables = () => {
                             </div>
                         </div>
 
-                        {tables.length > 0 && (
+                        {filteredTables.length > 0 && (
                             <div className="featured-section">
                                 <div
                                     className="featured-card"
@@ -269,17 +269,17 @@ const Tables = () => {
                                         backgroundPosition: 'center'
                                     }}
                                 >
-                                    <h2 className="featured-title">{tables[0].name}</h2>
+                                    <h2 className="featured-title">{filteredTables[0].name}</h2>
                                     <div className="featured-info">
-                                        {(tables[0]?.cave ?? 0).toLocaleString()} Ar{" "}
+                                        {(filteredTables[0]?.cave ?? 0).toLocaleString()} Ar{" "}
                                         <span className="range-text">
-                                            (SB: {(tables[0]?.smallBlind ?? 0).toLocaleString()} - BB: {(tables[0]?.bigBlind ?? 0).toLocaleString()})
+                                            (SB: {(filteredTables[0]?.smallBlind ?? 0).toLocaleString()} - BB: {(filteredTables[0]?.bigBlind ?? 0).toLocaleString()})
                                         </span>
                                     </div>
                                     <button
                                         className="featured-play-btn"
                                         onClick={() => {
-                                            setSelectedTableId(tables[0].id);
+                                            setSelectedTableId(filteredTables[0].id);
                                             setShowModalCave(true);
                                         }}
                                     >
