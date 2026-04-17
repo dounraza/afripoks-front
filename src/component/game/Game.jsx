@@ -133,7 +133,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow(community);
             setTimeout(() => {
                 setCommunityToShow(community);
-            }, 100);
+            }, 50);
             setIsRevealFinished(true);
             return;
         }
@@ -144,7 +144,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow(community);
             setTimeout(() => {
                 setCommunityToShow(community);
-            }, 100);
+            }, 50);
             setIsRevealFinished(true);
             return;
         }
@@ -162,12 +162,12 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         setCommunityShow(newShowCards);
                         setTimeout(() => {
                             setCommunityToShow(prev => [...prev, newShowCards[i]]);
-                        }, 100);
-                    }, 500);
+                        }, 50);
+                    }, 250);
                     if (i + 1 === community.length) {
                         setIsRevealFinished(true);
                     }
-                }, (timeindex * 1000));
+                }, (timeindex * 500));
 
                 timeouts.push(timeout);
                 timeindex ++;
@@ -304,16 +304,14 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     } else {
                         setCommunityReversNb(1);
                     }
-                    setTimeout(() => {
-                        setMoveCommCards(true);
-                    }, 100);
+                    setMoveCommCards(true);
                 }
                 setTimeout(() => {
                     setMoveCommCards(false);
                     setCommunity(data.communityCards);
                     setCommunityReversNb(0);
                     latestCommCardRef.current = data.communityCards[data.communityCards.length -1];
-                }, 500);
+                }, 300);
             }
 
             if(data.toAct == data.seat) {
