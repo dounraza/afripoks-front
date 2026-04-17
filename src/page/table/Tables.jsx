@@ -259,35 +259,7 @@ const Tables = () => {
                             </div>
                         </div>
 
-                        {filteredTables.length > 0 && (
-                            <div className="featured-section">
-                                <div
-                                    className="featured-card"
-                                    style={{
-                                        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${pokerImages[0]})`,
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center'
-                                    }}
-                                >
-                                    <h2 className="featured-title">{filteredTables[0].name}</h2>
-                                    <div className="featured-info">
-                                        {(filteredTables[0]?.cave ?? 0).toLocaleString()} Ar{" "}
-                                        <span className="range-text">
-                                            (SB: {(filteredTables[0]?.smallBlind ?? 0).toLocaleString()} - BB: {(filteredTables[0]?.bigBlind ?? 0).toLocaleString()})
-                                        </span>
-                                    </div>
-                                    <button
-                                        className="featured-play-btn"
-                                        onClick={() => {
-                                            setSelectedTableId(filteredTables[0].id);
-                                            setShowModalCave(true);
-                                        }}
-                                    >
-                                        Jouer
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+
 
                         <div className="section-container">
                             <div className="lobby-grid">
