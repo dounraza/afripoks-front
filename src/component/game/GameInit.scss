@@ -138,7 +138,7 @@
             width: 100%;
 
             &.omaha {
-                top: -4.2rem; // Restauré selon GameInit.scss
+                top: -4.2rem; // Légèrement plus haut car les cartes sont plus grandes
             }
 
             .card-containers {
@@ -148,8 +148,8 @@
 
                 &.omaha {
                     .card {
-                        width: 2.6rem; // Restauré selon GameInit.scss
-                        margin: 0 -0.6rem; // Restauré selon GameInit.scss
+                        width: 2.6rem; // Plus grand que 1.8rem (initialement 2.4rem)
+                        margin: 0 -0.6rem; // Plus d'overlap pour compenser la largeur
                         
                         img {
                             box-shadow: 0 4px 10px rgba(0,0,0,0.7);
@@ -159,8 +159,8 @@
                 }
 
                 .card {
-                    width: 1.8rem; // Restauré selon GameInit.scss
-                    margin: 0 -0.3rem; // Restauré selon GameInit.scss
+                    width: 1.8rem;
+                    margin: 0 -0.3rem;
                     transition: transform 0.2s;
                     position: relative;
 
