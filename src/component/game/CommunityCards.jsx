@@ -60,7 +60,7 @@ const CommunityCards = ({
                             {allInArr.length > 0 ? (
                                 <div className="card-community"
                                     style={{
-                                        transition: 'all .2s ease-in',
+                                        transition: 'all .1s linear',
                                         transform: communityToShow[i] === card ? 'rotateY(0deg)' : 'rotateY(90deg)',
                                     }}
                                 >
