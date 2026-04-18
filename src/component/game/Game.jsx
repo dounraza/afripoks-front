@@ -151,22 +151,26 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
         const timeouts = [];
         if (diff > 1) {
+            let timeindex = 0;
             for(let i = communityShow.length; i < community.length; i++) {
                 const newShowCards = community.slice(0, i + 1);
                 
                 const timeout = setTimeout(() => {
                     console.log('Community show', newShowCards);
-                    setCommunityShow(newShowCards);
+                    console.log(i);
                     setTimeout(() => {
-                        setCommunityToShow(prev => [...prev, newShowCards[i]]);
-                    }, 50);
-                    
+                        setCommunityShow(newShowCards);
+                        setTimeout(() => {
+                            setCommunityToShow(prev => [...prev, newShowCards[i]]);
+                        }, 100);
+                    }, 500);
                     if (i + 1 === community.length) {
                         setIsRevealFinished(true);
                     }
-                }, (i - communityShow.length) * 200);
+                }, (timeindex * 1000));
 
                 timeouts.push(timeout);
+                timeindex ++;
             }
         }
         return () => {
