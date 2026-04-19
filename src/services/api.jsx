@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+// En production (Vercel), on utilise le rewrite configuré dans vercel.json
+// En local, on garde l'URL du backend local
+const BASE_URL = window.location.hostname === 'localhost' 
+    ? (process.env.REACT_APP_BASE_URL || 'http://localhost:5000')
+    : '/api'; 
 
 const api = axios.create({
   baseURL: BASE_URL,
