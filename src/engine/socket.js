@@ -4,7 +4,9 @@
 
 // export const smileySocket = io(process.env.REACT_APP_SMILEY_BASE_URL);
 // export const onlineUsersSocket = io(process.env.REACT_APP_ONLINE_USERS_BASE_URL);
-// const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+// const SOCKET_URL = window.location.hostname === 'localhost' 
+    ? (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000')
+    : 'https://afripoks-back-production.up.railway.app';
 
 // const SocketClient = () => {
 //   const socketRef = useRef(null);
@@ -40,7 +42,9 @@
 // src/engine/socket.js
 // import { io } from 'socket.io-client';
 
-// const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+// const SOCKET_URL = window.location.hostname === 'localhost' 
+    ? (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000')
+    : 'https://afripoks-back-production.up.railway.app';
 
 // export const socket = io(SOCKET_URL, {
 //     autoConnect: true,
@@ -67,7 +71,9 @@
 
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = window.location.hostname === 'localhost' 
+    ? (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000')
+    : 'https://afripoks-back-production.up.railway.app';
 
 export const socket = io(SOCKET_URL, {
     autoConnect: false, // ✅ Ne pas connecter automatiquement

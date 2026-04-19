@@ -2,7 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://afripoks-backend.onrender.com/api/:path*"
+      "destination": "https://afripoks-back-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/((?!api/|static/|favicon.ico|logo.ico|manifest.json|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ]
 }

@@ -29,7 +29,13 @@ export const OnlineUserProvider = ({ children }) => {
 
     const handleUsersUpdate = (data) => {
       console.log('📥 users_count_update:', data);
-      setOnlineUsers(data.users ?? []);
+      if (data && data.users) {
+        setOnlineUsers(data.users);
+      } else if (Array.isArray(data)) {
+        setOnlineUsers(data);
+      } else {
+        setOnlineUsers([]);
+      }
     };
 
     socket.on('connect', handleConnect);

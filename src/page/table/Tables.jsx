@@ -34,11 +34,11 @@ const Tables = () => {
         return saved ? Number(saved) : null;
     });
 
-    const { onlineUsers } = useContext(OnlineUserContext);
-    const { joinedTables } = useContext(JoinedTableContext);
+    const { onlineUsers } = useContext(OnlineUserContext) || { onlineUsers: [] };
+    const { joinedTables } = useContext(JoinedTableContext) || { joinedTables: [] };
     
     // ✅ Utiliser la longueur du contexte OnlineUserContext au lieu du hook
-    const connectedCount = onlineUsers?.length || 0;
+    const connectedCount = Array.isArray(onlineUsers) ? onlineUsers.length : 0;
 
     const loadData = async () => {
         setLoading(true);
@@ -52,7 +52,6 @@ const Tables = () => {
             const userId = sessionStorage.getItem('userId');
             if (userId) {
                 console.log('📥 [Tables] Appel getSolde pour userId:', userId);
-                // await getSolde(userId, setSolde);
                 await getSolde(userId, setSolde);
                 console.log('✅ [Tables] getSolde terminé');
             }
@@ -68,6 +67,7 @@ const Tables = () => {
     };
 
     useEffect(() => {
+        console.log('🔄 [Tables] useEffect location.key:', location.key);
         if (!isNavigatingRef.current) {
             loadData();
         }
@@ -76,6 +76,7 @@ const Tables = () => {
 
     useEffect(() => {
         const handleFocus = () => {
+            console.log('🎯 [Tables] Window focus, reloading...');
             if (!isNavigatingRef.current) {
                 loadData();
             }
@@ -89,7 +90,6 @@ const Tables = () => {
         const userId = sessionStorage.getItem('userId');
         const username = sessionStorage.getItem('userName');
         
-        // Note: Le socket gérant les utilisateurs connectés est dans useConnectedUsers
         console.log('📤 Navigation vers table:', { tableId, userId, username });
 
         isNavigatingRef.current = true;
@@ -135,16 +135,20 @@ const Tables = () => {
 
     const playGame = () => verifyCave(selectedTableId);
 
-    const lastTable = lastTableId
-        ? tables.find(t => Number(t.id) === Number(lastTableId))
+    const tablesArray = Array.isArray(tables) ? tables : [];
+    const validLastTableId = lastTableId ? Number(lastTableId) : null;
+
+    const lastTable = validLastTableId
+        ? tablesArray.find(t => t && Number(t.id) === validLastTableId)
         : null;
 
-    const filteredTables = tables.filter(t => {
+    const filteredTables = tablesArray.filter(t => {
+        if (!t) return false;
         if (filterType === 'all') return true;
         return t.gameType === filterType;
     });
 
-    const waitingTables = filteredTables.filter(t => Number(t.id) !== Number(lastTableId));
+    const waitingTables = filteredTables.filter(t => t && Number(t.id) !== validLastTableId);
 
     const pokerImages = [
         "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400&h=300&fit=crop&q=80",
@@ -164,6 +168,8 @@ const Tables = () => {
         "https://images.unsplash.com/photo-1606502280291-e0e16e85a803?w=400&h=300&fit=crop&q=80",
         "https://images.unsplash.com/photo-1606503153255-59d440165935?w=400&h=300&fit=crop&q=80",
     ];
+
+    console.log('🎨 [Tables] Rendering...', { tablesCount: tablesArray.length, loading, connectedCount });
 
     return (
         <>

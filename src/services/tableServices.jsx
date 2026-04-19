@@ -5,13 +5,20 @@ const API_URL = `/api/tables`;
 export const getAll = async (setter, setSitCounts) => {    
   try {
     const response = await api.get(API_URL);
-    if(response.data){
+    if(response && response.data){
+        const tablesData = response.data.data || [];
+        const occupiedSeatsData = response.data.occupiedSeats || {};
         
-        setter(response.data.data);
-        setSitCounts(new Map(Object.entries(response.data.occupiedSeats))); 
+        setter(Array.isArray(tablesData) ? tablesData : []);
+        setSitCounts(new Map(Object.entries(occupiedSeatsData))); 
     }
   } catch (error) {
-    throw new Error(error);
+    console.error("Error in getAll tables:", error);
+    setter([]);
+    setSitCounts(new Map());
+    // Ne pas throw pour éviter de casser le flux si possible, 
+    // ou throw un message simple
+    throw error;
   }
 };
 
