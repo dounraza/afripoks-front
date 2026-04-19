@@ -323,7 +323,8 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
         socketRef.current.on('quitsuccess', () => {
             onlineUsersSocket.emit('joined-tables:leave', { uid: parseInt(userId), tid: parseInt(tableId) });
-            navigate('/table');
+            // RELOAD TOTAL : remplace navigate pour vider toute la mémoire et rafraîchir le solde
+            window.location.href = '/table';
         });
 
         socketRef.current.on('quiterror', () => {
