@@ -52,47 +52,18 @@ const CommunityCards = ({
                     )
                 })}
             </div>
-            {(gameOver && allInArr.length > 0) && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        display: 'flex',
-                        zIndex: -1,
-                    }}
-                >
-                    {Array.from({ length: 5 }).map((_, i) => (
-                        <div className="card-community" key={i}
-                            style={{
-                                opacity: communityShow[i] ? 0 : 1,
-                                transition: 'all .2s ease-in',
-                                transform: communityShow[i] ? 'rotateY(90deg)' : 'rotateY(0)',
-                                marginRight: 8,
-                            }}
-                            onTransitionStart={() => {
-                                playSound('showCard');
-                            }}
-                        >
-                            <img src={require("../../styles/image/rever.png")} alt="" />
-                        </div>
-                    ))}
-                </div>
-            )}
             {communityShow.map((card, i) => (
                 <React.Fragment key={i}>
-                    {allInArr.length > 0 ? (
-                        <div className="card-community"
-                            style={{
-                                transition: 'all .2s ease-in',
-                                transform: communityToShow[i] === card ? 'rotateY(0deg)' : 'rotateY(90deg)',
-                            }}
-                        >
-                            <img src={getSrcCard(card)} alt="" />
-                        </div>
-                    ) : (
-                        <div className="card-community">
-                            <img src={getSrcCard(card)} alt="" />
-                        </div>
-                    )}
+                    <div className="card-community"
+                        style={{
+                            // Glissade de droite à gauche : on part de la droite (100px) vers la position 0
+                            transition: 'all 0.5s ease-out',
+                            transform: communityToShow[i] === card ? 'translateX(0) rotateY(0deg)' : 'translateX(100px) rotateY(90deg)',
+                            opacity: communityToShow[i] === card ? 1 : 0,
+                        }}
+                    >
+                        <img src={getSrcCard(card)} alt="" />
+                    </div>
                 </React.Fragment>
             ))}
         </div>

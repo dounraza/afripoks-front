@@ -72,119 +72,120 @@ const Player = ({
     const [isStackHidden, setIsStackHidden] = useState(false);
     const [showResult, setShowResult] = useState(false);
     
-    // Références pour verrouiller le solde
+    // Références pour verrouiller le solde et la séquence
     const lastSafeStack = useRef(chips?.stack ?? 0);
     const isLocked = useRef(false);
-
-    // Persister le dernier solde valide pour éviter les sauts à 0
+    const sequenceStarted = useRef(false);
+    
+    // NOUVEAU : Référence pour toujours avoir le solde le plus récent du serveur
+    const actualStack = chips?.stack ?? 0;
+    const latestStackRef = useRef(actualStack);
     useEffect(() => {
-        if (chips?.stack !== undefined && chips?.stack !== null) {
-            lastSafeStack.current = chips.stack;
-        }
-    }, [chips?.stack]);
+        latestStackRef.current = actualStack;
+    }, [actualStack]);
 
+    // Déterminer l'état actuel
+    const isWinPhase = gameOver || (winData?.winStates?.length > 0);
+    const isPlayerAtSeat = tableState.playerNames[i] != null;
+    const winnerInfo = winData?.winStates?.find(w => w.seat === i);
+    const isWinner = !!winnerInfo?.isWinner;
+    const isPlayerInHand = isPlayerAtSeat && !foldedPlayers.current.has(i);
+    const isPlayerAllIn = tableState.handInProgress && !isWinPhase && actualStack === 0 && isPlayerInHand;
+
+    // Déterminer s'il y a eu un Showdown (ouverture des cartes)
+    const hasShowdown = winData?.allCards && Object.keys(winData.allCards).length > 0 && Object.values(winData.allCards).some(hand => hand && hand.length > 0);
+    
+    // MASQUAGE : On cache tout pendant la phase de victoire, sauf si la séquence est finie (isLocked est redevenu false)
+    const shouldBeHidden = isWinPhase 
+        ? (isLocked.current || !sequenceStarted.current || showResult || isStackHidden)
+        : (isPlayerAllIn || isStackHidden);
+
+    // Reset complet de la séquence et du masquage quand on quitte la phase de victoire
     useEffect(() => {
-        if (chips?.stack === undefined || chips?.stack === null) return;
-
-        const actualStack = chips.stack;
-        const isWinPhase = gameOver || (winData?.winStates?.length > 0);
-        
-        // DÉTECTION PROACTIVE : Si le solde du serveur est supérieur à notre dernier solde sûr,
-        // c'est une victoire certaine (ou un gain de pot).
-        const isIncreasing = actualStack > lastSafeStack.current;
-
-        // CAS 1 : Phase de jeu normale (Mises, Suivis, Blinds)
-        // On n'autorise la mise à jour que si le solde baisse ou reste identique.
-        if (!isWinPhase && !isIncreasing) {
+        if (!isWinPhase) {
+            sequenceStarted.current = false;
             isLocked.current = false;
-            lastSafeStack.current = actualStack;
-            setDisplayStack(actualStack);
             setIsStackHidden(false);
             setShowResult(false);
-            return;
+            setDisplayStack(latestStackRef.current);
+            lastSafeStack.current = latestStackRef.current;
         }
+    }, [isWinPhase]);
 
-        // CAS 2 : ANTICIPATION (Augmentation détectée avant même le gameOver)
-        // On bloque l'affichage sur la valeur d'avant pour préserver la surprise.
-        if (!isWinPhase && isIncreasing) {
-            isLocked.current = true;
-            // On ne touche pas à displayStack, il reste sur lastSafeStack.current
-            return;
-        }
+    // Persister le dernier solde valide et gérer les animations
+    useEffect(() => {
+        const isIncreasing = actualStack > lastSafeStack.current;
 
-        // CAS 3 : Phase de victoire confirmée (gameOver ou winData présent)
-        const winner = winData?.winStates?.find(w => w.seat === i);
-        const isWinner = winner?.isWinner;
-        // On considère comme "perdant" (pour l'affichage du badge) soit celui qui a perdu au showdown,
-        // soit celui qui a foldé pendant que la main était en cours.
-        const isLoser = (winner && !winner.isWinner) || (foldedPlayers.current.has(i) && isWinPhase);
+        // 1. PHASE DE VICTOIRE
+        if (isWinPhase && isPlayerAtSeat) {
+            const isLoser = !isWinner;
 
-        if (isWinner || isLoser) {
-            isLocked.current = true;
-            const hasShowdown = winData?.allCards && Object.values(winData.allCards).some(hand => hand && hand.length > 0);
-
-            // SI PAS DE SHOWDOWN (All Fold)
-            if (!hasShowdown) {
-                if (!isStackHidden && !showResult) {
-                    setIsStackHidden(true);
-                    setShowResult(true);
-
-                    const timerStack = setTimeout(() => {
-                        setDisplayStack(actualStack);
-                        setIsStackHidden(false);
-                        setShowResult(false);
-                        lastSafeStack.current = actualStack;
-                    }, 3000);
-
-                    return () => clearTimeout(timerStack);
-                }
-                return;
+            // DÉMARRAGE DE LA SÉQUENCE
+            if (!sequenceStarted.current) {
+                sequenceStarted.current = true;
+                isLocked.current = true;
+                setIsStackHidden(true);
+                setShowResult(false);
             }
 
-            // SI SHOWDOWN (Suspense complet)
-            if (!isRevealFinished) {
-                // Toujours bloqué sur l'ancien montant pendant l'ouverture des cartes
-                setDisplayStack(lastSafeStack.current);
-                // Ensure showResult is true during card reveal
-                setShowResult(true);
-            } else {
-                // Séquence de suspense (les cartes sont ouvertes)
-                // Only trigger the result display if it hasn't been shown yet
-                if (!isStackHidden && !showResult) {
-                    setIsStackHidden(true);
-
-                    const timerResult = setTimeout(() => {
-                        setShowResult(true); // Set showResult to true to display the badge
-                    }, 1200);
-
-                    const timerStack = setTimeout(() => {
-                        setDisplayStack(actualStack); // Libération finale du nouveau solde
-                        setIsStackHidden(false);
-                        setShowResult(false); // Reset showResult after the full animation
-                        lastSafeStack.current = actualStack;
-                    }, 4500);
-
-                    return () => {
-                        clearTimeout(timerResult);
-                        clearTimeout(timerStack);
-                    };
-                } else if (isStackHidden && showResult) {
-                    // If stack is hidden and results are already shown (e.g., after animation)
-                    // ensure stack is updated and showResult is reset for the next hand
-                    setDisplayStack(actualStack);
-                    setIsStackHidden(false);
-                    setShowResult(false);
-                    lastSafeStack.current = actualStack;
+            // GESTION DE L'AFFICHAGE DU RÉSULTAT
+            if (sequenceStarted.current && isLocked.current && !showResult) {
+                
+                // CAS 1 : Pas de showdown (Tout le monde a foldé)
+                if (!hasShowdown) {
+                    const tResult = setTimeout(() => {
+                        setShowResult(true); 
+                        const tFinal = setTimeout(() => {
+                            const finalAmount = latestStackRef.current;
+                            setDisplayStack(finalAmount);
+                            setIsStackHidden(false);
+                            setShowResult(false);
+                            lastSafeStack.current = finalAmount;
+                            isLocked.current = false;
+                        }, 3000);
+                        return () => clearTimeout(tFinal);
+                    }, 500); 
+                    return () => clearTimeout(tResult);
+                } 
+                
+                // CAS 2 : Showdown (On attend que isRevealFinished soit vrai)
+                if (hasShowdown && isRevealFinished) {
+                    const t1 = setTimeout(() => {
+                        setShowResult(true); // ICI affichage de "PAIR 5", etc.
+                        
+                        const t2 = setTimeout(() => {
+                            const finalAmount = latestStackRef.current;
+                            setDisplayStack(finalAmount);
+                            setIsStackHidden(false);
+                            setShowResult(false);
+                            lastSafeStack.current = finalAmount;
+                            isLocked.current = false;
+                        }, 2500);
+                        return () => clearTimeout(t2);
+                    }, 1000);
+                    return () => clearTimeout(t1);
                 }
             }
-        } else {
-            // Perdants foldés ou spectateurs (pas de victoire ni de défaite affichée directement)
-            setDisplayStack(actualStack);
-            lastSafeStack.current = actualStack;
-            // Ensure showResult is false if not in a win/loss phase
-            setShowResult(false);
         }
-        }, [chips?.stack, gameOver, isRevealFinished, winData, i]);
+
+        // 2. PHASE DE JEU NORMALE
+        if (!isWinPhase) {
+            if (isPlayerAllIn) {
+                setIsStackHidden(true);
+                isLocked.current = true;
+            } else if (!isIncreasing && !isLocked.current) {
+                setDisplayStack(actualStack);
+                setIsStackHidden(false);
+                setShowResult(false);
+                lastSafeStack.current = actualStack;
+            } else if (isIncreasing && !isLocked.current) {
+                isLocked.current = true;
+                setIsStackHidden(true); 
+            } else if (!isIncreasing && isLocked.current && !isPlayerAllIn) {
+                isLocked.current = false;
+            }
+        }
+    }, [actualStack, gameOver, isRevealFinished, winData, i, tableState, isPlayerAllIn, isWinPhase, hasShowdown, isPlayerAtSeat, isWinner]);
 
         if (!tableState.playerNames[i]) return null;
 
@@ -223,9 +224,6 @@ const Player = ({
     };
 
     const cardCount = getCardCount();
-
-    // Déterminer s'il y a eu un Showdown (ouverture des cartes)
-    const hasShowdown = winData?.allCards && Object.values(winData.allCards).some(hand => hand && hand.length > 0);
 
     return (
         <>
@@ -421,7 +419,7 @@ const Player = ({
                     }
                 </div>
                 <div className="stacks">
-                    {isStackHidden ? (
+                    {shouldBeHidden ? (
                         showResult ? (
                             winData?.winStates?.find(w => w.seat === i)?.isWinner ? (
                                 <div className="hand-name-result" style={{ color: '#00FF99', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -434,13 +432,15 @@ const Player = ({
                                     padding: '2px 8px',
                                     borderRadius: '10px',
                                     textTransform: 'uppercase',
-                                    display: 'block', // Force display instead of 'none'
-                                    margin: '0 auto'
+                                    display: 'block', 
+                                    margin: '0 auto',
+                                    color: '#ff4444',
+                                    border: '1px solid #ff4444'
                                 }}>
                                     {hasShowdown ? 'Lose' : 'ALL FOLD'}
                                 </div>
                             )
-                        ) : null // Zone vide pour le suspense
+                        ) : null 
                     ) : (
                         <>
                             {chips != null ? `${displayStack}` :
@@ -451,7 +451,7 @@ const Player = ({
                 
                 <div
                     style={{
-                        zIndex: 9999,
+                        zIndex: 5, /* Réduit pour ne pas bloquer les boutons d'action global */
                         position: 'absolute',
                         top: '100%',
                         // right: i <= 3 ? '-25%' : 'auto',

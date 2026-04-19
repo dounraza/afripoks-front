@@ -644,8 +644,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     {/* <span>Historique</span> */}
                 </div>
             </div>
-
-            
             <GameHistoryModal 
                 isOpen={isHistoryModalOpen}
                 onClose={() => setIsHistoryModalOpen(false)}

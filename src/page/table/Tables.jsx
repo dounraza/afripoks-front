@@ -99,25 +99,38 @@ const Tables = () => {
     };
 
     const verifyCave = async (id) => {
-        const caveMin = await getById(id);
-
-        if (cave === '') {
-            goToTable(selectedTableId, caveMin);
-        } else if (Number(cave) >= Number(caveMin)) {
-            if (solde >= Number(cave)) {
-                goToTable(selectedTableId, cave);
-            } else {
-                toast.error("Votre solde est insuffisant !");
-                return;
-            }
-        } else {
-            toast.error(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
+        if (!id) {
+            console.error('❌ [Tables] verifyCave appelé sans ID');
+            toast.error("Erreur: ID de table manquant");
             return;
         }
 
-        setShowModalCave(false);
-        setSelectedTableId(null);
-        setCave('');
+        try {
+            console.log('📥 [Tables] Appel getById pour id:', id);
+            const caveMin = await getById(id);
+            console.log('✅ [Tables] caveMin reçue:', caveMin);
+
+            if (cave === '') {
+                goToTable(id, caveMin);
+            } else if (Number(cave) >= Number(caveMin)) {
+                if (solde >= Number(cave)) {
+                    goToTable(id, cave);
+                } else {
+                    toast.error("Votre solde est insuffisant !");
+                    return;
+                }
+            } else {
+                toast.error(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
+                return;
+            }
+
+            setShowModalCave(false);
+            setSelectedTableId(null);
+            setCave('');
+        } catch (error) {
+            console.error('❌ [Tables] Erreur dans verifyCave:', error);
+            toast.error("Impossible de rejoindre la table (Erreur réseau)");
+        }
     };
 
     const playGame = () => verifyCave(selectedTableId);
