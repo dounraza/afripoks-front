@@ -2,9 +2,9 @@ import axios from "axios";
 
 // En production (Vercel), on laisse vide car les services ajoutent déjà '/api'
 // En local, on garde l'URL du backend local
-const BASE_URL = process.env.REACT_APP_BASE_URL || (window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000'
-    : 'https://afripoks-backend.onrender.com'); 
+const BASE_URL = window.location.hostname === 'localhost' 
+    ? (process.env.REACT_APP_BASE_URL || 'http://localhost:5000')
+    : 'https://afripoks-back-production.up.railway.app'; 
 
 const api = axios.create({
   baseURL: BASE_URL,
