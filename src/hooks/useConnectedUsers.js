@@ -4,7 +4,7 @@ import io from 'socket.io-client';
 
 const SOCKET_URL = window.location.hostname === 'localhost' 
     ? (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000')
-    : 'https://afripoks-back-production.up.railway.app';
+    : 'https://afripoks-backend.onrender.com';
 
 export const useConnectedUsers = () => {
   const [connectedCount, setConnectedCount] = useState(0);

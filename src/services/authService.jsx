@@ -3,7 +3,7 @@ import { onlineUsersSocket } from '../engine/socket';
 
 const BASE_URL = window.location.hostname === 'localhost' 
     ? (process.env.REACT_APP_BASE_URL || 'http://localhost:5000')
-    : 'https://afripoks-back-production.up.railway.app'; 
+    : 'https://afripoks-backend.onrender.com'; 
 const API_URL = `${BASE_URL}/api/auth/login`; 
 
 export const login = async (email, password) => {

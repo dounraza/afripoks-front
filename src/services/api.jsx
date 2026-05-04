@@ -4,7 +4,7 @@ import axios from "axios";
 // En local, on garde l'URL du backend local
 const BASE_URL = window.location.hostname === 'localhost' 
     ? (process.env.REACT_APP_BASE_URL || 'http://localhost:5000')
-    : 'https://afripoks-back-production.up.railway.app'; 
+    : 'https://afripoks-backend.onrender.com'; 
 
 const api = axios.create({
   baseURL: BASE_URL,
