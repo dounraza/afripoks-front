@@ -19,7 +19,7 @@ const RetraitMobileInput = () => {
         setAmount(0);
         setPhoneNumber(""); 
         setName(""); 
-        navigate("/table");
+        navigate("/acceuil");
     }
 
     const saveTransac = async () => {
@@ -42,7 +42,7 @@ const RetraitMobileInput = () => {
                 
                 await retraitService(data);   
                 setTimeout(() => {
-                    navigate('/table');
+                    navigate('/acceuil');
                 }, 1000);             
             } catch (error) {
                 toast.error(error.message);

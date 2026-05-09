@@ -26,7 +26,7 @@ const DepotMobileInput = () => {
         setPhoneNumber("");
         setRef(""); 
         setName(""); 
-        navigate("/table");
+        navigate("/acceuil");
     }
 
     const isValid = (pseudo,amount,phoneNumber,name,ref) => {
@@ -54,7 +54,7 @@ const DepotMobileInput = () => {
             try {
                 await depotService(data);
                 setTimeout(() => {
-                    navigate('/table');
+                    navigate('/acceuil');
                 }, 2000);
             } catch (error) {
                 toast.error(error.message);

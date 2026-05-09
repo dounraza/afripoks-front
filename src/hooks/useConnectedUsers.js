@@ -2,9 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { getConnectedUsers } from '../services/api';
 import io from 'socket.io-client';
 
-const SOCKET_URL = window.location.hostname === 'localhost' 
-    ? (process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000')
-    : 'https://afripoks-backend.onrender.com';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
 export const useConnectedUsers = () => {
   const [connectedCount, setConnectedCount] = useState(0);

@@ -1,24 +1,17 @@
-import api from "./api";
+import api, { publicApi } from "./api";
 const API_URL = `/api/tables`;
 
 
 export const getAll = async (setter, setSitCounts) => {    
   try {
-    const response = await api.get(API_URL);
-    if(response && response.data){
-        const tablesData = response.data.data || [];
-        const occupiedSeatsData = response.data.occupiedSeats || {};
+    const response = await publicApi.get(API_URL);
+    if(response.data){
         
-        setter(Array.isArray(tablesData) ? tablesData : []);
-        setSitCounts(new Map(Object.entries(occupiedSeatsData))); 
+        setter(response.data.data);
+        setSitCounts(new Map(Object.entries(response.data.occupiedSeats))); 
     }
   } catch (error) {
-    console.error("Error in getAll tables:", error);
-    setter([]);
-    setSitCounts(new Map());
-    // Ne pas throw pour éviter de casser le flux si possible, 
-    // ou throw un message simple
-    throw error;
+    throw new Error(error);
   }
 };
 

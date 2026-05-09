@@ -16,22 +16,66 @@
     
     zoom: 1;
 
-    .exit {
+    .game-header {
         position: absolute;
         top: 2%;
-        left: 0%;
-       // width: 4rem;
-      //  height: 2rem;
-        @include flex-center;
-        border-radius: 3px;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
-        color: $gold;
-        cursor: pointer;
+        left: 2%;
+        right: 2%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         z-index: 999;
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .username-display {
+                color: $gold;
+                font-weight: 700;
+                font-size: 1rem;
+                text-shadow: 0 0 10px rgba(248, 197, 55, 0.5);
+                background: rgba(0, 0, 0, 0.5);
+                padding: 4px 12px;
+                border-radius: 20px;
+                border: 1px solid rgba($gold, 0.3);
+            }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+    }
+
+    .exit {
+        @include flex-center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #FF5252 0%, #D32F2F 100%);
+        color: white;
+        cursor: pointer;
+        box-shadow: 
+            0 4px 0 #C62828,
+            0 6px 10px rgba(0, 0, 0, 0.4);
+        transition: all 0.1s ease;
+
+        &:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #C62828;
+        }
+
+        svg {
+            display: block;
+        }
     }
 
     .table {
         position: absolute;
+        top: 4rem; /* Augmentation de 0 à 4rem pour descendre la table */
         width: 21rem;
         height: 36rem;
         display: flex;
@@ -39,6 +83,7 @@
         justify-content: center;
 
         .table-surface {
+            margin-top: 90%;
             z-index: 2;
 
             img {
@@ -57,11 +102,13 @@
     }
 
     .player {
+          
+      //  clip-path: polygon(10% 0%,90% 0%, 85% 100%,   15% 100%);
         position: absolute;
         width: 5rem;
         padding-top: 2pt;
         padding-bottom: 2pt;
-        background-color: #2d1c0c;
+        background-color: transparent;
      //   border: 1px solid $gold;
         @include flex-center;
         color: $background;
@@ -133,16 +180,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            top: -3.5rem;
+            top: -5.5rem;
             z-index: -1;
             width: 100%;
 
-            &.holdem {
-                top: -3.8rem; 
-            }
-
             &.omaha {
-                top: -3.8rem;
+                top: -6.5rem; // Légèrement plus haut car les cartes sont plus grandes
             }
 
             .card-containers {
@@ -150,32 +193,21 @@
                 justify-content: center;
                 align-items: center;
 
-                &.holdem {
-                    .card {
-                        width: 2.8rem; // Fixé à 2.8rem
-                        margin: 0 -0.3rem;
-                        
-                        img {
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-                        }
-                    }
-                }
-
                 &.omaha {
                     .card {
-                        width: 2.6rem; // Augmenté pour Omaha
-                        margin: 0 -0.6rem; 
+                        width: 3.8rem; // Augmenté de 3rem
+                        margin: 0 -1rem; // Plus d'overlap pour compenser la largeur
                         
                         img {
-                            box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+                            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
                             border: 1px solid rgba(255, 255, 255, 0.2);
                         }
                     }
                 }
 
                 .card {
-                    width: 2.6rem;
-                    margin: 0 -0.6rem; 
+                    width: 2.8rem; // Augmenté à 2.8rem
+                    margin: 0 -0.6rem;
                     transition: transform 0.2s;
                     position: relative;
 
@@ -319,13 +351,13 @@
         }
 
         &.seat1 {
-            top: 33.5%;
-            left: -15%;
+            top: 60%;
+            left: -35%;
         }
 
         &.seat0 {
-            top: 70%;
-            left: -15%;
+            top: 100%;
+            left: -35%;
         }
     }
 
@@ -411,42 +443,36 @@
 
     .community-cards {
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
-        width: 22rem;
-        height: 5rem;
-        gap: 0.3rem;
+        padding-left: .7rem;
+        width: 21rem;
+        height: 4rem;
+        gap: .5rem;
         position: absolute;
-        top: 45%;
-        left: 6%;
+        top: 66%;
+        left: 8%;
         z-index: 3;
 
         .card-community {
-            width: 4.0rem; // Fixé à 4.0rem
-            
-            img {
-                border-radius: 3px;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-            }
+            width: 18%;
         }
     }
 
     .player-action-container {
              
-        padding: 10px;
+        padding: 20px;
         position: absolute;
-        top: 100%; /* Positionné tout en bas, hors de la table */
-        left: 50%;
-        transform: translateX(-50%);
-        zoom: .9;
-        z-index: 100; /* Plus haut que les joueurs */
+        top: 19rem;
+        left: 3%;
+        zoom: .8;
+        z-index: 10;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
         border-radius: .3rem;
-        gap: 0.8rem;
-        width: 100%;
+        gap: 1.5rem;
 
         .action-container {
             @include flex-center;
@@ -466,52 +492,69 @@
             }
         }
         .poker-button {
-        padding: 14px 32px;
-            border-radius: 25px;
+            padding: 10px 20px;
+            border-radius: 10px;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 0.5px;
             cursor: pointer;
             text-align: center;
-            border: 5px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.3),
-                inset 0 3px 6px rgba(255, 255, 255, 0.5),
-                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
-            transition: all 0.2s ease;
-            text-transform: none; 
-            min-width: 120px;
+            border: none;
+            transition: all 0.1s ease;
+            text-transform: uppercase; 
+            min-width: 90px;
             position: relative;
-    }
-   .poker-button:hover {
-            transform: translateY(-2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             box-shadow: 
-                0 6px 12px rgba(0, 0, 0, 0.4),
-                inset 0 3px 6px rgba(255, 255, 255, 0.6),
-                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
+                0 3px 0 rgba(0, 0, 0, 0.4),
+                0 5px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .poker-button:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
         }
 
         .poker-button:active {
-            transform: translateY(0);
+            transform: translateY(2px);
             box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                inset 0 2px 4px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+                0 1px 0 rgba(0, 0, 0, 0.4),
+                0 2px 5px rgba(0, 0, 0, 0.4);
         }
 
         .button-green {
-            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
-            color: white;
+            background: linear-gradient(180deg, #FFD700 0%, #FFB900 100%);
+            color: black;
+            box-shadow: 
+                0 3px 0 #B8860B,
+                0 5px 10px rgba(0, 0, 0, 0.4);
+            &:active {
+                box-shadow: 0 1px 0 #B8860B, 0 2px 5px rgba(0, 0, 0, 0.4);
+            }
         }
 
         .button-teal {
             background: linear-gradient(180deg, #00BFA5 0%, #00897B 100%);
             color: white;
+            box-shadow: 
+                0 3px 0 #00695C,
+                0 5px 10px rgba(0, 0, 0, 0.4);
+            &:active {
+                box-shadow: 0 1px 0 #00695C, 0 2px 5px rgba(0, 0, 0, 0.4);
+            }
         }
 
         .button-red {
             background: linear-gradient(180deg, #FF5252 0%, #D32F2F 100%);
             color: white;
+            box-shadow: 
+                0 3px 0 #C62828,
+                0 5px 10px rgba(0, 0, 0, 0.4);
+            &:active {
+                box-shadow: 0 1px 0 #C62828, 0 2px 5px rgba(0, 0, 0, 0.4);
+            }
         }
 
         .input-group {
@@ -519,29 +562,28 @@
             gap: 12px;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
 
         .bet-input-container {
             display: flex;
             align-items: center;
-            background: linear-gradient(180deg, #FFC107 0%, #FFA000 100%);
-            border-radius: 25px;
-            padding: 8px 16px;
-            border: 5px solid rgba(255, 255, 255, 0.4);
+            background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+            border-radius: 8px;
+            padding: 2px 8px;
+            border: 1px solid #ccc;
             box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.3),
-                inset 0 3px 6px rgba(255, 255, 255, 0.5),
-                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
-            min-width: 180px;
+                inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
             justify-content: space-between;
+            height: 36px;
         }
 
         .bet-control {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            background: #444;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -549,35 +591,22 @@
             transition: all 0.2s ease;
             color: white;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 16px;
             user-select: none;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 
-                inset 0 3px 4px rgba(255, 255, 255, 0.6),
-                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
         }
 
         .bet-control:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-            box-shadow: 
-                inset 0 3px 4px rgba(255, 255, 255, 0.7),
-                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .bet-control:active {
-            transform: scale(0.95);
-            box-shadow: 
-                inset 0 2px 3px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 3px rgba(0, 0, 0, 0.5);
+            background: #666;
         }
 
         .bet-amount {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 700;
             color: #000000;
-            min-width: 80px;
+            width: 50px;
             text-align: center;
+            border: none;
+            background: transparent;
         }
 .bet-control svg {
     width: 18px;

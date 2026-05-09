@@ -1,0 +1,89 @@
+.profile-container {
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #1a1a1a 0%, #050505 100%) !important;
+    padding-top: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+
+    .profile-content {
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+
+        h2 { color: var(--gold); margin-bottom: 30px; }
+
+        .profile-card {
+            background: #151515;
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(248, 197, 55, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+
+            .profile-avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--gold); }
+            .profile-info { text-align: left; 
+                button { background: var(--gold); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+            }
+        }
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.8);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 3000;
+    }
+
+    .profile-modal {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 20px;
+        border: 1px solid var(--gold);
+        width: 400px;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+
+        h3 { color: var(--gold); margin-bottom: 20px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #000;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .avatar-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            img { width: 50px; cursor: pointer; border: 2px solid transparent; border-radius: 50%; }
+            img.active { border-color: var(--gold); }
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            button {
+                flex: 1;
+                padding: 12px;
+                border-radius: 8px;
+                border: none;
+                font-weight: 800;
+                cursor: pointer;
+            }
+            .cancel-btn { background: #333; color: white; }
+            .confirm-btn { background: var(--gold); color: #000; }
+        }
+    }
+}

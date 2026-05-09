@@ -18,7 +18,6 @@ const Tables = () => {
     const location = useLocation();
     const [tables, setTables] = useState([]);
     const [sitCounts, setSitCounts] = useState(new Map());
-    const [filterType, setFilterType] = useState('all'); // 'all', 'holdem', 'omaha'
     const [showModalCave, setShowModalCave] = useState(false);
     const [selectedTableId, setSelectedTableId] = useState(null);
     const [cave, setCave] = useState("");
@@ -34,11 +33,11 @@ const Tables = () => {
         return saved ? Number(saved) : null;
     });
 
-    const { onlineUsers } = useContext(OnlineUserContext) || { onlineUsers: [] };
-    const { joinedTables } = useContext(JoinedTableContext) || { joinedTables: [] };
+    const { onlineUsers } = useContext(OnlineUserContext);
+    const { joinedTables } = useContext(JoinedTableContext);
     
     // ✅ Utiliser la longueur du contexte OnlineUserContext au lieu du hook
-    const connectedCount = Array.isArray(onlineUsers) ? onlineUsers.length : 0;
+    const connectedCount = onlineUsers?.length || 0;
 
     const loadData = async () => {
         setLoading(true);
@@ -52,6 +51,7 @@ const Tables = () => {
             const userId = sessionStorage.getItem('userId');
             if (userId) {
                 console.log('📥 [Tables] Appel getSolde pour userId:', userId);
+                // await getSolde(userId, setSolde);
                 await getSolde(userId, setSolde);
                 console.log('✅ [Tables] getSolde terminé');
             }
@@ -67,7 +67,6 @@ const Tables = () => {
     };
 
     useEffect(() => {
-        console.log('🔄 [Tables] useEffect location.key:', location.key);
         if (!isNavigatingRef.current) {
             loadData();
         }
@@ -76,7 +75,6 @@ const Tables = () => {
 
     useEffect(() => {
         const handleFocus = () => {
-            console.log('🎯 [Tables] Window focus, reloading...');
             if (!isNavigatingRef.current) {
                 loadData();
             }
@@ -90,6 +88,7 @@ const Tables = () => {
         const userId = sessionStorage.getItem('userId');
         const username = sessionStorage.getItem('userName');
         
+        // Note: Le socket gérant les utilisateurs connectés est dans useConnectedUsers
         console.log('📤 Navigation vers table:', { tableId, userId, username });
 
         isNavigatingRef.current = true;
@@ -99,56 +98,34 @@ const Tables = () => {
     };
 
     const verifyCave = async (id) => {
-        if (!id) {
-            console.error('❌ [Tables] verifyCave appelé sans ID');
-            toast.error("Erreur: ID de table manquant");
+        const caveMin = await getById(id);
+
+        if (cave === '') {
+            goToTable(selectedTableId, caveMin);
+        } else if (Number(cave) >= Number(caveMin)) {
+            if (solde >= Number(cave)) {
+                goToTable(selectedTableId, cave);
+            } else {
+                toast.error("Votre solde est insuffisant !");
+                return;
+            }
+        } else {
+            toast.error(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
             return;
         }
 
-        try {
-            console.log('📥 [Tables] Appel getById pour id:', id);
-            const caveMin = await getById(id);
-            console.log('✅ [Tables] caveMin reçue:', caveMin);
-
-            if (cave === '') {
-                goToTable(id, caveMin);
-            } else if (Number(cave) >= Number(caveMin)) {
-                if (solde >= Number(cave)) {
-                    goToTable(id, cave);
-                } else {
-                    toast.error("Votre solde est insuffisant !");
-                    return;
-                }
-            } else {
-                toast.error(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
-                return;
-            }
-
-            setShowModalCave(false);
-            setSelectedTableId(null);
-            setCave('');
-        } catch (error) {
-            console.error('❌ [Tables] Erreur dans verifyCave:', error);
-            toast.error("Impossible de rejoindre la table (Erreur réseau)");
-        }
+        setShowModalCave(false);
+        setSelectedTableId(null);
+        setCave('');
     };
 
     const playGame = () => verifyCave(selectedTableId);
 
-    const tablesArray = Array.isArray(tables) ? tables : [];
-    const validLastTableId = lastTableId ? Number(lastTableId) : null;
-
-    const lastTable = validLastTableId
-        ? tablesArray.find(t => t && Number(t.id) === validLastTableId)
+    const lastTable = lastTableId
+        ? tables.find(t => Number(t.id) === Number(lastTableId))
         : null;
 
-    const filteredTables = tablesArray.filter(t => {
-        if (!t) return false;
-        if (filterType === 'all') return true;
-        return t.gameType === filterType;
-    });
-
-    const waitingTables = filteredTables.filter(t => t && Number(t.id) !== validLastTableId);
+    const waitingTables = tables.filter(t => Number(t.id) !== Number(lastTableId));
 
     const pokerImages = [
         "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400&h=300&fit=crop&q=80",
@@ -168,8 +145,6 @@ const Tables = () => {
         "https://images.unsplash.com/photo-1606502280291-e0e16e85a803?w=400&h=300&fit=crop&q=80",
         "https://images.unsplash.com/photo-1606503153255-59d440165935?w=400&h=300&fit=crop&q=80",
     ];
-
-    console.log('🎨 [Tables] Rendering...', { tablesCount: tablesArray.length, loading, connectedCount });
 
     return (
         <>
@@ -256,29 +231,37 @@ const Tables = () => {
                             <div className="section-header">
                                 <h3 className="section-title">Sélection du LOBBY</h3>
                             </div>
-                            <div className="game-type-selector" style={{ marginTop: '10px', width: 'fit-content' }}>
-                                <button 
-                                    className={`filter-btn ${filterType === 'all' ? 'active' : ''}`} 
-                                    onClick={() => setFilterType('all')}
-                                >
-                                    Tous
-                                </button>
-                                <button 
-                                    className={`filter-btn ${filterType === 'holdem' ? 'active' : ''}`} 
-                                    onClick={() => setFilterType('holdem')}
-                                >
-                                    Hold'em
-                                </button>
-                                <button 
-                                    className={`filter-btn ${filterType === 'omaha' ? 'active' : ''}`} 
-                                    onClick={() => setFilterType('omaha')}
-                                >
-                                    Omaha
-                                </button>
-                            </div>
                         </div>
 
-
+                        {tables.length > 0 && (
+                            <div className="featured-section">
+                                <div
+                                    className="featured-card"
+                                    style={{
+                                        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url(${pokerImages[0]})`,
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
+                                >
+                                    <h2 className="featured-title">{tables[0].name}</h2>
+                                    <div className="featured-info">
+                                        {(tables[0]?.cave ?? 0).toLocaleString()} Ar{" "}
+                                        <span className="range-text">
+                                            (SB: {(tables[0]?.smallBlind ?? 0).toLocaleString()} - BB: {(tables[0]?.bigBlind ?? 0).toLocaleString()})
+                                        </span>
+                                    </div>
+                                    <button
+                                        className="featured-play-btn"
+                                        onClick={() => {
+                                            setSelectedTableId(tables[0].id);
+                                            setShowModalCave(true);
+                                        }}
+                                    >
+                                        Jouer
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="section-container">
                             <div className="lobby-grid">

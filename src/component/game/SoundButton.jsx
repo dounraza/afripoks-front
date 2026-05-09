@@ -11,11 +11,11 @@ const SoundButton = ({ soundMute, setSoundMute }) => (
                 alignItems: 'center',
                 justifyContent: 'center',
                 width: 32,
-                paddingTop: 4,
-                paddingBottom: 4,
+                height: 32,
                 cursor: 'pointer',
                 borderRadius: 4,
-                border: '2px solid white',
+                backgroundColor: 'black',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
             }}
             onClick={() => setSoundMute(!soundMute)}
         >

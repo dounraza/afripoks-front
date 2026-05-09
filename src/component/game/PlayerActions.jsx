@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus, Minus, Smile } from 'lucide-react';
 
 const actionLabels = {
-    fold: 'Se coucher',
+    fold: 'Fold',
     check: 'Parole',
     call: 'Suivre',
 };

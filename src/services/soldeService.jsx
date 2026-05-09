@@ -12,16 +12,14 @@ export const soldeInit = async (data) => {
 
 export const getSolde = async (userId, setSold) => {    
   try {
-    if (!userId) return;
     const response = await api.get(API_URL+`/${userId}`);
     
-    if(response && response.data){
-        setSold(response.data.solde ?? 0); 
+    if(response.data){
+        setSold(response.data.solde); 
     }
   } catch (error) {
-    console.error("Error fetching solde:", error);
-    setSold(0);
-    // On ne throw pas forcément pour éviter de bloquer l'affichage des tables
+    console.error("Erreur getSolde:", error.response ? error.response.data : error.message);
+    throw new Error(error);
   }
 };
 

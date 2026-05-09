@@ -19,7 +19,7 @@ const DepotCryptoInput = () => {
     const cancelTransac = () => {
         setAmount(0);
         setRef(""); 
-        navigate("/table");
+        navigate("/acceuil");
     }
 
     const getType = async () => {
@@ -38,7 +38,7 @@ const DepotCryptoInput = () => {
             try {
                 await cryptoService(data);
                 setTimeout(() => {
-                    navigate('/table');
+                    navigate('/acceuil');
                 }, 2000);
             } catch (error) {
                 toast.error(error.message);

@@ -385,16 +385,25 @@
                 font-size: 0.85rem;
                 font-weight: 700;
                 cursor: pointer;
-                transition: all 0.2s ease;
-                box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4);
+                transition: all 0.1s ease;
+                position: relative;
+                box-shadow: 
+                    0 4px 0 #CC3700,
+                    0 6px 10px rgba(0, 0, 0, 0.4);
 
                 &:hover {
                     background: #ff5722;
-                    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.6);
+                    transform: translateY(-1px);
+                    box-shadow: 
+                        0 5px 0 #CC3700,
+                        0 7px 12px rgba(0, 0, 0, 0.4);
                 }
 
                 &:active {
-                    transform: scale(0.98);
+                    transform: translateY(3px);
+                    box-shadow: 
+                        0 1px 0 #CC3700,
+                        0 3px 6px rgba(0, 0, 0, 0.4);
                 }
             }
         }
@@ -619,9 +628,14 @@
             border: none;
             cursor: pointer;
             font-size: 14px;
-            transition: background 0.2s;
+            transition: all 0.1s ease;
+            position: relative;
+            box-shadow: 
+                0 4px 0 #089A00,
+                0 6px 10px rgba(0, 0, 0, 0.4);
 
-            &:hover { background: #0bdb00; }
+            &:hover { background: #0bdb00; transform: translateY(-1px); }
+            &:active { transform: translateY(3px); box-shadow: 0 1px 0 #089A00; }
         }
 
         .rejoin-dismiss-btn {
@@ -945,38 +959,5 @@
     .chat-container {
         width: calc(100vw - 40px);
         max-width: 350px;
-    }
-}
-
-// Game Type Selector
-.game-type-selector {
-    display: flex;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 4px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-    .filter-btn {
-        padding: 6px 16px;
-        border-radius: 8px;
-        border: none;
-        background: transparent;
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        &.active {
-            background: #ff4500;
-            color: white;
-            box-shadow: 0 2px 8px rgba(255, 69, 0, 0.4);
-        }
     }
 }

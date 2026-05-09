@@ -7,6 +7,7 @@ import Tables from './page/table/Tables';
 import History from './page/history/History';
 import GameTable from './page/game/GameTable';
 import Register from './page/register/Register';
+import Profile from './page/profile/Profile';
 
 import './App.scss';
 import Transaction from './page/admin/transaction/Transaction';
@@ -24,13 +25,15 @@ function App() {
       <Router>
         <Routes>
           <Route path="/table" element={<Tables />} />
-          <Route path="/" element={<Acceuil />} />
+          <Route path="/acceuil" element={<Acceuil />} />
+          <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<PageLogin />} />
           <Route path="/register" element={<Register />} />
           <Route path="/history" element={<History />} />
           <Route path="/depot" element={<Depot />} />
           <Route path="/retrait" element={<Retrait />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/game/:tableid" element={<GameTable />} />
           <Route path="/game/:tableid/:tableSessionIdShared" element={<GameTable />} />
 

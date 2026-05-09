@@ -19,7 +19,7 @@ const RetraitCryptoInput = () => {
     const cancelTransac = () => {
         setAmount(0);
         setWalletAddress("");
-        navigate("/table"); 
+        navigate("/acceuil"); 
     }
 
     const getType = async () => {
@@ -39,7 +39,7 @@ const RetraitCryptoInput = () => {
             try {
                 await retraitService(data);
                 setTimeout(() => {
-                    navigate('/table');
+                    navigate('/acceuil');
                 }, 1000);
             } catch (error) {
                 toast.error(error.message);    

@@ -3,9 +3,6 @@ import { Smile } from "lucide-react";
 import SmileyModal from './SmileyModal';
 import { smileySocket } from '../../engine/socket';
 
-import PlayerHandOmaha from './PlayerHandOmaha';
-import PlayerHandHoldem from './PlayerHandHoldem';
-
 const Player = ({
     i,
     chips,
@@ -72,120 +69,103 @@ const Player = ({
     const [isStackHidden, setIsStackHidden] = useState(false);
     const [showResult, setShowResult] = useState(false);
     
-    // Références pour verrouiller le solde et la séquence
+    // Références pour verrouiller le solde
     const lastSafeStack = useRef(chips?.stack ?? 0);
     const isLocked = useRef(false);
-    const sequenceStarted = useRef(false);
-    
-    // NOUVEAU : Référence pour toujours avoir le solde le plus récent du serveur
-    const actualStack = chips?.stack ?? 0;
-    const latestStackRef = useRef(actualStack);
+
     useEffect(() => {
-        latestStackRef.current = actualStack;
-    }, [actualStack]);
+        if (chips?.stack === undefined) return;
 
-    // Déterminer l'état actuel
-    const isWinPhase = gameOver || (winData?.winStates?.length > 0);
-    const isPlayerAtSeat = tableState.playerNames[i] != null;
-    const winnerInfo = winData?.winStates?.find(w => w.seat === i);
-    const isWinner = !!winnerInfo?.isWinner;
-    const isPlayerInHand = isPlayerAtSeat && !foldedPlayers.current.has(i);
-    const isPlayerAllIn = tableState.handInProgress && !isWinPhase && actualStack === 0 && isPlayerInHand;
-
-    // Déterminer s'il y a eu un Showdown (ouverture des cartes)
-    const hasShowdown = winData?.allCards && Object.keys(winData.allCards).length > 0 && Object.values(winData.allCards).some(hand => hand && hand.length > 0);
-    
-    // MASQUAGE : On cache tout pendant la phase de victoire, sauf si la séquence est finie (isLocked est redevenu false)
-    const shouldBeHidden = isWinPhase 
-        ? (isLocked.current || !sequenceStarted.current || showResult || isStackHidden)
-        : (isPlayerAllIn || isStackHidden);
-
-    // Reset complet de la séquence et du masquage quand on quitte la phase de victoire
-    useEffect(() => {
-        if (!isWinPhase) {
-            sequenceStarted.current = false;
-            isLocked.current = false;
-            setIsStackHidden(false);
-            setShowResult(false);
-            setDisplayStack(latestStackRef.current);
-            lastSafeStack.current = latestStackRef.current;
-        }
-    }, [isWinPhase]);
-
-    // Persister le dernier solde valide et gérer les animations
-    useEffect(() => {
+        const actualStack = chips.stack;
+        const isWinPhase = gameOver || (winData?.winStates?.length > 0);
+        
+        // DÉTECTION PROACTIVE : Si le solde du serveur est supérieur à notre dernier solde sûr,
+        // c'est une victoire certaine (ou un gain de pot).
         const isIncreasing = actualStack > lastSafeStack.current;
 
-        // 1. PHASE DE VICTOIRE
-        if (isWinPhase && isPlayerAtSeat) {
-            const isLoser = !isWinner;
+        // CAS 1 : Phase de jeu normale (Mises, Suivis, Blinds)
+        // On n'autorise la mise à jour que si le solde baisse ou reste identique.
+        if (!isWinPhase && !isIncreasing) {
+            isLocked.current = false;
+            lastSafeStack.current = actualStack;
+            setDisplayStack(actualStack);
+            setIsStackHidden(false);
+            setShowResult(false);
+            return;
+        }
 
-            // DÉMARRAGE DE LA SÉQUENCE
-            if (!sequenceStarted.current) {
-                sequenceStarted.current = true;
-                isLocked.current = true;
-                setIsStackHidden(true);
-                setShowResult(false);
+        // CAS 2 : ANTICIPATION (Augmentation détectée avant même le gameOver)
+        // On bloque l'affichage sur la valeur d'avant pour préserver la surprise.
+        if (!isWinPhase && isIncreasing) {
+            isLocked.current = true;
+            // On ne touche pas à displayStack, il reste sur lastSafeStack.current
+            return;
+        }
+
+        // CAS 3 : Phase de victoire confirmée (gameOver ou winData présent)
+        const winner = winData?.winStates?.find(w => w.seat === i);
+        const isWinner = winner?.isWinner;
+        const isLoser = winner && !winner.isWinner && !foldedPlayers.current.has(i);
+
+        if (isWinner || isLoser) {
+            isLocked.current = true;
+            const hasShowdown = winData?.allCards && Object.values(winData.allCards).some(hand => hand && hand.length > 0);
+
+            // SI PAS DE SHOWDOWN (All Fold)
+            if (!hasShowdown) {
+                const timer = setTimeout(() => {
+                    setDisplayStack(actualStack);
+                    lastSafeStack.current = actualStack;
+                }, 1000);
+                // Ensure showResult is true for "All Fold"
+                setShowResult(true);
+                return () => clearTimeout(timer);
             }
 
-            // GESTION DE L'AFFICHAGE DU RÉSULTAT
-            if (sequenceStarted.current && isLocked.current && !showResult) {
-                
-                // CAS 1 : Pas de showdown (Tout le monde a foldé)
-                if (!hasShowdown) {
-                    const tResult = setTimeout(() => {
-                        setShowResult(true); 
-                        const tFinal = setTimeout(() => {
-                            const finalAmount = latestStackRef.current;
-                            setDisplayStack(finalAmount);
-                            setIsStackHidden(false);
-                            setShowResult(false);
-                            lastSafeStack.current = finalAmount;
-                            isLocked.current = false;
-                        }, 3000);
-                        return () => clearTimeout(tFinal);
-                    }, 500); 
-                    return () => clearTimeout(tResult);
-                } 
-                
-                // CAS 2 : Showdown (On attend que isRevealFinished soit vrai)
-                if (hasShowdown && isRevealFinished) {
-                    const t1 = setTimeout(() => {
-                        setShowResult(true); // ICI affichage de "PAIR 5", etc.
-                        
-                        const t2 = setTimeout(() => {
-                            const finalAmount = latestStackRef.current;
-                            setDisplayStack(finalAmount);
-                            setIsStackHidden(false);
-                            setShowResult(false);
-                            lastSafeStack.current = finalAmount;
-                            isLocked.current = false;
-                        }, 2500);
-                        return () => clearTimeout(t2);
-                    }, 1000);
-                    return () => clearTimeout(t1);
+            // SI SHOWDOWN (Suspense complet)
+            if (!isRevealFinished) {
+                // Toujours bloqué sur l'ancien montant pendant l'ouverture des cartes
+                setDisplayStack(lastSafeStack.current);
+                // Ensure showResult is true during card reveal
+                setShowResult(true);
+            } else {
+                // Séquence de suspense (les cartes sont ouvertes)
+                // Only trigger the result display if it hasn't been shown yet
+                if (!isStackHidden && !showResult) {
+                    setIsStackHidden(true);
+
+                    const timerResult = setTimeout(() => {
+                        setShowResult(true); // Set showResult to true to display the badge
+                    }, 1200);
+
+                    const timerStack = setTimeout(() => {
+                        setDisplayStack(actualStack); // Libération finale du nouveau solde
+                        setIsStackHidden(false);
+                        setShowResult(false); // Reset showResult after the full animation
+                        lastSafeStack.current = actualStack;
+                    }, 4500);
+
+                    return () => {
+                        clearTimeout(timerResult);
+                        clearTimeout(timerStack);
+                    };
+                } else if (isStackHidden && showResult) {
+                    // If stack is hidden and results are already shown (e.g., after animation)
+                    // ensure stack is updated and showResult is reset for the next hand
+                    setDisplayStack(actualStack);
+                    setIsStackHidden(false);
+                    setShowResult(false);
+                    lastSafeStack.current = actualStack;
                 }
             }
+        } else {
+            // Perdants foldés ou spectateurs (pas de victoire ni de défaite affichée directement)
+            setDisplayStack(actualStack);
+            lastSafeStack.current = actualStack;
+            // Ensure showResult is false if not in a win/loss phase
+            setShowResult(false);
         }
-
-        // 2. PHASE DE JEU NORMALE
-        if (!isWinPhase) {
-            if (isPlayerAllIn) {
-                setIsStackHidden(true);
-                isLocked.current = true;
-            } else if (!isIncreasing && !isLocked.current) {
-                setDisplayStack(actualStack);
-                setIsStackHidden(false);
-                setShowResult(false);
-                lastSafeStack.current = actualStack;
-            } else if (isIncreasing && !isLocked.current) {
-                isLocked.current = true;
-                setIsStackHidden(true); 
-            } else if (!isIncreasing && isLocked.current && !isPlayerAllIn) {
-                isLocked.current = false;
-            }
-        }
-    }, [actualStack, gameOver, isRevealFinished, winData, i, tableState, isPlayerAllIn, isWinPhase, hasShowdown, isPlayerAtSeat, isWinner]);
+        }, [chips?.stack, gameOver, isRevealFinished, winData, i]);
 
         if (!tableState.playerNames[i]) return null;
 
@@ -267,8 +247,17 @@ const Player = ({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            boxShadow: tableState.toAct === i ? '0 0 0 0 rgba(255, 255, 0, 0.7)' : 'none',
+                            animation: tableState.toAct === i ? 'sonar-yellow 2s infinite' : 'none',
                         }}
                     >
+                        <style>{`
+                            @keyframes sonar-yellow {
+                                0% { box-shadow: 0 0 0 0 rgba(255, 255, 0, 0.9); }
+                                50% { box-shadow: 0 0 0 15px rgba(255, 255, 0, 0.5); }
+                                100% { box-shadow: 0 0 0 25px rgba(255, 255, 0, 0); }
+                            }
+                        `}</style>
                         <img
                             src={avatarSrc}
                             alt="avatar"
@@ -280,49 +269,81 @@ const Player = ({
                         />
                     </div>
                 </div>
-                {sb === i && (
-                    <div className={`btn-action sb-btn ${(i > 3 && i < 7) ? '' : 'right'}`}>Sb</div>
-                )}
-                {dealer === i && (
-                    <div className={`btn-action deal-btn ${(i > 3 && i < 7) ? '' : 'right'}`}>d</div>
-                )}
-                {bb === i && (
-                    <div className={`btn-action bb-btn ${(i > 3 && i < 7) ? '' : 'right'}`}>Bb</div>
-                )}
+                <div className={`player-cards ${cardCount > 2 ? 'omaha' : ''}`}>
+                    {(winData?.allCards ?? []).length > 0 ? (
+                        <div className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}>
+                            {(winData.allCards[i] ?? []).length > 0 && !foldedPlayers.current.has(i) && (
+                                <>
+                                    {(winData.allCards[i]).map((card, idx) => (
+                                        <div className="card" key={idx}>
+                                            <img src={getSrcCard(card)} alt="" />
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            {tableState.activeSeats.includes(i) && (
+                                i === tableState.seat && tableState.playerCards != null ? (
+                                    <div className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}
+                                        style={{
+                                            transform: 'translateY(50%)',
+                                            zIndex: -1,
+                                        }}
+                                    >
+                                        {tableState.playerCards.map((card, idx) => (
+                                            <div className="card" key={idx}>
+                                                <img src={getSrcCard(card)} alt="" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div
+                                        className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}
+                                        style={{
+                                            transform: 'translateY(50%)',
+                                            zIndex: -1,
+                                        }}
+                                    >
+                                        {[...Array(cardCount)].map((_, idx) => (
+                                            <div className="card" key={idx}><img src={rever} alt="" /></div>
+                                        ))}
+                                    </div>
+                                )
+                            )}
 
-                {tableState.gameType === 'omaha' ? (
-                    <PlayerHandOmaha 
-                        i={i}
-                        tableState={tableState}
-                        winData={winData}
-                        getSrcCard={getSrcCard}
-                        rever={rever}
-                        foldedPlayers={foldedPlayers}
-                        shouldShareCards={shouldShareCards}
-                        sharingCards={sharingCards}
-                        tableCenterX={tableCenterX}
-                        tableCenterY={tableCenterY}
-                        pdx={pdx}
-                        pdy={pdy}
-                        zoom={zoom}
-                    />
-                ) : (
-                    <PlayerHandHoldem 
-                        i={i}
-                        tableState={tableState}
-                        winData={winData}
-                        getSrcCard={getSrcCard}
-                        rever={rever}
-                        foldedPlayers={foldedPlayers}
-                        shouldShareCards={shouldShareCards}
-                        sharingCards={sharingCards}
-                        tableCenterX={tableCenterX}
-                        tableCenterY={tableCenterY}
-                        pdx={pdx}
-                        pdy={pdy}
-                        zoom={zoom}
-                    />
-                )}
+                            {shouldShareCards && (
+                                <div
+                                    className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}
+                                    style={{
+                                        transform: 'translateY(50%)',
+                                        zIndex: -1,
+                                    }}
+                                >
+                                    {[...Array(cardCount)].map((_, idx, arr) => {
+                                        const count = arr.length;
+                                        // Spread cards slightly at the dealer position
+                                        const xOffset = (idx - (count - 1) / 2) * -100;
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className="card"
+                                                style={{
+                                                    transition: 'all 0.3s ease-in',
+                                                    transitionDelay: (idx * (0.5 / count)) + i * (0.5 / tableState.playerIds.length) + 's',
+                                                    transform: sharingCards ? 'translate(0, 0) scale(1)' : `translate(calc(${(tableCenterX - pdx) / zoom}px + ${xOffset}%), ${(tableCenterY - pdy) / zoom}px)`,
+                                                }}
+                                            >
+                                                <img src={rever} alt="" />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
 
                 <div
                     style={{
@@ -331,27 +352,87 @@ const Player = ({
                         left: -4,
                         bottom: 0,
                         right: -4,
-                        backgroundColor: winData?.winStates && winData?.winStates[i].isWinner ? '#0008' : '#0008',
-                        border: winData?.winStates && winData?.winStates[i].isWinner ? '2px solid #00FF99' : '2px solid #00FF99',
+                        backgroundColor: winData?.winStates && winData?.winStates[i].isWinner ? '#000' : '#000',
+                        border: winData?.winStates && winData?.winStates[i].isWinner ? '2px solid #000000' : '2px solid #000000',
                         borderRadius: 4,
                         overflow: 'hidden',
                         zIndex: -1,
                         boxShadow: tableState.toAct === i ? '0px 0px 12px 2px #00FF99' : 'none',
+                        clipPath: 'polygon(10% 0%,90% 0%, 85% 100%,   15% 100%)'
+ 
+    
                     }}
                 >
                     {tableState.toAct === i && (
                         <div
                             style={{
-                                backgroundColor: '#00915C',
-                                width: '100%',
-                                height: '100%',
+                                backgroundColor: '#d6cf00e5',
+                                width: '80%',
+                                height: '4px',
                                 animation: 'shrinkToLeft 12s linear forwards',
                             }}
                         ></div>
                     )}
                 </div>
 
-                <div className="player-name">
+                <div className="player-name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minWidth: '120px' }}>
+                    <div>
+                        {(tableState.playerNames?.[i] ?? '').length > 10
+                            ? tableState.playerNames[i].slice(0, 10) + '...'
+                            : (tableState.playerNames?.[i] || '')}
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                        {dealer === i ? (
+                            <span style={{ 
+                                backgroundColor: 'white', 
+                                color: 'black', 
+                                borderRadius: '50%', 
+                                width: '16px', 
+                                height: '16px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                fontSize: '0.55rem', 
+                                fontWeight: 'bold',
+                                border: '1px solid #ccc'
+                            }}>D</span>
+                        ) : (
+                            <>
+                                {sb === i && (
+                                    <span style={{ 
+                                        backgroundColor: 'blue', 
+                                        color: 'white', 
+                                        borderRadius: '50%', 
+                                        width: '16px', 
+                                        height: '16px', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        fontSize: '0.55rem', 
+                                        fontWeight: 'bold'
+                                    }}>SB</span>
+                                )}
+                            </>
+                        )}
+                        {bb === i && (
+                            <span style={{ 
+                                backgroundColor: 'red', 
+                                color: 'white', 
+                                borderRadius: '50%', 
+                                width: '16px', 
+                                height: '16px', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                fontSize: '0.55rem', 
+                                fontWeight: 'bold'
+                            }}>BB</span>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="player-action-status">
                     {
                         (() => {
                             // Priorité au statut Fold persistant via le set foldedPlayers
@@ -368,13 +449,7 @@ const Player = ({
                                     </div>
                                 );
                             }
-                            
-                            // Sinon, affichage du nom
-                            return <div>
-                                {(tableState.playerNames?.[i] ?? '').length > 10
-                                    ? tableState.playerNames[i].slice(0, 10) + '...'
-                                    : (tableState.playerNames?.[i] || '')}
-                            </div>;
+                            return null;
                         })()
                     }
                 </div>
@@ -419,28 +494,26 @@ const Player = ({
                     }
                 </div>
                 <div className="stacks">
-                    {shouldBeHidden ? (
+                    {isStackHidden ? (
                         showResult ? (
                             winData?.winStates?.find(w => w.seat === i)?.isWinner ? (
                                 <div className="hand-name-result" style={{ color: '#00FF99', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                    {winData.winStates.find(w => w.seat === i).handName || 'GAGNANT'}
+                                    {winData.winStates.find(w => w.seat === i).handName}
                                 </div>
                             ) : (
-                                <div className="hand-name-badge" style={{ 
+                                <div className="hand-name-result lose-badge" style={{ 
+                                    backgroundColor: '#888888', 
+                                    color: 'white', 
                                     fontSize: '0.7rem', 
                                     fontWeight: 'bold',
-                                    padding: '2px 8px',
-                                    borderRadius: '10px',
-                                    textTransform: 'uppercase',
-                                    display: 'block', 
-                                    margin: '0 auto',
-                                    color: '#ff4444',
-                                    border: '1px solid #ff4444'
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    textTransform: 'uppercase'
                                 }}>
-                                    {hasShowdown ? 'Lose' : 'ALL FOLD'}
+                                    {foldedPlayers.current.has(i) ? 'Fold' : 'Lose'}
                                 </div>
                             )
-                        ) : null 
+                        ) : null // Zone vide pour le suspense
                     ) : (
                         <>
                             {chips != null ? `${displayStack}` :
@@ -451,7 +524,7 @@ const Player = ({
                 
                 <div
                     style={{
-                        zIndex: 5, /* Réduit pour ne pas bloquer les boutons d'action global */
+                        zIndex: 9999,
                         position: 'absolute',
                         top: '100%',
                         // right: i <= 3 ? '-25%' : 'auto',
