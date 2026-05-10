@@ -61,7 +61,7 @@
         width: 5rem;
         padding-top: 2pt;
         padding-bottom: 2pt;
-        background-color: #2d1c0c;
+        background-color: transparent;
      //   border: 1px solid $gold;
         @include flex-center;
         color: $background;
@@ -133,16 +133,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            top: -3.5rem;
+            top: -5.0rem;
             z-index: -1;
             width: 100%;
 
             &.holdem {
-                top: -3.8rem; 
+                top: -5.3rem; 
             }
 
             &.omaha {
-                top: -3.8rem;
+                top: -5.3rem;
             }
 
             .card-containers {
@@ -194,8 +194,48 @@
             }
         }
 
-        .action {
-            color: $gold
+        .player-name {
+            margin-bottom: 0;
+            line-height: 1;
+        }
+
+        .player-action-status {
+            position: absolute;
+            top: -1.2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            @include flex-center;
+        }
+
+        .action-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .badge-fold {
+            background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+            color: white;
+            border: 1px solid #dc2626;
+        }
+
+        .badge-call {
+            background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+            color: black;
+            border: 1px solid #d97706;
+        }
+
+        .badge-raise {
+            background: linear-gradient(180deg, #333333 0%, #000000 100%);
+            color: white;
+            border: 1px solid #000000;
         }
 
         .btn-action {
@@ -232,7 +272,7 @@
         }
 
         &.win {
-             background-color: #065a2e;  
+             background-color: transparent;  
         }
 
         .stacks {
@@ -262,13 +302,12 @@
             &::before {
                 content: "";
                 position: absolute;
-                top: 0;
+                bottom: 0;
                 left: 0;
-                height: 100%;
+                height: 4px;
                 width: 100%;
-                background-color: #579;  
-             //   background: radial-gradient(circle,rgba(36, 145, 102, 1) 20%, rgba(15, 94, 57, 1) 88%);
-                z-index: -1;
+                background-color: #00FF99;  
+                z-index: 10;
                 animation: shrinkToLeft 12s linear forwards;
             }
             }
@@ -417,7 +456,7 @@
         height: 5rem;
         gap: 0.3rem;
         position: absolute;
-        top: 45%;
+        top: 42%;
         left: 6%;
         z-index: 3;
 
@@ -449,99 +488,37 @@
         width: 100%;
 
         .action-container {
-            @include flex-center;
-            gap: 1rem;
-               display: flex;
-            gap: 12px;
+            display: flex;
+            gap: 0.5rem;
             justify-content: center;
-            .player-action {
-                width: 8rem;
-                height: 2.6rem;
-                border-radius: 1rem;
-                @include flex-center;
-                border: 2px solid #00FF99;
-                background: linear-gradient(135deg, rgba(232, 236, 22, 0.8), rgba(20, 20, 20, 0.95));
-                cursor: pointer;
-                color: $background;
-            }
-        }
-        .poker-button {
-        padding: 14px 32px;
-            border-radius: 25px;
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            text-align: center;
-            border: 5px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.3),
-                inset 0 3px 6px rgba(255, 255, 255, 0.5),
-                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
-            transition: all 0.2s ease;
-            text-transform: none; 
-            min-width: 120px;
-            position: relative;
-    }
-   .poker-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 6px 12px rgba(0, 0, 0, 0.4),
-                inset 0 3px 6px rgba(255, 255, 255, 0.6),
-                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .poker-button:active {
-            transform: translateY(0);
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                inset 0 2px 4px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.4);
-        }
-
-        .button-green {
-            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
-            color: white;
-        }
-
-        .button-teal {
-            background: linear-gradient(180deg, #00BFA5 0%, #00897B 100%);
-            color: white;
-        }
-
-        .button-red {
-            background: linear-gradient(180deg, #FF5252 0%, #D32F2F 100%);
-            color: white;
+            align-items: center;
+            margin-bottom: 0.3rem;
         }
 
         .input-group {
             display: flex;
-            gap: 12px;
+            flex-direction: row;
+            gap: 0.5rem;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
         }
-
         .bet-input-container {
             display: flex;
             align-items: center;
-            background: linear-gradient(180deg, #FFC107 0%, #FFA000 100%);
-            border-radius: 25px;
-            padding: 8px 16px;
-            border: 5px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.3),
-                inset 0 3px 6px rgba(255, 255, 255, 0.5),
-                inset 0 -3px 6px rgba(0, 0, 0, 0.3);
-            min-width: 180px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            padding: 4px 8px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+            min-width: 100px;
             justify-content: space-between;
         }
 
         .bet-control {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -549,115 +526,109 @@
             transition: all 0.2s ease;
             color: white;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 14px;
             user-select: none;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 
-                inset 0 3px 4px rgba(255, 255, 255, 0.6),
-                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .bet-control:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
             transform: scale(1.1);
-            box-shadow: 
-                inset 0 3px 4px rgba(255, 255, 255, 0.7),
-                inset 0 -3px 4px rgba(0, 0, 0, 0.3);
         }
 
         .bet-control:active {
             transform: scale(0.95);
-            box-shadow: 
-                inset 0 2px 3px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 3px rgba(0, 0, 0, 0.5);
         }
 
         .bet-amount {
-            font-size: 20px;
+            font-size: 14px;
             font-weight: 700;
-            color: #000000;
-            min-width: 80px;
+            color: #ffffff;
+            min-width: 30px;
             text-align: center;
         }
 .bet-control svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     stroke: white;
     stroke-width: 3;
 }
 
 
-/* Bouton SE COUCHER (vert) */
+/* Bouton SE COUCHER (rouge) */
 .btn-fold {
-  background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%);
-  border: none;
-  border-radius: 50px;
-  padding: 15px 40px;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 
-    0 8px 0 #16a34a,
-    0 12px 20px rgba(0, 0, 0, 0.4);
-  position: relative;
-  transition: all 0.1s ease;
-}
-
-.btn-fold:active {
-  transform: translateY(4px);
-  box-shadow: 
-    0 4px 0 #16a34a,
-    0 6px 10px rgba(0, 0, 0, 0.4);
-}
-
-/* Bouton SUIVRE/PAROLE (vert clair) */
-.btn-call {
-  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
-  border: none;
-  border-radius: 50px;
-  padding: 15px 40px;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 
-    0 8px 0 #059669,
-    0 12px 20px rgba(0, 0, 0, 0.4);
-  transition: all 0.1s ease;
-}
-
-.btn-call:active {
-  transform: translateY(4px);
-  box-shadow: 
-    0 4px 0 #059669,
-    0 6px 10px rgba(0, 0, 0, 0.4);
-}
-
-/* Bouton TAPIS (rouge) */
-.btn-allin {
   background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
   border: none;
   border-radius: 50px;
-  padding: 15px 40px;
+  padding: 8px 16px;
   color: white;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 11px;
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: 
-    0 8px 0 #dc2626,
-    0 12px 20px rgba(0, 0, 0, 0.4);
+    0 4px 0 #dc2626,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+  position: relative;
   transition: all 0.1s ease;
+  min-width: 80px;
+}
+
+.btn-fold:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 2px 0 #dc2626,
+    0 3px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton SUIVRE/PAROLE (jaune) */
+.btn-call {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 8px 16px;
+  color: black;
+  font-weight: bold;
+  font-size: 11px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 4px 0 #d97706,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+  min-width: 80px;
+}
+
+.btn-call:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 2px 0 #d97706,
+    0 3px 5px rgba(0, 0, 0, 0.4);
+}
+
+/* Bouton TAPIS (jaune) */
+.btn-allin {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 8px 16px;
+  color: black;
+  font-weight: bold;
+  font-size: 11px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 
+    0 4px 0 #d97706,
+    0 6px 10px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+  min-width: 80px;
 }
 
 .btn-allin:active {
-  transform: translateY(4px);
+  transform: translateY(2px);
   box-shadow: 
-    0 4px 0 #dc2626,
-    0 6px 10px rgba(0, 0, 0, 0.4);
+    0 2px 0 #d97706,
+    0 3px 5px rgba(0, 0, 0, 0.4);
 }
 
 /* Bouton de mise (jaune/orange) */
@@ -665,102 +636,68 @@
   background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
   border: none;
   border-radius: 50px;
-  padding: 15px 30px;
-  color: white;
+  padding: 10px 20px;
+  color: black;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 14px;
   cursor: pointer;
-  box-shadow: 
-    0 8px 0 #d97706,
-    0 12px 20px rgba(0, 0, 0, 0.4);
-  transition: all 0.1s ease;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.btn-bet:active {
-  transform: translateY(4px);
   box-shadow: 
     0 4px 0 #d97706,
     0 6px 10px rgba(0, 0, 0, 0.4);
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-bet:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 2px 0 #d97706,
+    0 3px 5px rgba(0, 0, 0, 0.4);
 }
 
 /* Boutons +/- */
 .btn-bet button {
   background: none;
   border: none;
-  color: white;
-  font-size: 24px;
+  color: black;
+  font-size: 18px;
   font-weight: bold;
   cursor: pointer;
-  padding: 0 10px;
+  padding: 0 5px;
 }
 
-/* Bouton MISER/RELANCER (turquoise) */
+/* Bouton MISER/RELANCER (noir) */
 .btn-raise {
-  background: linear-gradient(180deg, #2dd4bf 0%, #14b8a6 100%);
+  background: linear-gradient(180deg, #333333 0%, #000000 100%);
   border: none;
   border-radius: 50px;
-  padding: 15px 40px;
+  padding: 8px 16px;
   color: white;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 11px;
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: 
-    0 8px 0 #0d9488,
-    0 12px 20px rgba(0, 0, 0, 0.4);
+    0 4px 0 #000000,
+    0 6px 10px rgba(0, 0, 0, 0.4);
   transition: all 0.1s ease;
+  min-width: 100px;
 }
 
 .btn-raise:active {
-  transform: translateY(4px);
+  transform: translateY(2px);
   box-shadow: 
-    0 4px 0 #0d9488,
-    0 6px 10px rgba(0, 0, 0, 0.4);
+    0 2px 0 #000000,
+    0 3px 5px rgba(0, 0, 0, 0.4);
 }
 .bet-control svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     stroke: white;
-    stroke-width: 3;
+    stroke-width: 4;
 }
-        .input-group {
-            @include flex-center;
-            gap: 1rem;
-            color: $primary-text-color;
-            color: $background;
-            
-
-            .input {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: .5rem;
-
-                input {
-                    font-size: 1.2rem;
-                    font-weight: bold;
-                    border: none;
-                    text-align: center;
-                    outline: none;
-                    background-color: transparent;
-                }
-            }
-
-            .submit {
-                width: 8rem;
-                height: 2.6rem;
-                border-radius: 1rem;
-                @include flex-center;
-                background-color: $solid-background;
-                cursor: pointer;
-                @include flex-center;
-                border: 2px solid #00FF99;
-                background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(20, 20, 20, 0.95));
-            }
-        }
     }
 
     img {

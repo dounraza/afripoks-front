@@ -215,7 +215,7 @@ const Player = ({
                     ${(winData?.winStates ?? []).length > 0 && winData.winStates.find(w => w.seat === i)?.isWinner && isRevealFinished ?'win': '' }
                     ${tableState.toAct === i ?'active': '' }`
                 }
-                style={{ borderRadius: 6 }}
+                style={{ borderRadius: 12 }}
                 key={i}
             >
                 <div
@@ -354,25 +354,12 @@ const Player = ({
                         right: -4,
                         backgroundColor: winData?.winStates && winData?.winStates[i].isWinner ? '#000' : '#000',
                         border: winData?.winStates && winData?.winStates[i].isWinner ? '2px solid #000000' : '2px solid #000000',
-                        borderRadius: 4,
+                        borderRadius: 12,
                         overflow: 'hidden',
                         zIndex: -1,
                         boxShadow: tableState.toAct === i ? '0px 0px 12px 2px #00FF99' : 'none',
-                        clipPath: 'polygon(10% 0%,90% 0%, 85% 100%,   15% 100%)'
- 
-    
                     }}
                 >
-                    {tableState.toAct === i && (
-                        <div
-                            style={{
-                                backgroundColor: '#d6cf00e5',
-                                width: '80%',
-                                height: '4px',
-                                animation: 'shrinkToLeft 12s linear forwards',
-                            }}
-                        ></div>
-                    )}
                 </div>
 
                 <div className="player-name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minWidth: '120px' }}>
@@ -437,15 +424,32 @@ const Player = ({
                         (() => {
                             // Priorité au statut Fold persistant via le set foldedPlayers
                             if (foldedPlayers.current.has(i)) {
-                                return <div className="action" style={{ color: '#ff4444' }}>Fold</div>;
+                                return <div className="action-badge badge-fold">Fold</div>;
                             }
                             
                             // Sinon, affichage des actions en cours (ex: raise, call)
                             const playerAction = tableState.actions?.find(item => item.playerId === i);
                             if (playerAction && playerAction.action !== 'fold') {
+                                const action = playerAction.action;
+                                const isAllIn = playerAction.amount > 0 && tableState.playerIds[i] && chips?.stack === 0; // Simplified all-in check
+                                
+                                let badgeClass = "badge-call";
+                                let label = action;
+
+                                if (action === 'raise' || action === 'bet') {
+                                    badgeClass = "badge-raise";
+                                    label = "Raise";
+                                } else if (action === 'call') {
+                                    badgeClass = "badge-call";
+                                    label = "Call";
+                                } else if (action === 'check') {
+                                    badgeClass = "badge-call";
+                                    label = "Check";
+                                }
+
                                 return (
-                                    <div className={`action`} style={{ color: '#00FF99' }} key={i}>
-                                        {playerAction.action}
+                                    <div className={`action-badge ${badgeClass}`} key={i}>
+                                        {label}
                                     </div>
                                 );
                             }

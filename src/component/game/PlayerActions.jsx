@@ -3,8 +3,8 @@ import { Plus, Minus, Smile } from 'lucide-react';
 
 const actionLabels = {
     fold: 'Fold',
-    check: 'Parole',
-    call: 'Suivre',
+    check: 'Check',
+    call: 'Check',
 };
 
 const PlayerActions = ({
@@ -18,12 +18,7 @@ const PlayerActions = ({
             (action !== 'raise' && action !== 'bet') ? (
                 <div 
                     key={action} 
-                    className={`poker-button ${
-                        action === 'fold' ? 'button-green' : 
-                        action === 'check' ? 'button-teal' : 
-                        action === 'call' ? 'button-green' :
-                        'button-teal'
-                    }`}
+                    className={`btn-${action === 'check' || action === 'call' ? 'call' : action}`}
                     onClick={() => emitPlayerAction(action)}
                 >
                     {actionLabels[action] || action.charAt(0).toUpperCase() + action.slice(1)}
@@ -31,15 +26,15 @@ const PlayerActions = ({
             ) : null
         ))}
         {(tableState.legalActions.actions.includes('raise') || tableState.legalActions.actions.includes('bet')) && (
-            <div className="poker-button button-red" onClick={() => emitPlayerAction('raise', Number(tableState.legalActions.chipRange.max))}>
+            <div className="btn-allin" onClick={() => emitPlayerAction('raise', Number(tableState.legalActions.chipRange.max))}>
                 Tapis
             </div>
         )}
     </div>
     {(tableState.legalActions.actions.includes('raise') || tableState.legalActions.actions.includes('bet')) && (
-        <div className="input-group">
-            <div className="bet-input-container">
-                <div className="bet-control button-minus" onClick={minusRange}>
+    <div className="input-group">
+        <div className="btn-raise" onClick={() => emitPlayerAction('raise')}>Call</div>
+        <div className="bet-input-container">                <div className="bet-control button-minus" onClick={minusRange}>
                     <Minus />
                 </div>
                 <input
@@ -58,7 +53,6 @@ const PlayerActions = ({
                     <Plus />
                 </div>
             </div>
-            <div className="poker-button button-teal" onClick={() => emitPlayerAction('raise')}>Miser / Relancer</div>
         </div>
     )}
 </div>
