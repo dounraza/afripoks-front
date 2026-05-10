@@ -54,7 +54,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     const [shouldShareCards, setShouldShareCards] = useState(false);
     const [sharingCards, setSharingCards] = useState(false);
     const [communityReversNb, setCommunityReversNb] = useState(0);
-    const latestCommCardRef = useRef(null);
+    let latestCommCard = null;
     const [moveCommCards, setMoveCommCards] = useState(false);
     const [communityToShow, setCommunityToShow] = useState([]);
     const [allInArr, setAllInArr] = useState([]);
@@ -142,11 +142,9 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
         if (diff === 1) {
             setCommunityShow(community);
-            // Ralentir la révélation pour plus de suspense, surtout pour la 5ème carte (River)
-            const revealDelay = community.length === 5 ? 1500 : 800;
             setTimeout(() => {
                 setCommunityToShow(community);
-            }, revealDelay);
+            }, 100);
             setIsRevealFinished(true);
             return;
         }
@@ -180,13 +178,11 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         };
     }, [community]);
 
-    const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
-
     useEffect(() => {
         const userId = sessionStorage.getItem('userId');
         if(!tableId) return;
 
-        socketRef.current = io(BASE_URL, {
+        socketRef.current = io(process.env.REACT_APP_BASE_URL, {
             auth: {
                 token: sessionStorage.getItem("accessToken"),
             },
@@ -217,26 +213,8 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setGameOver(true);
             
             setGame(false);
+            setCommunity(data.communityCards);
             
-            // --- Check for "All Fold" scenario ---
-            // An "all fold" scenario occurs when all players except one have folded.
-            // If this is the case and no community cards are present, ensure community is empty.
-            const numPlayers = tableState.seats?.filter(s => s !== null).length || 0;
-            // Check if the number of folded players is one less than the total number of players.
-            // This check is relevant if the win event is triggered due to all folds.
-            const isAllFoldScenario = numPlayers > 1 && foldedPlayers.current.size === numPlayers - 1;
-            
-            if (isAllFoldScenario && data.communityCards.length === 0) {
-                // If it's an all-fold scenario and no community cards are provided,
-                // ensure the community state is empty to trigger the "All Fold" message.
-                setCommunity([]); 
-            } else {
-                // Otherwise, use the community cards provided by the server.
-                // This handles cases where cards might be shown due to all-in scenarios.
-                setCommunity(data.communityCards || []);
-            }
-            // --- End Check ---
-
             setShouldShareCards(false);
             
             setWinData(data);
@@ -246,7 +224,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             const foldedPlayersArray = Array.from(foldedPlayers.current);
             
             setLastMatchHistory({
-                communityCards: data.communityCards || [], // Use original data for history
+                communityCards: data.communityCards || [],
                 allCards: data.allCards || [],
                 playerNames: [],
                 foldedPlayers: foldedPlayersArray
@@ -266,7 +244,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow([]);
             setCommunityToShow([]);
             setAllInArr([]);
-            latestCommCardRef.current = null;
             
             setShouldShareCards(true);
             setTimeout(async () => {
@@ -284,7 +261,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setCommunityShow([]);
             setAllInArr([]);
             foldedPlayers.current = new Set();
-            latestCommCardRef.current = null;
 
             console.log("Start");
             setShouldShareCards(false);
@@ -299,11 +275,10 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             
             setAvatars(data.avatars);
 
-            const hasRealAction = data?.actions?.some(a => !['smallBlind', 'bigBlind', 'ante'].includes(a.action));
-
-            if(data.communityCards.length > 0 && hasRealAction) {
+            if(data.communityCards.length > 0) {
                 console.log(data.communityCards);
-                if (latestCommCardRef.current !== data.communityCards[data.communityCards.length -1]) {
+                console.log('latest comm card', latestCommCard);
+                if (latestCommCard !== data.communityCards[data.communityCards.length -1]) {
                     if (data.communityCards.length === 3) {
                         setCommunityReversNb(3);
                     } else {
@@ -317,7 +292,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     setMoveCommCards(false);
                     setCommunity(data.communityCards);
                     setCommunityReversNb(0);
-                    latestCommCardRef.current = data.communityCards[data.communityCards.length -1];
+                    latestCommCard = data.communityCards[data.communityCards.length -1];
                 }, 500);
             }
 
@@ -348,7 +323,8 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
 
         socketRef.current.on('quitsuccess', () => {
             onlineUsersSocket.emit('joined-tables:leave', { uid: parseInt(userId), tid: parseInt(tableId) });
-            navigate('/acceuil');
+            // RELOAD TOTAL : remplace navigate pour vider toute la mémoire et rafraîchir le solde
+            window.location.href = '/table';
         });
 
         socketRef.current.on('quiterror', () => {
@@ -499,7 +475,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     };
 
     const actionLabels = {
-        fold: 'Fold',
+        fold: 'Se coucher',
         check: 'Parole',
         call: 'Suivre',
     };
@@ -515,64 +491,16 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
     return (
         <div key={tableId} className="game-container">
             <ToastContainer />
-
-            {/* GAME HEADER */}
-            <div className="game-header">
-                <div className="header-left">
-                    <div 
-                        className="exit" 
-                        onClick={() => quitter()}
-                        title="Quitter"
-                    >
-                        <ArrowBigLeft size={24} />
-                    </div>
-                    <div className="username-display">
-                        {sessionStorage.getItem('userName') || 'Joueur'}
-                    </div>
-                </div>
-
-                <div className="header-right">
-                    <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
-                    <div 
-                        onClick={() => setIsHistoryModalOpen(true)}
-                        style={{
-                            color: 'white',
-                            cursor: 'pointer',
-                            borderRadius: 4,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 32,
-                            height: 32,
-                            backgroundColor: 'black',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                        }}
-                    >
-                        <History size={20} />
-                    </div>
-                </div>
-            </div>
           
-            {/* Player Actions (Bottom) */}
             {tableState.handInProgress && tableState.toAct === tableState.seat && ( 
-                <div style={{
-                    position: 'absolute',
-                    bottom: '5%',
-                    left: 0,
-                    right: 0,
-                    zIndex: 1000,
-                    display: 'flex',
-                    justifyContent: 'center'
-                }}>
-                    <PlayerActions
-                        tableState={tableState}
-                        betSize={betSize}
-                        setBetSize={setBetSize}
-                        emitPlayerAction={emitPlayerAction}
-                        addRange={addRange}
-                        minusRange={minusRange}
-                    />
-                </div>
+                <PlayerActions
+                    tableState={tableState}
+                    betSize={betSize}
+                    setBetSize={setBetSize}
+                    emitPlayerAction={emitPlayerAction}
+                    addRange={addRange}
+                    minusRange={minusRange}
+                />
             )}
 
             <CommunityCards
@@ -607,7 +535,9 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             <div 
                 className="table"
                 ref={tableRef}
-                style={{ marginTop: 10 }}
+                style={{
+                  marginTop: 10,
+                }}
             >
                 <div 
                     className="table-surface"
@@ -615,7 +545,6 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-          
                     }}
                 >
                     <img 
@@ -626,10 +555,13 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                             height: 'calc(650px)',
                             objectFit: 'contain',
                             padding: '1rem',
-                            mixBlendMode: 'normal',
-                            filter: 'contrast(1.2) brightness(1.2)'
+                            mixBlendMode: 'multiply', // Retire le blanc
+                            filter: 'contrast(1.1)' // Améliore le contraste
+                        
                         }}
                     />
+                    
+                    
                 </div>
                 {tableState.seats && (tableState.seats).map((chips, i) => {
                     return (
@@ -660,6 +592,59 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 })}
             </div>
 
+            {!tableState.handInProgress && (
+                <div 
+                    className="exit" 
+                    onClick={() => quitter()}
+                    style={{
+                      padding: '4px 8px 4px 8px', 
+                      background: '#ff3030ff',
+                      color: '#FFF',
+                    }}
+                >
+                    <ArrowBigLeft size={24} style={{ marginRight: 0 }} />
+                    Quitter
+                </div>
+            )}
+
+            <div
+                style={{
+                    position: 'absolute',
+                    top: '2%',
+                    right: '5%',
+                    display: 'flex',
+                    gap: '12px',
+                    zIndex: 999,
+                }}
+            >
+                <div style={{
+                    display: 'flex'
+                }}>
+                    <TableTabs />
+                </div>
+
+                <SoundButton soundMute={soundMute} setSoundMute={setSoundMute} />
+                
+                <div 
+                    className="" 
+                    onClick={() => setIsHistoryModalOpen(true)}
+                    style={{
+                        color: '#FFD700',
+                        cursor: 'pointer',
+                        borderRadius: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        paddingTop: 4,
+                        paddingBottom: 4,
+                        border: '2px solid #FFD700',
+                    }}
+                >
+                    <History size={20} />
+                    {/* <span>Historique</span> */}
+                </div>
+            </div>
             <GameHistoryModal 
                 isOpen={isHistoryModalOpen}
                 onClose={() => setIsHistoryModalOpen(false)}
@@ -667,13 +652,14 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                 getSrcCard={getSrcCard}
                 playerNames={tableState.playerNames || []}
             />
-            <TableChat 
-                socketRef={socketRef}
-                tableId={tableId}
-                tableState={tableState}
-                currentUserId={currentUserId}
-                playerNames={tableState.playerNames || []}
-            />
+            {/* Ajoutez le chat ici */}
+                <TableChat 
+                    socketRef={socketRef}
+                    tableId={tableId}
+                    tableState={tableState} // Ajoutez ceci
+                    currentUserId={currentUserId}
+                    playerNames={tableState.playerNames || []}
+                />
         </div>
     );
 };
