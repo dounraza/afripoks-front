@@ -1,8 +1,19 @@
 import axios from 'axios';
+import api from './api';
 import { onlineUsersSocket } from '../engine/socket';
 
 const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
 const API_URL = `${BASE_URL}/api/auth/login`; 
+
+export const updateProfile = async (userId, name, avatar) => {
+    try {
+        const response = await api.put(`/api/users/${userId}`, { name, avatar });
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour du profil :", error);
+        throw error;
+    }
+};
 
 export const login = async (email, password) => {
   try {
@@ -31,5 +42,4 @@ export const logout = () => {
   sessionStorage.removeItem("accessToken");
   sessionStorage.removeItem("userName");
   sessionStorage.removeItem("userId");
-}
-
+};

@@ -133,16 +133,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            top: -5.0rem;
+            top: -6.0rem;
             z-index: -1;
             width: 100%;
 
             &.holdem {
-                top: -5.3rem; 
+                top: -6.3rem; 
             }
 
             &.omaha {
-                top: -5.3rem;
+                top: -6.3rem;
             }
 
             .card-containers {
@@ -152,7 +152,7 @@
 
                 &.holdem {
                     .card {
-                        width: 2.8rem; // Fixé à 2.8rem
+                        width: 3.6rem;
                         margin: 0 -0.3rem;
                         
                         img {
@@ -163,7 +163,7 @@
 
                 &.omaha {
                     .card {
-                        width: 2.6rem; // Augmenté pour Omaha
+                        width: 3.4rem;
                         margin: 0 -0.6rem; 
                         
                         img {
@@ -174,7 +174,7 @@
                 }
 
                 .card {
-                    width: 2.6rem;
+                    width: 3.4rem;
                     margin: 0 -0.6rem; 
                     transition: transform 0.2s;
                     position: relative;

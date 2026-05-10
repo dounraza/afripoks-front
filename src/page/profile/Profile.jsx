@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Nav from '../../component/nav/Nav';
 import './Profile.scss';
+import { updateProfile } from '../../services/authService';
 
 const avatars = Array.from({ length: 19 }, (_, i) => `/avatars/${i}.png`);
 
@@ -8,12 +9,22 @@ const Profile = () => {
     const [pseudo, setPseudo] = useState(sessionStorage.getItem('userName') || '');
     const [selectedAvatar, setSelectedAvatar] = useState(sessionStorage.getItem('avatar') || '/avatars/0.png');
     const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const handleUpdateProfile = () => {
-        sessionStorage.setItem('userName', pseudo);
-        sessionStorage.setItem('avatar', selectedAvatar);
-        alert('Profil mis à jour !');
-        setShowModal(false);
+    const handleUpdateProfile = async () => {
+        setLoading(true);
+        const userId = sessionStorage.getItem('userId');
+        try {
+            await updateProfile(userId, pseudo, selectedAvatar);
+            sessionStorage.setItem('userName', pseudo);
+            sessionStorage.setItem('avatar', selectedAvatar);
+            alert('Profil mis à jour !');
+            setShowModal(false);
+        } catch (error) {
+            alert('Erreur lors de la mise à jour.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -52,8 +63,10 @@ const Profile = () => {
                             ))}
                         </div>
                         <div className="modal-actions">
-                            <button className="cancel-btn" onClick={() => setShowModal(false)}>Annuler</button>
-                            <button className="confirm-btn" onClick={handleUpdateProfile}>Enregistrer</button>
+                            <button className="cancel-btn" onClick={() => setShowModal(false)} disabled={loading}>Annuler</button>
+                            <button className="confirm-btn" onClick={handleUpdateProfile} disabled={loading}>
+                                {loading ? 'Enregistrement...' : 'Enregistrer'}
+                            </button>
                         </div>
                     </div>
                 </div>
