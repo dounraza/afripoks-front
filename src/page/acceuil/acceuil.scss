@@ -151,10 +151,13 @@
                 left: 15px;
                 color: #fff;
                 margin: 0; 
-                font-size: 1rem; 
-                font-weight: 700;
+                font-size: 1.1rem; 
+                font-weight: 800;
+                font-style: italic;
                 z-index: 2;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+                letter-spacing: 0.8px;
+                text-transform: uppercase;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(212, 175, 55, 0.4);
             }
 
             .play-button-container {
@@ -320,14 +323,91 @@
 }
 
 @media (max-width: 992px) {
-    .dashboard-container .welcome-section .features-grid { grid-template-columns: 1fr; }
+    .dashboard-container {
+        padding: 20px;
+        .welcome-section {
+            .hero-banner {
+                padding: 60px 30px;
+                h1 { font-size: 2.2rem; }
+            }
+            .features-grid { grid-template-columns: 1fr; gap: 15px; }
+        }
+    }
 }
 
 @media (max-width: 768px) {
     .dashboard-container {
-        padding: 20px;
-        .tabs-nav { width: 100%; overflow-x: auto; }
-        .welcome-section .hero-banner { padding: 40px 20px; }
-        .welcome-section .hero-banner h1 { font-size: 2rem; }
+        padding: 15px;
+        
+        // Navigation Mobile
+        .tabs-nav { 
+            width: calc(100% + 30px); 
+            margin-left: -15px;
+            padding: 8px 15px;
+            overflow-x: auto; 
+            border-radius: 0;
+            -webkit-overflow-scrolling: touch;
+            &::-webkit-scrollbar { display: none; }
+            .tab-item { flex-shrink: 0; white-space: nowrap; padding: 6px 16px; }
+        }
+
+        // Section Accueil
+        .welcome-section {
+            .hero-banner { 
+                padding: 40px 20px; 
+                text-align: center;
+                background-position: center;
+                h1 { font-size: 1.8rem; }
+                p { font-size: 0.85rem; margin: 0 auto 20px; }
+            }
+            .features-grid { grid-template-columns: 1fr; gap: 15px; }
+        }
+
+        // Section Cash Games
+        .cash-section {
+            .filter-controls {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+                .search-input { width: 100%; height: 40px; }
+                .filter-nav { 
+                    justify-content: flex-start;
+                    width: 100%;
+                    overflow-x: auto;
+                    padding-bottom: 5px;
+                    &::-webkit-scrollbar { display: none; }
+                    .tab-item { white-space: nowrap; }
+                }
+            }
+        }
+
+        // Lobby Grid
+        .lobby-grid {
+            grid-template-columns: repeat(2, 1fr); // 2 colonnes pour bien optimiser l'espace
+            gap: 10px;
+
+            .lobby-card {
+                height: 160px;
+                .lobby-card-title { font-size: 0.85rem; }
+                .lobby-card-info-bottom { padding: 8px; gap: 4px; }
+            }
+        }
+
+        // Section Tournois
+        .coming-soon {
+            padding: 40px 20px;
+            h2 { font-size: 1.5rem; }
+            p { font-size: 0.9rem; }
+            svg { width: 60px; height: 60px; }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        .lobby-grid {
+            grid-template-columns: 1fr; // Une seule colonne sur les très petits écrans si nécessaire, ou garder 2
+            // grid-template-columns: repeat(2, 1fr); // 2 colonnes est souvent mieux pour le lobby
+        }
     }
 }

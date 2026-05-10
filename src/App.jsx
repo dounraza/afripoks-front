@@ -25,7 +25,7 @@ function App() {
         <Routes>
           <Route path="/table" element={<Tables />} />
           <Route path="/acceuil" element={<Acceuil />} />
-          <Route path="/" element={<Acceuil />} />
+          <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<PageLogin />} />
           <Route path="/register" element={<Register />} />

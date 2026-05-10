@@ -36,32 +36,28 @@
     .user-profile {
         display: flex;
         align-items: center;
-        gap: 20px;
-
-        .user-solde-wrapper, .user-avatar-wrapper {
-            position: relative;
-        }
+        gap: 12px;
 
         .user-solde-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             background: #000;
-            padding: 8px 18px;
-            border-radius: 12px;
-            border: 1px solid rgba(248, 197, 55, 0.4);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(248, 197, 55, 0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
             color: #f8c537;
             cursor: pointer;
             transition: all 0.2s;
 
             &:hover { border-color: #f8c537; background: #0a0a0a; }
 
-            .wallet-icon { font-size: 1.1rem; }
+            .wallet-icon { font-size: 0.9rem; }
             .user-solde {
-                font-weight: 800;
-                font-size: 0.95rem;
-                min-width: 80px;
+                font-weight: 700;
+                font-size: 0.85rem;
+                min-width: 60px;
                 text-align: center;
             }
 
@@ -71,6 +67,7 @@
                 align-items: center;
                 opacity: 0.6;
                 transition: opacity 0.2s;
+                font-size: 0.9rem;
                 &:hover { opacity: 1; }
             }
         }
@@ -78,14 +75,15 @@
         .user-info-trigger {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 4px 8px;
             border-radius: 50px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(248, 197, 55, 0.2);
+            border: 1px solid rgba(248, 197, 55, 0.1);
             transition: all 0.2s;
-            &:hover { background: rgba(248, 197, 55, 0.1); border-color: #f8c537; }
+            &:hover { background: rgba(248, 197, 55, 0.05); border-color: #f8c537; }
+            .avatar { width: 32px; height: 32px; border-radius: 50%; }
         }
 
         .dropdown-menu {
