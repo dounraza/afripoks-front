@@ -10,15 +10,6 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
     
 
     useEffect(() => {
-        // Reset whenever the pot size effectively changes to 0 or hand data changes
-        const currentPotSize = tableState?.pots?.[0]?.size || 0;
-        
-        if (currentPotSize === 0) {
-            setPotVisible(true);
-            setPotsAnimation([]);
-            setAnimate(false);
-        }
-
         if (
             animatePotToWinner &&
             winnerSeats.length > 0 &&
@@ -135,18 +126,32 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
                                 position: 'relative',
                             }}
                         >
-                            {tableState?.pots?.[0]?.size > 0 ? (
-                                <>
-                                    <img src={jetonMany} alt=""
-                                        style={{
-                                            zIndex: -1,
-                                            width: '56px',
-                                            height: '56px',
-                                            objectFit: 'contain',
-                                        }} />
-                                    {tableState.pots[0].size}
-                                </>
+                            {tableState?.pots?.[0]?.size ? (
+                                <img src={jetonMany} alt=""
+                                    style={{
+                                        zIndex: -1,
+                                        width: '56px',
+                                        height: '56px',
+                                        objectFit: 'contain',
+                                    }} />
+                                // <>
+                                //   {[1, 2, 3, 4].map((color, i) => (
+                                //     <div
+                                //       style={{
+                                //         width: '24px',
+                                //         height: '24px',
+                                //         borderRadius: '50%',
+                                //         position: 'absolute',
+                                //         top: '50%',
+                                //         left: '50%',
+                                //       }}
+                                //     >
+                                //       <img src={singleJeton} alt="" style={{ width: '100%', height: '100%' }} />
+                                //     </div>
+                                //   ))}
+                                // </>
                             ) : null}
+                            {tableState?.pots?.[0]?.size ?? 0}
                         </div>
                     )}
                     <div className="seondaires">

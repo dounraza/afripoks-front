@@ -70,36 +70,19 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000');
         socketRef.current = socket;
 
-        // Reset state on entry to prevent seeing old hand data
-        setTableState({});
-        setCommunity([]);
-        setCommunityShow([]);
-
         const userId = sessionStorage.getItem('userId');
-        const username = sessionStorage.getItem('userName'); 
+        const username = sessionStorage.getItem('userName'); // ✅ FIX: 'userName' pas 'username'
 
-        // Join table with an explicit cave from URL if exists
-        const queryParams = new URLSearchParams(window.location.search);
-        const cave = queryParams.get('cave');
-        if (cave) {
-            socket.emit('joinAnyTable', { tableId, userId, playerCave: Number(cave) });
-        } else {
-            socket.emit('join_table', { tableId, userId, username });
-        }
+        // Rejoindre la table
+        socket.emit('join_table', { tableId, userId, username });
 
-        // Setup socket listeners for state
-        socket.on('tableState', (newState) => {
-            setTableState(newState);
-            if (newState.communityCards) {
-                setCommunity(newState.communityCards);
-            }
-        });
-
-        // ✅ CLEANUP
+        // ✅ CLEANUP CORRECT
         return () => {
-            setTableState({}); // Force clear on unmount
-            socket.emit('leaveTable', { tableId });
-            socket.disconnect();
+            // Émettre que l'utilisateur quitte la table (événement custom)
+            socket.emit('leave_table', { tableId, userId });
+            
+            // Déconnexion propre
+            socket.disconnect(); // ✅ Pas socket.emit('disconnect')
         };
     }, [tableId]);
     /**
@@ -299,10 +282,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
             setGame(true);
             setCommunity([]);
             setCommunityShow([]);
-            setCommunityToShow([]);
             setAllInArr([]);
-            // Force reset of pot visibility via tableState update
-            setTableState(prev => ({ ...prev, pots: [{ size: 0 }] }));
             foldedPlayers.current = new Set();
             latestCommCardRef.current = null;
 
@@ -646,8 +626,8 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                             height: 'calc(650px)',
                             objectFit: 'contain',
                             padding: '1rem',
-                            mixBlendMode: 'multiply',
-                            filter: 'contrast(1.1)'
+                            mixBlendMode: 'normal',
+                            filter: 'contrast(1.2) brightness(1.2)'
                         }}
                     />
                 </div>

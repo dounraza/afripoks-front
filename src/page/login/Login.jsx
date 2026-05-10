@@ -4,6 +4,7 @@ import { User, Key, Eye, EyeOff } from "lucide-react";
 import "./Login.scss";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import pokerBackground from '../../image/bg.jpg'; 
 import logo from '../../styles/image/logo.jpeg';
 import { socket } from "../../engine/socket"; // ✅ importer le socket
 
@@ -54,7 +55,7 @@ const Login = () => {
     };
 
     return (
-        <div className="login-container">
+        <div className="login-container" style={{ backgroundImage: `url(${pokerBackground})` }}>
             <div className="overlay"></div>
             <ToastContainer />
             

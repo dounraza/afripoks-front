@@ -12,30 +12,13 @@ const Acceuil = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [tables, setTables] = useState([]);
     const [sitCounts, setSitCounts] = useState(new Map());
-    const [showCaveModal, setShowCaveModal] = useState(false);
-    const [selectedTable, setSelectedTable] = useState(null);
-    const [caveAmount, setCaveAmount] = useState(0);
+    const [showModalCave, setShowModalCave] = useState(false);
+    const [selectedTableId, setSelectedTableId] = useState(null);
+    const [cave, setCave] = useState("");
+    const [solde, setSolde] = useState(0);
     const navigate = useNavigate();
     
     const userId = sessionStorage.getItem('userId');
-
-    const openCaveModal = (table) => {
-        setSelectedTable(table);
-        setCaveAmount(table.cave || 0);
-        setShowCaveModal(true);
-    };
-
-    const confirmJoinTable = () => {
-        if (selectedTable) {
-            const amount = Number(caveAmount);
-            if (amount < selectedTable.cave) {
-                alert(`Le montant minimum requis est de ${selectedTable.cave.toLocaleString()} Ar.`);
-                return;
-            }
-            navigate(`/game/${selectedTable.id}?cave=${amount}`);
-            setShowCaveModal(false);
-        }
-    };
 
     const tableImages = [
         "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400",
@@ -45,7 +28,42 @@ const Acceuil = () => {
 
     useEffect(() => {
         getAll(setTables, setSitCounts);
+        if (userId) {
+            import('../../services/soldeService').then(module => {
+                module.getSolde(userId, setSolde);
+            });
+        }
     }, [userId]);
+
+    const handleJoinClick = (tableId) => {
+        setSelectedTableId(tableId);
+        setShowModalCave(true);
+    };
+
+    const verifyCave = async (id) => {
+        const table = tables.find(t => t.id === id);
+        const caveMin = table?.cave || 0;
+
+        if (cave === '') {
+            goToTable(selectedTableId, caveMin);
+        } else if (Number(cave) >= Number(caveMin)) {
+            if (solde >= Number(cave)) {
+                goToTable(selectedTableId, cave);
+            } else {
+                alert("Votre solde est insuffisant !");
+                return;
+            }
+        } else {
+            alert(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
+            return;
+        }
+
+        setShowModalCave(false);
+        setSelectedTableId(null);
+        setCave('');
+    };
+
+    const playGame = () => verifyCave(selectedTableId);
 
     const filteredTables = useMemo(() => {
         return tables.filter(t => {
@@ -54,6 +72,10 @@ const Acceuil = () => {
             return matchesGame && matchesSearch;
         });
     }, [tables, gameFilter, searchTerm]);
+
+    const goToTable = (tableId, caveValue) => {
+        navigate(`/game/${tableId}`, { state: { cave: caveValue } });
+    };
 
     const renderContent = () => {
         if (activeTab === 'home') {
@@ -123,7 +145,7 @@ const Acceuil = () => {
                             <h4 className="lobby-card-title">{table.name}</h4>
                             
                             <div className="play-button-container">
-                                <button className="lobby-play-btn-circle" onClick={() => openCaveModal(table)}>
+                                <button className="lobby-play-btn-circle" onClick={() => handleJoinClick(table.id)}>
                                     <FaPlay color="black" size={18} />
                                 </button>
                             </div>
@@ -149,24 +171,6 @@ const Acceuil = () => {
         <div className='dashboard-container'>
             <Nav />
 
-            {showCaveModal && (
-                <div className="modal-overlay">
-                    <div className="cave-modal">
-                        <h3>Sélectionnez votre cave</h3>
-                        <p>Table: {selectedTable?.name}</p>
-                        <input 
-                            type="number" 
-                            value={caveAmount} 
-                            onChange={(e) => setCaveAmount(e.target.value)}
-                        />
-                        <div className="modal-actions">
-                            <button className="cancel-btn" onClick={() => setShowCaveModal(false)}>Annuler</button>
-                            <button className="confirm-btn" onClick={confirmJoinTable}>Rejoindre</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <nav className="tabs-nav" style={{ marginTop: '80px' }}>
                 <button className={`tab-item ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')}><FaHome /> Home</button>
                 <button className={`tab-item ${activeTab === 'cash' ? 'active' : ''}`} onClick={() => setActiveTab('cash')}><FaGamepad /> Cash Games</button>
@@ -179,6 +183,42 @@ const Acceuil = () => {
             <main className="main-content">
                 {renderContent()}
             </main>
+
+            {/* Modal Cave */}
+            {showModalCave && (() => {
+                const selectedTable = tables.find(t => t.id === selectedTableId);
+                const minCave = selectedTable?.cave || 0;
+                
+                return (
+                    <div className="modal-overlay" onClick={() => setShowModalCave(false)}>
+                        <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>Rejoindre {selectedTable?.name}</h3>
+                                <p className="min-cave-info">Cave minimale : <b>{minCave.toLocaleString()} Ar</b></p>
+                            </div>
+                            <div className="modal-body">
+                                <input
+                                    type="number"
+                                    value={cave}
+                                    onChange={(e) => setCave(e.target.value)}
+                                    placeholder={`Min: ${minCave}`}
+                                    className="cave-input"
+                                    autoFocus
+                                />
+                                <p className="user-solde-info">Votre solde : {solde.toLocaleString()} Ar</p>
+                            </div>
+                            <div className="modal-actions">
+                                <button className="modal-btn cancel" onClick={() => setShowModalCave(false)}>
+                                    Annuler
+                                </button>
+                                <button className="modal-btn confirm" onClick={playGame}>
+                                    Confirmer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 }
