@@ -125,7 +125,7 @@
         gap: 20px;
 
         .lobby-card {
-            background-color: var(--card-bg);
+           
             background-size: cover;
             background-position: center;
             background-blend-mode: overlay;
@@ -208,8 +208,8 @@
                         .stat {
                             display: flex;
                             flex-direction: column;
-                            span { font-size: 0.65rem; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; }
-                            b { color: var(--gold-light); font-weight: 700; font-size: 0.85rem; }
+                            span { font-size: 0.65rem; color: #fff; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+                            b { color: var(--gold); font-weight: 700; font-size: 0.85rem; }
                         }
                     }
 

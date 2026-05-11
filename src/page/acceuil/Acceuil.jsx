@@ -6,6 +6,12 @@ import { useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
 import Nav from "../../component/nav/Nav";
 import { JoinedTableContext } from '../../contexts/JoinedTableContext';
+import tableImg1 from '../../styles/image/table/1.jpg';
+import tableImg2 from '../../styles/image/table/2.jpg';
+import tableImg3 from '../../styles/image/table/3.jpg';
+import tableImg4 from '../../styles/image/table/4.jpg';
+import tableImg5 from '../../styles/image/table/5.jpg';
+import tableImg6 from '../../styles/image/table/6.png';
 
 const Acceuil = () => {
     const { joinedTables } = useContext(JoinedTableContext);
@@ -26,11 +32,9 @@ const Acceuil = () => {
         return joinedTables.includes(parseInt(tableId));
     };
 
-    const tableImages = [
-        "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400",
-        "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=400",
-        "https://images.unsplash.com/photo-1594996792525-d4e9ff6d8f28?w=400"
-    ];
+    const tableImages = useMemo(() => [
+        tableImg1, tableImg2, tableImg3, tableImg4, tableImg5, tableImg6
+    ], []);
 
     useEffect(() => {
         getAll(setTables, setSitCounts);

@@ -41,7 +41,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         sessionStorage.removeItem("accessToken");
-        window.location.href = "/login";
+        window.location.href = "/acceuil"; // Rediriger vers l'accueil au lieu du login
         return Promise.reject(refreshError);
       }
     }
