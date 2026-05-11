@@ -34,10 +34,10 @@ const Login = () => {
 
         try {
             const success = await authService(formData.email, formData.password);
-           if (success) {
-            const userId = sessionStorage.getItem('userId');
-            const username = sessionStorage.getItem('userName');
-
+            if (success) {
+            //    alert('Avatar dans sessionStorage: ' + sessionStorage.getItem('avatar'));
+                const userId = sessionStorage.getItem('userId');
+                const username = sessionStorage.getItem('userName');
             // ✅ Juste dispatcher, le context s'occupe du reste
             window.dispatchEvent(new CustomEvent('userLogin', {
                 detail: { userId, username }

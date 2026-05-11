@@ -169,9 +169,40 @@ const Player = ({
 
         if (!tableState.playerNames[i]) return null;
 
+    const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+
+    const getAvatarSrc = (avatar) => {
+        if (!avatar) return '/avatars/0.png';
+        // Si l'avatar est déjà une URL complète ou un blob preview
+        if (avatar.startsWith('http') || avatar.startsWith('blob:')) return avatar;
+        // Si c'est un avatar uploadé (commence par /uploads)
+        if (avatar.startsWith('/uploads')) return `${BASE_URL}${avatar}`;
+        
+        // Nettoyage du chemin pour les avatars par défaut
+        // Si on reçoit "/avatars/5.png", on s'assure de ne pas doubler le préfixe
+        let cleanAvatar = avatar;
+        if (avatar.startsWith('/avatars/')) {
+            cleanAvatar = avatar.replace('/avatars/', '');
+        } else if (avatar.startsWith('avatars/')) {
+            cleanAvatar = avatar.replace('avatars/', '');
+        }
+        
+        return `/avatars/${cleanAvatar}`;
+    };
+
     const avatarJson = avatars?.find(avt => avt.userId === tableState.playerIds[i]);
-    const avatar = avatarJson?.avatar;
-    const avatarSrc = `/avatars/${avatar}`;
+    let avatar = avatarJson?.avatar;
+
+    // Fallback pour le joueur local : utiliser l'avatar du sessionStorage s'il est plus récent/différent
+    const currentUserId = sessionStorage.getItem('userId');
+    if (tableState.playerIds[i] === currentUserId) {
+        const sessionAvatar = sessionStorage.getItem('avatar');
+        if (sessionAvatar) {
+            avatar = sessionAvatar;
+        }
+    }
+
+    const avatarSrc = getAvatarSrc(avatar);
 
     const playerRef = playerRefs[i];
     const playerRect = playerRef.current?.getBoundingClientRect();
@@ -259,7 +290,7 @@ const Player = ({
                             }
                         `}</style>
                         <img
-                            src={avatarSrc}
+                            src={BASE_URL+sessionStorage.getItem('avatar') }
                             alt="avatar"
                             style={{
                                 objectFit: 'cover',

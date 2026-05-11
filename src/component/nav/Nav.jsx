@@ -40,6 +40,18 @@ const Nav = () => {
         navigate("/login");
     };
 
+    const avatar = sessionStorage.getItem('avatar');
+    const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+
+    const getAvatarSrc = (avatar) => {
+        if (!avatar) return null;
+        if (avatar.startsWith('http') || avatar.startsWith('blob:')) return avatar;
+        if (avatar.startsWith('/uploads')) return `${BASE_URL}${avatar}`;
+        return avatar;
+    };
+
+    const avatarSrc = getAvatarSrc(avatar);
+
     return (
         <header className="header-nav-premium">
             <div className="title-logo" onClick={() => navigateNav("/acceuil")}>
@@ -71,7 +83,16 @@ const Nav = () => {
                 {/* SECTION AVATAR */}
                 <div className="user-avatar-wrapper">
                     <div className="user-info-trigger" onClick={() => setShowDropdown(!showDropdown)}>
-                        <FaUserCircle className="avatar-icon" size={36} color="#FFD700" />
+                        {avatarSrc ? (
+                            <img 
+                                src={avatarSrc} 
+                                alt="avatar" 
+                                className="user-avatar-img"
+                                style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #FFD700' }}
+                            />
+                        ) : (
+                            <FaUserCircle className="avatar-icon" size={36} color="#FFD700" />
+                        )}
                         <FaChevronDown className="chevron" color="#FFD700" size={12} />
                     </div>
                     {showDropdown && (
