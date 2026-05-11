@@ -36,7 +36,10 @@ const Profile = () => {
                     <img src={selectedAvatar} alt="Avatar" className="profile-avatar" />
                     <div className="profile-info">
                         <h3>{pseudo}</h3>
-                        <button className="edit-btn" onClick={() => setShowModal(true)}>Modifier Profil</button>
+                        <button className="edit-btn" onClick={() => {
+                            console.log("Edit button clicked, showModal:", !showModal);
+                            setShowModal(true);
+                        }}>Modifier Profil</button>
                     </div>
                 </div>
             </div>

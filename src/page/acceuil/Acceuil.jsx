@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import './acceuil.scss';
-import { FaHome, FaGamepad, FaTrophy, FaPlay } from 'react-icons/fa';
+import { FaHome, FaGamepad, FaTrophy, FaPlay, FaSignInAlt } from 'react-icons/fa';
 import { getAll } from '../../services/tableServices';
 import { useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
 import Nav from "../../component/nav/Nav";
+import { JoinedTableContext } from '../../contexts/JoinedTableContext';
 
 const Acceuil = () => {
+    const { joinedTables } = useContext(JoinedTableContext);
     const [activeTab, setActiveTab] = useState('cash'); 
     const [gameFilter, setGameFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,6 +21,10 @@ const Acceuil = () => {
     const navigate = useNavigate();
     
     const userId = sessionStorage.getItem('userId');
+
+    const isTableJoined = (tableId) => {
+        return joinedTables.includes(parseInt(tableId));
+    };
 
     const tableImages = [
         "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400",
@@ -140,14 +146,26 @@ const Acceuil = () => {
                     </div>
                 </div>
                 <div className="lobby-grid">
-                    {filteredTables.map((table) => (
-                        <div key={table.id} className="lobby-card" style={{ backgroundImage: `url(${tableImages[table.id % tableImages.length]})` }}>
-                            <h4 className="lobby-card-title">{table.name}</h4>
+                    {filteredTables.map((table) => {
+                        const joined = isTableJoined(table.id);
+                        return (
+                        <div key={table.id} 
+                             className="lobby-card" 
+                             style={{ backgroundImage: `url(${tableImages[table.id % tableImages.length]})` }}
+                             onClick={() => joined ? goToTable(table.id, null) : handleJoinClick(table.id)}>
+                            
+                            <h4 className="lobby-card-title"><i>{table.name}</i></h4>
                             
                             <div className="play-button-container">
-                                <button className="lobby-play-btn-circle" onClick={() => handleJoinClick(table.id)}>
-                                    <FaPlay color="black" size={18} />
-                                </button>
+                                {joined ? (
+                                    <button className="lobby-play-btn-circle" title="Rejoindre">
+                                        <FaSignInAlt color="black" size={18} />
+                                    </button>
+                                ) : (
+                                    <button className="lobby-play-btn-circle" title="Jouer">
+                                        <FaPlay color="black" size={18} />
+                                    </button>
+                                )}
                             </div>
 
                             <div className="lobby-card-info-bottom">
@@ -161,7 +179,7 @@ const Acceuil = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    )})}
                 </div>
             </div>
         );

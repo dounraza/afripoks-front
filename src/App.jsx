@@ -7,6 +7,7 @@ import Tables from './page/table/Tables';
 import History from './page/history/History';
 import GameTable from './page/game/GameTable';
 import Register from './page/register/Register';
+import Profile from './page/profile/Profile';
 
 import './App.scss';
 import Transaction from './page/admin/transaction/Transaction';
@@ -25,6 +26,7 @@ function App() {
         <Routes>
           <Route path="/table" element={<Tables />} />
           <Route path="/acceuil" element={<Acceuil />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login/admin" element={<PageLogin />} />

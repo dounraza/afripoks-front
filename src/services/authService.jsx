@@ -7,7 +7,10 @@ const API_URL = `${BASE_URL}/api/auth/login`;
 
 export const updateProfile = async (userId, name, avatar) => {
     try {
-        const response = await api.put(`/api/users/${userId}`, { name, avatar });
+        const response = await api.put(`/api/users/${userId}`, { 
+            name: name, 
+            avatar: avatar 
+        });
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la mise à jour du profil :", error);
