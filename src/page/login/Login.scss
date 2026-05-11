@@ -24,11 +24,11 @@
         position: relative;
         z-index: 2;
         width: 100%;
-        max-width: 450px;
+        max-width: 400px;
         background: rgba(10, 10, 10, 0.85); // Noir semi-transparent
         backdrop-filter: blur(15px);
-        border-radius: 24px;
-        padding: 3rem;
+        border-radius: 20px;
+        padding: 2rem;
         box-shadow: 
             0 25px 50px -12px rgba(0, 0, 0, 0.5),
             0 0 30px rgba(248, 197, 55, 0.15); // Lueur dorée subtile
@@ -43,53 +43,53 @@
 
         .card-header {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
 
             .logo-container {
                 display: flex;
                 flex-direction: column; // Logo au dessus du texte
                 align-items: center;
                 justify-content: center;
-                gap: 15px;
-                margin-bottom: 1rem;
+                gap: 12px;
+                margin-bottom: 0.8rem;
 
                 .logo-chip {
-                    width: 70px;
-                    height: 70px;
+                    width: 60px;
+                    height: 60px;
                     border-radius: 50%;
                     border: 2px solid #f8c537;
-                    padding: 5px;
+                    padding: 4px;
                     background: #000;
                     filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
                 }
 
                 h1 {
-                    font-size: 2.8rem;
+                    font-size: 2.2rem;
                     color: #f8c537;
                     margin: 0;
                     font-weight: 900;
-                    letter-spacing: 4px;
+                    letter-spacing: 3px;
                     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(248, 197, 55, 0.3);
                 }
             }
 
             .welcome-text {
-                font-size: 1rem;
+                font-size: 0.9rem;
                 color: rgba(255, 255, 255, 0.6);
                 margin: 0;
                 text-transform: uppercase;
-                letter-spacing: 2px;
+                letter-spacing: 1.5px;
             }
         }
 
         .login-form {
             .input-group {
                 position: relative;
-                margin-bottom: 1.8rem;
+                margin-bottom: 1.5rem;
 
                 .input-icon {
                     position: absolute;
-                    left: 18px;
+                    left: 16px;
                     top: 50%;
                     transform: translateY(-50%);
                     color: #f8c537;
@@ -98,12 +98,12 @@
 
                 input {
                     width: 100%;
-                    padding: 18px 18px 18px 52px;
+                    padding: 14px 14px 14px 48px;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
+                    border-radius: 10px;
                     color: white;
-                    font-size: 1rem;
+                    font-size: 0.95rem;
                     transition: all 0.3s ease;
 
                     &:focus {
@@ -120,14 +120,14 @@
 
                 .toggle-password {
                     position: absolute;
-                    right: 18px;
+                    right: 16px;
                     top: 50%;
                     transform: translateY(-50%);
                     background: transparent;
                     border: none;
                     color: rgba(255, 255, 255, 0.4);
                     cursor: pointer;
-                    padding: 5px;
+                    padding: 4px;
                     transition: color 0.3s ease;
 
                     &:hover {
@@ -138,12 +138,12 @@
 
             .login-button {
                 width: 100%;
-                padding: 18px;
+                padding: 14px;
                 background: linear-gradient(180deg, #f8c537 0%, #B08E1D 100%);
                 color: #000;
                 border: none;
-                border-radius: 12px;
-                font-size: 1.1rem;
+                border-radius: 10px;
+                font-size: 1rem;
                 font-weight: 800;
                 text-transform: uppercase;
                 letter-spacing: 1px;
@@ -152,25 +152,25 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                gap: 12px;
+                gap: 10px;
                 position: relative;
                 box-shadow: 
-                    0 6px 0 #856a16,
-                    0 10px 20px rgba(0, 0, 0, 0.4);
+                    0 5px 0 #856a16,
+                    0 8px 15px rgba(0, 0, 0, 0.4);
 
                 &:hover {
                     background: linear-gradient(180deg, #ffd760 0%, #c49e21 100%);
                     transform: translateY(-2px);
                     box-shadow: 
-                        0 8px 0 #856a16,
-                        0 15px 25px rgba(0, 0, 0, 0.4);
+                        0 7px 0 #856a16,
+                        0 12px 20px rgba(0, 0, 0, 0.4);
                 }
 
                 &:active {
-                    transform: translateY(4px);
+                    transform: translateY(3px);
                     box-shadow: 
                         0 2px 0 #856a16,
-                        0 5px 10px rgba(0, 0, 0, 0.4);
+                        0 4px 8px rgba(0, 0, 0, 0.4);
                 }
 
                 &:disabled {
@@ -181,8 +181,8 @@
                 }
 
                 .spinner {
-                    width: 22px;
-                    height: 22px;
+                    width: 20px;
+                    height: 20px;
                     border: 3px solid rgba(0, 0, 0, 0.2);
                     border-radius: 50%;
                     border-top-color: #000;
@@ -193,8 +193,8 @@
 
         .register-link {
             text-align: center;
-            margin-top: 2rem;
-            font-size: 0.95rem;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.5);
 
             a {

@@ -91,7 +91,7 @@ const Profile = () => {
                             <label>Ajouter un avatar perso :</label>
                             <input type="file" accept="image/*" onChange={handleFileChange} />
                         </div>
-                        <div className="avatar-selector">
+                        <div className="avatar-selector" style={{ display: 'none' }}>
                             {avatars.map(avatar => (
                                 <img 
                                     key={avatar} 
