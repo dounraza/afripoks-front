@@ -210,31 +210,79 @@ const Acceuil = () => {
             {showModalCave && (() => {
                 const selectedTable = tables.find(t => t.id === selectedTableId);
                 const minCave = selectedTable?.cave || 0;
+                const maxCave = solde; // Limite par le solde du joueur
                 
+                // Si la cave n'est pas encore définie, on commence au minimum
+                const currentCaveValue = cave === "" ? minCave : parseInt(cave);
+
                 return (
                     <div className="modal-overlay" onClick={() => setShowModalCave(false)}>
-                        <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-card cave-modal-premium" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-glow"></div>
                             <div className="modal-header">
+                                <div className="table-icon">♠</div>
                                 <h3>Rejoindre {selectedTable?.name}</h3>
-                                <p className="min-cave-info">Cave minimale : <b>{minCave.toLocaleString()} Ar</b></p>
+                                <div className="header-divider"></div>
                             </div>
+                            
                             <div className="modal-body">
-                                <input
-                                    type="number"
-                                    value={cave}
-                                    onChange={(e) => setCave(e.target.value)}
-                                    placeholder={`Min: ${minCave}`}
-                                    className="cave-input"
-                                    autoFocus
-                                />
-                                <p className="user-solde-info">Votre solde : {solde.toLocaleString()} Ar</p>
+                                <div className="cave-display">
+                                    <span className="label">VOTRE CAVE</span>
+                                    <div className="amount-wrapper">
+                                        <input
+                                            type="number"
+                                            value={cave === "" ? minCave : cave}
+                                            onChange={(e) => setCave(e.target.value)}
+                                            onBlur={() => {
+                                                // Optionnel : valider les bornes au focus out
+                                                const val = parseInt(cave);
+                                                if (val < minCave) setCave(minCave.toString());
+                                                if (val > maxCave) setCave(maxCave.toString());
+                                            }}
+                                            className="cave-input-premium"
+                                            autoFocus
+                                        />
+                                        <span className="currency">Ar</span>
+                                    </div>
+                                </div>
+
+                                <div className="slider-container">
+                                    <input 
+                                        type="range" 
+                                        min={minCave} 
+                                        max={Math.max(minCave, maxCave)} 
+                                        value={currentCaveValue}
+                                        onChange={(e) => setCave(e.target.value)}
+                                        className="cave-slider"
+                                    />
+                                    <div className="slider-labels">
+                                        <span>Min: {minCave.toLocaleString()}</span>
+                                        <span>Max: {maxCave.toLocaleString()}</span>
+                                    </div>
+                                </div>
+
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <span className="info-label">SOLDE DISPONIBLE</span>
+                                        <span className="info-value gold">{solde.toLocaleString()} Ar</span>
+                                    </div>
+                                    <div className="info-item">
+                                        <span className="info-label">BLINDS</span>
+                                        <span className="info-value">{selectedTable?.smallBlind}/{selectedTable?.bigBlind} Ar</span>
+                                    </div>
+                                </div>
                             </div>
+
                             <div className="modal-actions">
                                 <button className="modal-btn cancel" onClick={() => setShowModalCave(false)}>
-                                    Annuler
+                                    ANNULER
                                 </button>
-                                <button className="modal-btn confirm" onClick={playGame}>
-                                    Confirmer
+                                <button 
+                                    className="modal-btn confirm-premium" 
+                                    onClick={playGame}
+                                    disabled={currentCaveValue < minCave || currentCaveValue > solde}
+                                >
+                                    C'EST PARTI !
                                 </button>
                             </div>
                         </div>

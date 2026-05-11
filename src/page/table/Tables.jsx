@@ -319,57 +319,25 @@ const Tables = () => {
                 {/* Modal Cave */}
                 {showModalCave && (
                     <div className="modal-overlay" onClick={() => setShowModalCave(false)}>
-                        <div className="modal-card cave-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-card" onClick={(e) => e.stopPropagation()}>
                             <div className="modal-header">
-                                <div className="header-icon">
-                                    <Wallet size={32} />
-                                </div>
-                                <h3>Choix de votre Cave</h3>
-                                <p className="subtitle">Combien souhaitez-vous apporter à table ?</p>
+                                <h3>Entrez votre cave</h3>
                             </div>
-                            
                             <div className="modal-body">
-                                <div className="balance-info">
-                                    <span className="label">Votre solde:</span>
-                                    <span className="value">{Number(solde).toLocaleString('fr-FR')} Ar</span>
-                                </div>
-
-                                <div className="input-wrapper">
-                                    <input
-                                        type="number"
-                                        value={cave}
-                                        onChange={(e) => setCave(e.target.value)}
-                                        placeholder={`Min: ${(tables.find(t => t.id === selectedTableId)?.cave ?? 0).toLocaleString()} Ar`}
-                                        className="cave-input"
-                                        autoFocus
-                                    />
-                                    <div className="currency-label">Ar</div>
-                                </div>
-                                
-                                <div className="quick-amounts">
-                                    {[1, 2, 5, 10].map(multiplier => {
-                                        const minCave = tables.find(t => t.id === selectedTableId)?.cave || 0;
-                                        const amount = minCave * multiplier;
-                                        if (amount > solde) return null;
-                                        return (
-                                            <button 
-                                                key={multiplier} 
-                                                className="amount-chip"
-                                                onClick={() => setCave(String(amount))}
-                                            >
-                                                {multiplier}x Min
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                <input
+                                    type="number"
+                                    value={cave}
+                                    onChange={(e) => setCave(e.target.value)}
+                                    placeholder="Montant en Ar"
+                                    className="cave-input"
+                                />
                             </div>
-
                             <div className="modal-actions">
                                 <button className="modal-btn cancel" onClick={() => setShowModalCave(false)}>
                                     Annuler
                                 </button>
                                 <button className="modal-btn confirm" onClick={playGame}>
-                                    C'est parti !
+                                    Confirmer
                                 </button>
                             </div>
                         </div>
