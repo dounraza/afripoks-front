@@ -469,9 +469,18 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         });
     };
 
+    const cardImages = React.useMemo(() => {
+        const context = require.context('../../image/card2/', false, /\.svg$/);
+        return context.keys().reduce((acc, path) => {
+            const fileName = path.replace('./', '').replace('.svg', '').toUpperCase();
+            acc[fileName] = context(path);
+            return acc;
+        }, {});
+    }, []);
+
     const getSrcCard = (card_id) => {
         const final_id_card = card_id.replace('T', 0).toUpperCase();
-        return require(`../../image/card2/${final_id_card}.svg`);  
+        return cardImages[final_id_card] || '';
     };
 
     const actionLabels = {
