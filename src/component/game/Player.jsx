@@ -71,6 +71,14 @@ const Player = ({
     const [isStackHidden, setIsStackHidden] = useState(false);
     const [showResult, setShowResult] = useState(false);
     
+    // Sync displayStack if chips load later
+    useEffect(() => {
+        if (chips?.stack !== undefined) {
+            setDisplayStack(chips.stack);
+            lastSafeStack.current = chips.stack;
+        }
+    }, [chips?.stack]);
+    
     // Références pour verrouiller le solde
     const lastSafeStack = useRef(chips?.stack ?? 0);
     const isLocked = useRef(false);
