@@ -9,6 +9,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { logout, isAuthenticated } from "../../services/authService";
 import { getSolde } from "../../services/soldeService";
+import { getFullAvatarUrl } from "../../services/api";
+import useUserAvatar from "../../hooks/useUserAvatar";
 import logo from "../../styles/image/logo.jpeg";
 import "./Nav.scss";
 
@@ -39,18 +41,9 @@ const Nav = () => {
         logout();
         navigate("/login");
     };
-    const userIdAvatar = `avatar_${userId}`;
-    const avatar = sessionStorage.getItem(userIdAvatar) || '/avatars/0.png';
-    const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
 
-    const getAvatarSrc = (avatar) => {
-        if (!avatar) return '/avatars/0.png';
-        if (avatar.startsWith('http') || avatar.startsWith('blob:')) return avatar;
-        if (avatar.startsWith('/uploads')) return `${BASE_URL}${avatar}`;
-        return avatar;
-    };
-
-    const avatarSrc = getAvatarSrc(avatar);
+    const { avatarUrl } = useUserAvatar(userId);
+    const avatarSrc = avatarUrl || '/avatars/0.png';
 
     return (
         <header className="header-nav-premium">

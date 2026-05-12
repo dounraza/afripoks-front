@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Smile } from "lucide-react";
 import SmileyModal from './SmileyModal';
 import { smileySocket } from '../../engine/socket';
+import { getFullAvatarUrl } from '../../services/api';
+import useUserAvatar from '../../hooks/useUserAvatar';
 
 const Player = ({
     i,
@@ -167,28 +169,9 @@ const Player = ({
         }
         }, [chips?.stack, gameOver, isRevealFinished, winData, i]);
 
-        if (!tableState.playerNames[i]) return null;
+    const { avatarUrl: fetchedAvatarUrl } = useUserAvatar(tableState.playerIds[i]);
 
-    const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
-
-    const getAvatarSrc = (avatar) => {
-        if (!avatar) return '/avatars/0.png';
-        // Si l'avatar est déjà une URL complète ou un blob preview
-        if (avatar.startsWith('http') || avatar.startsWith('blob:')) return avatar;
-        // Si c'est un avatar uploadé (commence par /uploads)
-        if (avatar.startsWith('/uploads')) return `${BASE_URL}${avatar}`;
-        
-        // Nettoyage du chemin pour les avatars par défaut
-        // Si on reçoit "/avatars/5.png", on s'assure de ne pas doubler le préfixe
-        let cleanAvatar = avatar;
-        if (avatar.startsWith('/avatars/')) {
-            cleanAvatar = avatar.replace('/avatars/', '');
-        } else if (avatar.startsWith('avatars/')) {
-            cleanAvatar = avatar.replace('avatars/', '');
-        }
-        
-        return `/avatars/${cleanAvatar}`;
-    };
+    if (!tableState.playerNames[i]) return null;
 
     const avatarJson = avatars?.find(avt => avt.userId === tableState.playerIds[i]);
     let avatar = avatarJson?.avatar;
@@ -197,12 +180,16 @@ const Player = ({
     const currentUserId = sessionStorage.getItem('userId');
     const userIdAvatar = `avatar_${currentUserId}`;
     if (tableState.playerIds[i] === currentUserId) {
-        const sessionAvatar = sessionStorage.getItem(userIdAvatar);        if (sessionAvatar) {
+        const sessionAvatar = sessionStorage.getItem(userIdAvatar);        
+        if (sessionAvatar) {
             avatar = sessionAvatar;
         }
     }
 
-    const avatarSrc = getAvatarSrc(avatar);
+    // Priorité : 
+    // 1. Avatar récupéré du serveur via le hook
+    // 2. Avatar du tableState ou sessionStorage formaté
+    const avatarSrc = fetchedAvatarUrl || getFullAvatarUrl(avatar);
 
     const playerRef = playerRefs[i];
     const playerRect = playerRef.current?.getBoundingClientRect();

@@ -88,6 +88,37 @@ export const notifyUserConnected = async (userId, username) => {
   }
 };
 
+// 🔗 Récupérer l'avatar d'un utilisateur
+export const getUserAvatar = async (userId) => {
+  try {
+    console.log(`📡 [API] Récupération de l'avatar pour l'userId: ${userId}`);
+    const response = await api.get(`/api/users/avatar/${userId}`);
+    console.log(`✅ [API] Réponse avatar pour ${userId}:`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ [API] Erreur lors de la récupération de l'avatar pour l'utilisateur ${userId}:`, error);
+    return { success: false, avatar_url: null };
+  }
+};
+
+// 🔗 Formater l'URL complète de l'avatar
+export const getFullAvatarUrl = (avatarPath) => {
+  if (!avatarPath) return '/avatars/0.png';
+  if (avatarPath.startsWith('http') || avatarPath.startsWith('blob:')) return avatarPath;
+  
+  const baseUrl = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
+  
+  // Si l'avatar commence par /uploads ou uploads
+  if (avatarPath.startsWith('/uploads')) return `${baseUrl}${avatarPath}`;
+  if (avatarPath.startsWith('uploads/')) return `${baseUrl}/${avatarPath}`;
+  
+  // Si c'est un avatar par défaut (/avatars/...)
+  if (avatarPath.startsWith('/avatars/')) return avatarPath;
+  if (avatarPath.startsWith('avatars/')) return `/${avatarPath}`;
+  
+  return `/avatars/${avatarPath}`;
+};
+
 export const publicApi = axios.create({
   baseURL: BASE_URL,
   headers: {

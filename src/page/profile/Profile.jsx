@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Nav from '../../component/nav/Nav';
 import './Profile.scss';
 import { updateProfile, uploadAvatar } from '../../services/authService';
+import { getFullAvatarUrl } from '../../services/api';
 
 const avatars = Array.from({ length: 19 }, (_, i) => `/avatars/${i}.png`);
 
@@ -53,15 +54,6 @@ const Profile = () => {
         }
     };
 
-    const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
-
-    const getAvatarSrc = (avatar) => {
-        if (!avatar) return '/avatars/0.png';
-        if (avatar.startsWith('http') || avatar.startsWith('blob:')) return avatar;
-        if (avatar.startsWith('/uploads')) return `${BASE_URL}${avatar}`;
-        return avatar; // Cas pour les avatars par défaut /avatars/x.png
-    };
-
     return (
         <div className="profile-container">
             <Nav />
@@ -69,7 +61,7 @@ const Profile = () => {
                 <h2>Mon Profil</h2>
                 <div className="profile-card">
                     <img 
-                        src={getAvatarSrc(selectedAvatar)} 
+                        src={getFullAvatarUrl(selectedAvatar)} 
                         alt="Avatar" 
                         className="profile-avatar" 
                     />
