@@ -488,6 +488,29 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
         setBetSize(Math.max((betSize - 1 ), tableState.legalActions.chipRange.min));
     }
 
+    // Caching de la texture de table
+    const [tableTextureUrl, setTableTextureUrl] = useState(tableTexture);
+
+    useEffect(() => {
+        const cachedTexture = sessionStorage.getItem('tableTextureCache');
+        if (cachedTexture) {
+            setTableTextureUrl(cachedTexture);
+        } else {
+            const img = new Image();
+            img.src = tableTexture;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const dataUrl = canvas.toDataURL('image/png');
+                sessionStorage.setItem('tableTextureCache', dataUrl);
+                setTableTextureUrl(dataUrl);
+            };
+        }
+    }, []);
+
     return (
         <div key={tableId} className="game-container">
             <ToastContainer />
@@ -548,7 +571,7 @@ const Game = ({tableId, tableSessionIdShared, setTableSessionId, cavePlayer }) =
                     }}
                 >
                     <img 
-                        src={tableTexture} 
+                        src={tableTextureUrl} 
                         alt=""
                         style={{
                             width: 'calc(408px)',

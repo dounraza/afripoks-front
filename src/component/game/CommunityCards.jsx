@@ -119,4 +119,4 @@ const CommunityCards = ({
 
 }
 
-export default CommunityCards;
+export default React.memo(CommunityCards);

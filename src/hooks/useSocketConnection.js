@@ -126,11 +126,16 @@ export const useSocketConnection = (onUsersCountUpdate, onTableUsersUpdate) => {
       }
     });
 
-    // ✅ FALLBACK : Récupérer via API toutes les 5 secondes
-    // (au cas où le socket n'envoie pas les mises à jour)
+    // ✅ FALLBACK : Récupérer via API si socket déconnecté ou toutes les 30 secondes en backup
     apiIntervalRef.current = setInterval(() => {
-      if (socketConnectedRef.current) {
+      if (!socketConnectedRef.current) {
+        console.log('🔄 [API FALLBACK] Socket déconnecté, tentative via API...');
         fetchConnectedUsersFromAPI();
+      } else {
+        // En mode connecté, on ne fait un appel que toutes les 30s en sécurité
+        if (Math.random() < 0.1) { // 10% de chance toutes les 5s = environ 1 fois par minute
+           fetchConnectedUsersFromAPI();
+        }
       }
     }, 5000);
 

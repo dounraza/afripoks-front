@@ -614,4 +614,15 @@ const Player = ({
     );
 };
 
-export default Player;
+export default React.memo(Player, (prevProps, nextProps) => {
+    // Ne re-rendre que si les props critiques changent
+    return prevProps.chips === nextProps.chips &&
+           prevProps.tableState === nextProps.tableState &&
+           prevProps.winData === nextProps.winData &&
+           prevProps.sb === nextProps.sb &&
+           prevProps.bb === nextProps.bb &&
+           prevProps.dealer === nextProps.dealer &&
+           prevProps.foldedPlayers === nextProps.foldedPlayers &&
+           prevProps.isRevealFinished === nextProps.isRevealFinished &&
+           prevProps.i === nextProps.i;
+});

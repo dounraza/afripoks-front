@@ -170,4 +170,9 @@ const Pots = ({ tableState, jetonMany, jeton, potRef, animatePotToWinner, winner
     );
 };
 
-export default Pots;
+export default React.memo(Pots, (prevProps, nextProps) => {
+    return prevProps.tableState === nextProps.tableState &&
+           prevProps.animatePotToWinner === nextProps.animatePotToWinner &&
+           prevProps.winnerSeats === nextProps.winnerSeats &&
+           prevProps.shouldShareCards === nextProps.shouldShareCards;
+});
