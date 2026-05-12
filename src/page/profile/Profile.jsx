@@ -6,8 +6,10 @@ import { updateProfile, uploadAvatar } from '../../services/authService';
 const avatars = Array.from({ length: 19 }, (_, i) => `/avatars/${i}.png`);
 
 const Profile = () => {
+     
+    const userIdAvatar = "avatar" + sessionStorage.getItem('userId');
     const [pseudo, setPseudo] = useState(sessionStorage.getItem('userName') || '');
-    const [selectedAvatar, setSelectedAvatar] = useState(sessionStorage.getItem('avatar') || '/avatars/0.png');
+    const [selectedAvatar, setSelectedAvatar] = useState(sessionStorage.getItem(userIdAvatar) || '/avatars/0.png');
     const [selectedFile, setSelectedFile] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -36,10 +38,10 @@ const Profile = () => {
             if (selectedFile) {
                 avatarUrl = await uploadAvatar(selectedFile);
             }
-
+            const userIdAvatar = "avatar" + userId;
             await updateProfile(userId, pseudo, avatarUrl);
             sessionStorage.setItem('userName', pseudo);
-            sessionStorage.setItem('avatar', avatarUrl);
+            sessionStorage.setItem(userIdAvatar, avatarUrl);
             alert('Profil mis à jour !');
             setShowModal(false);
         } catch (error) {

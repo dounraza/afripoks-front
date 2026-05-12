@@ -195,8 +195,9 @@ const Player = ({
 
     // Fallback pour le joueur local : utiliser l'avatar du sessionStorage s'il est plus récent/différent
     const currentUserId = sessionStorage.getItem('userId');
+     const userIdAvatar = "avatar" + currentUserId;
     if (tableState.playerIds[i] === currentUserId) {
-        const sessionAvatar = sessionStorage.getItem('avatar');
+        const sessionAvatar = sessionStorage.getItem(userIdAvatar);
         if (sessionAvatar) {
             avatar = sessionAvatar;
         }
@@ -290,7 +291,7 @@ const Player = ({
                             }
                         `}</style>
                         <img
-                            src={BASE_URL+sessionStorage.getItem('avatar') }
+                            src={BASE_URL+sessionStorage.getItem(userIdAvatar) }
                             alt="avatar"
                             style={{
                                 objectFit: 'cover',
