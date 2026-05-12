@@ -36,6 +36,10 @@ const Tables = () => {
     const { onlineUsers } = useContext(OnlineUserContext);
     const { joinedTables } = useContext(JoinedTableContext);
     
+    useEffect(() => {
+        console.log("Tables.jsx [joinedTables updated]:", joinedTables);
+    }, [joinedTables]);
+    
     // ✅ Utiliser la longueur du contexte OnlineUserContext au lieu du hook
     const connectedCount = onlineUsers?.length || 0;
 
@@ -84,7 +88,7 @@ const Tables = () => {
     }, []);
 
     // ✅ Émettre "join_table" quand l'utilisateur navigue vers une table
-    const goToTable = (tableId, caveValue) => {
+    const goToTable = (tableId, caveValue, isRejoin = false) => {
         const userId = sessionStorage.getItem('userId');
         const username = sessionStorage.getItem('userName');
         
@@ -94,7 +98,7 @@ const Tables = () => {
         isNavigatingRef.current = true;
         sessionStorage.setItem('lastTableId', String(tableId));
         setLastTableId(tableId);
-        navigate(`/game/${tableId}`, { state: { cave: caveValue } });
+        navigate(`/game/${tableId}`, { state: { cave: caveValue, isRejoin } });
     };
 
     const verifyCave = async (id) => {
@@ -206,8 +210,13 @@ const Tables = () => {
                                         <button
                                             className="rejoin-main-btn"
                                             onClick={() => {
-                                                setSelectedTableId(lastTable.id);
-                                                setShowModalCave(true);
+                                                const isRejoin = joinedTables.includes(parseInt(lastTable.id));
+                                                if (isRejoin) {
+                                                    goToTable(lastTable.id, null, true);
+                                                } else {
+                                                    setSelectedTableId(lastTable.id);
+                                                    setShowModalCave(true);
+                                                }
                                             }}
                                         >
                                             <RotateCcw size={15} />
@@ -253,11 +262,16 @@ const Tables = () => {
                                     <button
                                         className="featured-play-btn"
                                         onClick={() => {
-                                            setSelectedTableId(tables[0].id);
-                                            setShowModalCave(true);
+                                            const isRejoin = joinedTables.includes(parseInt(tables[0].id));
+                                            if (isRejoin) {
+                                                goToTable(tables[0].id, null, true);
+                                            } else {
+                                                setSelectedTableId(tables[0].id);
+                                                setShowModalCave(true);
+                                            }
                                         }}
                                     >
-                                        Jouer
+                                        {joinedTables.includes(parseInt(tables[0].id)) ? 'Rejoindre' : 'Jouer'}
                                     </button>
                                 </div>
                             </div>
@@ -299,15 +313,25 @@ const Tables = () => {
                                                     </span>
                                                 </div>
                                             </div>
-                                            <button
-                                                className="lobby-play-btn"
-                                                onClick={() => {
-                                                    setSelectedTableId(table.id);
-                                                    setShowModalCave(true);
-                                                }}
-                                            >
-                                                Jouer
-                                            </button>
+                                            {joinedTables.includes(parseInt(table.id)) ? (
+                                                <button
+                                                    className="lobby-play-btn"
+                                                    style={{ backgroundColor: '#4CAF50' }}
+                                                    onClick={() => goToTable(table.id, null, true)}
+                                                >
+                                                    Rejoindre
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="lobby-play-btn"
+                                                    onClick={() => {
+                                                        setSelectedTableId(table.id);
+                                                        setShowModalCave(true);
+                                                    }}
+                                                >
+                                                    Jouer
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import Nav from "../../component/nav/Nav";
 import Game from "../../component/game/Game";
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from "react-toastify";
 import { getById } from "../../services/tableServices";
 import { getSolde } from "../../services/soldeService";
+import { JoinedTableContext } from "../../contexts/JoinedTableContext";
 
 import "./GameTable.scss";
 
@@ -13,16 +14,19 @@ const GameTable = () => {
     const { tableSessionIdShared } = useParams();
     const [tableSessionId, setTableSessionId] = useState();
     const navigate = useNavigate();
+    const { joinedTables } = useContext(JoinedTableContext);
 
-    const [cavePlayer, setCavePlayer] = useState(0);
+    const [cavePlayer, setCavePlayer] = useState(null);
     const routeLocation = useLocation();
 
     useEffect(() => {
         const userId = sessionStorage.getItem('userId');
         
         const initGame = async () => {
-            // 1. Vérifier le solde
-            if (userId) {
+            const isRejoin = routeLocation.state?.isRejoin || joinedTables.includes(parseInt(tableid));
+
+            // 1. Vérifier le solde (seulement si ce n'est pas un rejoin)
+            if (userId && !isRejoin) {
                 let currentSolde = 0;
                 await getSolde(userId, (val) => currentSolde = val);
                 if (Number(currentSolde) <= 0) {
@@ -33,7 +37,9 @@ const GameTable = () => {
             }
 
             // 2. Charger la cave
-            if (routeLocation.state?.cave) {
+            if (isRejoin) {
+                setCavePlayer(0);
+            } else if (routeLocation.state?.cave) {
                 setCavePlayer(Number(routeLocation.state.cave));
             } else {
                 try {
@@ -45,7 +51,7 @@ const GameTable = () => {
             }
         };
         initGame();
-    }, [routeLocation, tableid, navigate]);
+    }, [routeLocation, tableid, navigate, joinedTables]);
 
     return (
         <>
@@ -54,7 +60,7 @@ const GameTable = () => {
                 <img src="/table-bg.jpg" alt="..." style={{ width: '100%', height: '100vh', objectFit: 'cover', position: 'absolute' }} />
                 
                 <div className="game-content" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
-                    {cavePlayer > 0 && (
+                    {cavePlayer !== null && (
                         <Game
                         key={tableid}
                         tableId={tableid}

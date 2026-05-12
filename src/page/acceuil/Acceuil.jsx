@@ -3,9 +3,11 @@ import './acceuil.scss';
 import { FaHome, FaGamepad, FaTrophy, FaPlay, FaSignInAlt } from 'react-icons/fa';
 import { getAll } from '../../services/tableServices';
 import { useNavigate } from "react-router-dom";
-import { Users } from "lucide-react";
+import { Users, Wallet, RotateCcw } from "lucide-react";
 import Nav from "../../component/nav/Nav";
 import { JoinedTableContext } from '../../contexts/JoinedTableContext';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import tableImg1 from '../../styles/image/table/1.jpg';
 import tableImg2 from '../../styles/image/table/2.jpg';
 import tableImg3 from '../../styles/image/table/3.jpg';
@@ -26,10 +28,17 @@ const Acceuil = () => {
     const [solde, setSolde] = useState(0);
     const navigate = useNavigate();
     
+    const [lastTableId, setLastTableId] = useState(() => {
+        const saved = sessionStorage.getItem('lastTableId');
+        return saved ? Number(saved) : null;
+    });
+
     const userId = sessionStorage.getItem('userId');
 
     const isTableJoined = (tableId) => {
-        return joinedTables.includes(parseInt(tableId));
+        const joined = joinedTables.includes(parseInt(tableId));
+        if (joined) console.log(`Table ${tableId} is joined!`);
+        return joined;
     };
 
     const tableImages = useMemo(() => [
@@ -60,11 +69,11 @@ const Acceuil = () => {
             if (solde >= Number(cave)) {
                 goToTable(selectedTableId, cave);
             } else {
-                alert("Votre solde est insuffisant !");
+                toast.error("Votre solde est insuffisant !");
                 return;
             }
         } else {
-            alert(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
+            toast.error(`La cave minimale est ${caveMin.toLocaleString()} Ar`);
             return;
         }
 
@@ -75,6 +84,10 @@ const Acceuil = () => {
 
     const playGame = () => verifyCave(selectedTableId);
 
+    const lastTable = lastTableId
+        ? tables.find(t => Number(t.id) === Number(lastTableId))
+        : null;
+
     const filteredTables = useMemo(() => {
         return tables.filter(t => {
             const matchesGame = gameFilter === 'all' || t.gameType === gameFilter;
@@ -83,8 +96,10 @@ const Acceuil = () => {
         });
     }, [tables, gameFilter, searchTerm]);
 
-    const goToTable = (tableId, caveValue) => {
-        navigate(`/game/${tableId}`, { state: { cave: caveValue } });
+    const goToTable = (tableId, caveValue, isRejoin = false) => {
+        sessionStorage.setItem('lastTableId', String(tableId));
+        setLastTableId(tableId);
+        navigate(`/game/${tableId}`, { state: { cave: caveValue, isRejoin } });
     };
 
     const renderContent = () => {
@@ -129,6 +144,54 @@ const Acceuil = () => {
 
         return (
             <div className="cash-section">
+                {lastTable && (
+                    <div className="section-container rejoin-section">
+                        <div className="section-header">
+                            <h3 className="section-title">
+                                <RotateCcw size={16} />
+                                &nbsp;Reprendre la partie
+                            </h3>
+                        </div>
+
+                        <div className="rejoin-banner">
+                            <div className="rejoin-banner-left">
+                                <div className="rejoin-table-name">{lastTable.name}</div>
+                                <div className="rejoin-meta">
+                                    <span><Users size={13} /> {sitCounts.get(String(lastTable.id)) || 0} joueurs</span>
+                                    <span>SB {(lastTable?.smallBlind ?? 0).toLocaleString()} / BB {(lastTable?.bigBlind ?? 0).toLocaleString()} Ar</span>
+                                    <span><Wallet size={13} /> {(lastTable?.cave ?? 0).toLocaleString()} Ar</span>
+                                </div>
+                            </div>
+                            <div className="rejoin-banner-right">
+                                <button
+                                    className="rejoin-main-btn"
+                                    onClick={() => {
+                                        const isRejoin = joinedTables.includes(parseInt(lastTable.id));
+                                        if (isRejoin) {
+                                            goToTable(lastTable.id, null, true);
+                                        } else {
+                                            setSelectedTableId(lastTable.id);
+                                            setShowModalCave(true);
+                                        }
+                                    }}
+                                >
+                                    <RotateCcw size={15} />
+                                    Rejoindre
+                                </button>
+                                <button
+                                    className="rejoin-dismiss-btn"
+                                    onClick={() => {
+                                        sessionStorage.removeItem('lastTableId');
+                                        setLastTableId(null);
+                                    }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="filter-controls">
                     <input 
                         type="text" 
@@ -156,7 +219,7 @@ const Acceuil = () => {
                         <div key={table.id} 
                              className="lobby-card" 
                              style={{ backgroundImage: `url(${tableImages[table.id % tableImages.length]})` }}
-                             onClick={() => joined ? goToTable(table.id, null) : handleJoinClick(table.id)}>
+                             onClick={() => joined ? goToTable(table.id, null, true) : handleJoinClick(table.id)}>
                             
                             <h4 className="lobby-card-title"><i>{table.name}</i></h4>
                             
@@ -191,6 +254,7 @@ const Acceuil = () => {
 
     return (
         <div className='dashboard-container'>
+            <ToastContainer />
             <Nav />
 
             <nav className="tabs-nav" style={{ marginTop: '80px' }}>
