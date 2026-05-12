@@ -7,7 +7,8 @@ const avatars = Array.from({ length: 19 }, (_, i) => `/avatars/${i}.png`);
 
 const Profile = () => {
      
-    const userIdAvatar = "avatar" + sessionStorage.getItem('userId');
+    const userId = sessionStorage.getItem('userId');
+    const userIdAvatar = `avatar_${userId}`;
     const [pseudo, setPseudo] = useState(sessionStorage.getItem('userName') || '');
     const [selectedAvatar, setSelectedAvatar] = useState(sessionStorage.getItem(userIdAvatar) || '/avatars/0.png');
     const [selectedFile, setSelectedFile] = useState(null);
@@ -38,7 +39,7 @@ const Profile = () => {
             if (selectedFile) {
                 avatarUrl = await uploadAvatar(selectedFile);
             }
-            const userIdAvatar = "avatar" + userId;
+            const userIdAvatar = `avatar_${userId}`;
             await updateProfile(userId, pseudo, avatarUrl);
             sessionStorage.setItem('userName', pseudo);
             sessionStorage.setItem(userIdAvatar, avatarUrl);

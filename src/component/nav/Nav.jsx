@@ -39,7 +39,7 @@ const Nav = () => {
         logout();
         navigate("/login");
     };
-     const userIdAvatar = "avatar" + userId;
+    const userIdAvatar = `avatar_${userId}`;
     const avatar = sessionStorage.getItem(userIdAvatar) || '/avatars/0.png';
     const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5000';
 

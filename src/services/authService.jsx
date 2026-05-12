@@ -36,14 +36,17 @@ export const login = async (email, password) => {
   try {
     const data= { email: email, password: password }
     const response = await axios.post(API_URL, data);
-     const userIdAvatar = "avatar" + id;
-    const { accessToken, name, id, avatar_url } = response.data;
+     const { accessToken, name, id, avatar_url } = response.data;
 
     sessionStorage.setItem('accessToken', accessToken);
     sessionStorage.setItem('userName', name);
     sessionStorage.setItem('userId', id);
      
-    if (avatar_url) sessionStorage.setItem(userIdAvatar, avatar_url);
+    if (avatar_url) {
+      sessionStorage.setItem(`avatar_${id}`, avatar_url);
+    } else {
+      sessionStorage.removeItem(`avatar_${id}`);
+    }
 
     onlineUsersSocket.emit('online-users:join', id);
 
