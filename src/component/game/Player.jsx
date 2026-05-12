@@ -302,7 +302,7 @@ const Player = ({
                 </div>
                 <div className={`player-cards ${cardCount > 2 ? 'omaha' : ''}`}>
                     {(winData?.allCards ?? []).length > 0 ? (
-                        <div className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`}>
+                        <div className={`card-containers ${cardCount > 2 ? 'omaha' : ''}`} style={{ marginTop: '2em' }}>
                             {(winData.allCards[i] ?? []).length > 0 && !foldedPlayers.current.has(i) && (
                                 <>
                                     {(winData.allCards[i]).map((card, idx) => (
