@@ -97,7 +97,7 @@ export const getUserAvatar = async (userId) => {
     return response.data;
   } catch (error) {
     console.error(`❌ [API] Erreur lors de la récupération de l'avatar pour l'utilisateur ${userId}:`, error);
-    return { success: false, avatar_url: null };
+    return { success: true, avatar_url: '/avatars/0.png' };
   }
 };
 

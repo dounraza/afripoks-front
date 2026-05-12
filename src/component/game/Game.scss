@@ -149,6 +149,7 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                flex-wrap: nowrap;
 
                 &.holdem {
                     .card {
@@ -163,8 +164,9 @@
 
                 &.omaha {
                     .card {
-                        width: 3.4rem;
-                        margin: 0 -0.6rem; 
+                        width: 2.8rem;
+                        margin: 0 -0.8rem; 
+                        flex-shrink: 1.5;
                         
                         img {
                             box-shadow: 0 3px 8px rgba(0,0,0,0.6);
@@ -178,6 +180,7 @@
                     margin: 0 -0.6rem; 
                     transition: transform 0.2s;
                     position: relative;
+                    flex-shrink: 0;
 
                     &:hover {
                         transform: translateY(-5px);
@@ -335,16 +338,25 @@
         &.seat6 {
             top: 70%;
             left: 91%;
+            .player-cards {
+                transform: translateX(-1.5rem);
+            }
         }
 
         &.seat5 {
             top: 33.5%;
             left: 91%;
+            .player-cards {
+                transform: translateX(-1.5rem);
+            }
         }
 
         &.seat4 {
             top: 9%;
             left: 89%;
+            .player-cards {
+                transform: translateX(-1.5rem);
+            }
         }
 
         &.seat3 {
@@ -355,16 +367,25 @@
         &.seat2 {
             top: 9%;
             left: -13%;
+            .player-cards {
+                transform: translateX(0.6rem);
+            }
         }
 
         &.seat1 {
             top: 33.5%;
             left: -15%;
+            .player-cards {
+                transform: translateX(0.6rem);
+            }
         }
 
         &.seat0 {
             top: 70%;
             left: -15%;
+            .player-cards {
+                transform: translateX(0.6rem);
+            }
         }
     }
 
