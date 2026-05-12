@@ -291,7 +291,7 @@ const Player = ({
                             }
                         `}</style>
                         <img
-                            src={BASE_URL+sessionStorage.getItem(userIdAvatar) }
+                            src={avatarSrc || '/avatars/0.png'}
                             alt="avatar"
                             style={{
                                 objectFit: 'cover',
